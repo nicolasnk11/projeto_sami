@@ -1,0 +1,14 @@
+# Ignorar ambiente virtual
+venv/
+env/
+.env
+
+# Ignorar arquivos compilados do Python
+__pycache__/
+*.pyc
+
+# Ignorar banco de dados local (Opcional, mas recomendado para produção)
+db.sqlite3
+
+# Ignorar pastas de mídia (uploads locais de teste)
+media/

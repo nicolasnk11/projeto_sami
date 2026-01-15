@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="mb-4">
+        <h3 class="fw-bold text-dark"><i class="bi bi-gear-wide-connected me-2 text-primary"></i>Gestão Acadêmica</h3>
+        <p class="text-muted">Administre as bases de dados e configurações do sistema.</p>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden hover-up">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
+                            <i class="bi bi-people-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Turmas</h5>
+                            <small class="text-muted">Estrutura Escolar</small>
+                        </div>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1">{{ total_turmas }}</h2>
+                    <p class="text-muted small mb-4">Turmas cadastradas no ano letivo.</p>
+                    <a href="{% url 'gerenciar_turmas' %}" class="btn btn-outline-primary w-100 rounded-pill fw-bold stretched-link">
+                        Gerenciar Turmas <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden hover-up">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-3">
+                            <i class="bi bi-stack fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Banco de Itens</h5>
+                            <small class="text-muted">Avaliação</small>
+                        </div>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1">{{ total_questoes }}</h2>
+                    <p class="text-muted small mb-4">Questões disponíveis para provas.</p>
+                    <a href="{% url 'listar_questoes' %}" class="btn btn-outline-success w-100 rounded-pill fw-bold stretched-link">
+                        Acessar Banco <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden hover-up">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info me-3">
+                            <i class="bi bi-diagram-3-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Matriz Referência</h5>
+                            <small class="text-muted">Pedagógico</small>
+                        </div>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1">{{ total_descritores }}</h2>
+                    <p class="text-muted small mb-4">Descritores/Habilidades mapeados.</p>
+                    <a href="{% url 'listar_descritores' %}" class="btn btn-outline-info w-100 rounded-pill fw-bold stretched-link">
+                        Ver Matriz <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 bg-dark text-white overflow-hidden">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="bi bi-cloud-arrow-up-fill fs-3 text-warning"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Importação em Massa</h5>
+                            <p class="mb-0 opacity-75 small">Carregue dados de Alunos e Questões via planilhas Excel/CSV.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'importar_alunos' %}" class="btn btn-light fw-bold px-4 rounded-pill">
+                            <i class="bi bi-people me-2"></i> Importar Alunos
+                        </a>
+                        <a href="{% url 'importar_questoes' %}" class="btn btn-warning fw-bold px-4 rounded-pill">
+                            <i class="bi bi-file-earmark-text me-2"></i> Importar Questões
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-up { transition: transform 0.2s ease; }
+    .hover-up:hover { transform: translateY(-5px); }
+</style>
+{% endblock %}

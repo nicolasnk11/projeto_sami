@@ -1,0 +1,144 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0 text-primary"><i class="bi bi-stack me-2"></i>Banco de Questões</h4>
+            <p class="text-muted small mb-0">Montando prova: <strong>{{ avaliacao.titulo }}</strong> ({{ avaliacao.disciplina.nome }})</p>
+        </div>
+        <div>
+            <span class="badge bg-light text-dark border p-2 me-2">
+                <span id="contador">0</span> selecionadas
+            </span>
+            <button type="button" onclick="document.getElementById('formQuestoes').submit()" class="btn btn-success fw-bold shadow-sm">
+                <i class="bi bi-check-lg me-2"></i> Concluir Prova
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4 bg-light">
+        <div class="card-body py-3">
+            <form method="get" class="row g-2 align-items-center">
+                
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" name="busca" class="form-control border-start-0" placeholder="Buscar no enunciado..." value="{{ filtro_busca }}">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="dificuldade" class="form-select" onchange="this.form.submit()">
+                        <option value="">Dificuldade (Todas)</option>
+                        <option value="F" {% if filtro_dif == 'F' %}selected{% endif %}>Fácil</option>
+                        <option value="M" {% if filtro_dif == 'M' %}selected{% endif %}>Média</option>
+                        <option value="D" {% if filtro_dif == 'D' %}selected{% endif %}>Difícil</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="serie" class="form-select" onchange="this.form.submit()">
+                        <option value="">Série (Todas)</option>
+                        <option value="1" {% if filtro_serie == '1' %}selected{% endif %}>1º Ano</option>
+                        <option value="2" {% if filtro_serie == '2' %}selected{% endif %}>2º Ano</option>
+                        <option value="3" {% if filtro_serie == '3' %}selected{% endif %}>3º Ano</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="descritor" class="form-select" onchange="this.form.submit()">
+                        <option value="">Descritor / Habilidade</option>
+                        {% for d in descritores %}
+                            <option value="{{ d.id }}" {% if filtro_desc == d.id %}selected{% endif %}>
+                                {{ d.codigo }} - {{ d.descricao|truncatechars:30 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2 text-end">
+                    <a href="{% url 'montar_prova' avaliacao.id %}" class="btn btn-outline-secondary w-100" title="Limpar Filtros">
+                        <i class="bi bi-x-circle me-1"></i> Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <form method="post" id="formQuestoes">
+        {% csrf_token %}
+        
+        <div class="row g-3">
+            {% for q in questoes %}
+            <div class="col-12">
+                <div class="card border shadow-sm h-100 card-questao">
+                    <div class="card-body d-flex align-items-start">
+                        
+                        <div class="form-check mt-1 me-3">
+                            <input class="form-check-input fs-4 border-2 border-primary checkbox-item" type="checkbox" name="questoes_selecionadas" value="{{ q.id }}" id="q{{ q.id }}" onchange="atualizarContador()">
+                        </div>
+
+                        <div class="w-100 pointer" onclick="document.getElementById('q{{ q.id }}').click()">
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>
+                                    <span class="badge bg-light text-dark border me-1">
+                                        {% if q.descritor %}{{ q.descritor.codigo }} - {{ q.descritor.descricao|truncatechars:50 }}{% else %}Geral{% endif %}
+                                    </span>
+                                    <span class="badge bg-white text-secondary border">{{ q.serie }}º Ano</span>
+                                </div>
+                                
+                                {% if q.dificuldade == 'F' %}
+                                    <span class="badge bg-success">Fácil</span>
+                                {% elif q.dificuldade == 'M' %}
+                                    <span class="badge bg-warning text-dark">Média</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Difícil</span>
+                                {% endif %}
+                            </div>
+                            
+                            <p class="mb-2 fw-bold text-dark">{{ q.enunciado }}</p>
+                            
+                            <div class="p-2 bg-light rounded small text-muted border-start border-4 border-success">
+                                <strong>Gabarito: {{ q.gabarito }}</strong> | Habilidade: {{ q.descritor.tema|default:'-' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="text-muted opacity-50 mb-3"><i class="bi bi-search display-1"></i></div>
+                <h5>Nenhuma questão encontrada com esses filtros.</h5>
+                <a href="{% url 'montar_prova' avaliacao.id %}" class="btn btn-primary btn-sm mt-2">Limpar busca</a>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+
+</div>
+
+<script>
+    function atualizarContador() {
+        const checkboxes = document.querySelectorAll('.checkbox-item:checked');
+        document.getElementById('contador').innerText = checkboxes.length;
+        
+        // Efeito visual no card selecionado
+        document.querySelectorAll('.card-questao').forEach(card => {
+            const check = card.querySelector('.checkbox-item');
+            if(check.checked) {
+                card.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+            } else {
+                card.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+            }
+        });
+    }
+</script>
+
+<style>
+    .pointer { cursor: pointer; }
+    .card-questao { transition: all 0.2s; }
+    .card-questao:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+</style>
+{% endblock %}

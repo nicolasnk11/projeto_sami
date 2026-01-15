@@ -1,0 +1,152 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary bg-gradient text-white p-4 rounded-top-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-people-fill me-2"></i> Importação de Alunos</h4>
+                    <small class="opacity-75">Cadastre turmas e alunos em massa via Excel</small>
+                </div>
+
+                <div class="card-body p-5">
+                    
+                    <div class="row mb-4 align-items-center">
+                        <div class="col-md-7">
+                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-1-circle-fill me-2"></i>Prepare seu arquivo</h6>
+                            <p class="text-muted small mb-2">Sua planilha deve conter exatamente estas colunas:</p>
+                            
+                            <div class="table-responsive border rounded shadow-sm">
+                                <table class="table table-sm table-bordered mb-0 text-center small" style="font-family: 'Consolas', monospace;">
+                                    <thead style="background-color: #1D6F42; color: white;">
+                                        <tr>
+                                            <th>A</th>
+                                            <th>B</th>
+                                            <th>C</th>
+                                        </tr>
+                                        <tr class="bg-light text-dark fw-bold">
+                                            <td>Nome</td>
+                                            <td>Turma</td>
+                                            <td>Série</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white text-muted">
+                                        <tr><td>Nicolas Castro</td><td>3º Ano B</td><td>3</td></tr>
+                                        <tr><td>Ana Souza</td><td>1º Ano A</td><td>1</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-5 text-center mt-3 mt-md-0">
+                            <div class="alert alert-light border-dashed">
+                                <i class="bi bi-file-earmark-spreadsheet text-success display-4"></i>
+                                <p class="small text-muted mt-2 mb-2">Não sabe como formatar?</p>
+                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="alert('Funcionalidade em desenvolvimento!')">
+                                    <i class="bi bi-download me-1"></i> Baixar Modelo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25 my-4">
+
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-2-circle-fill me-2"></i>Faça o Upload</h6>
+                    
+                    <form method="post" enctype="multipart/form-data" id="uploadForm">
+                        {% csrf_token %}
+                        
+                        <div class="upload-zone text-center p-5 border-2 border-dashed rounded-3 bg-light position-relative mb-4" id="dropZone">
+                            <i class="bi bi-cloud-arrow-up-fill text-primary display-3 mb-3"></i>
+                            <h5 class="fw-bold text-dark">Clique para selecionar</h5>
+                            <p class="text-muted small">ou arraste o arquivo .xlsx aqui</p>
+                            
+                            {{ form.arquivo_excel }}
+                        </div>
+
+                        <div id="fileInfo" class="alert alert-success d-none align-items-center">
+                            <i class="bi bi-file-earmark-excel-fill me-2 fs-5"></i>
+                            <div>
+                                <strong id="fileName">arquivo.xlsx</strong>
+                                <br><small>Pronto para importar</small>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm transition-hover">
+                                <i class="bi bi-check-lg me-2"></i> PROCESSAR IMPORTAÇÃO
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-light text-muted">Cancelar e Voltar</a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-dashed {
+        border: 2px dashed #dee2e6;
+    }
+    
+    .upload-zone {
+        border: 2px dashed #cbd5e1;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: #0d6efd;
+        background-color: #f1f8ff !important;
+    }
+
+    /* Esconde o input original mas mantém funcionalidade */
+    input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+    
+    .transition-hover:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+<script>
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const dropZone = document.getElementById('dropZone');
+
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            fileName.textContent = this.files[0].name;
+            fileInfo.classList.remove('d-none');
+            fileInfo.classList.add('d-flex');
+            dropZone.classList.add('border-success');
+            dropZone.classList.remove('border-dashed');
+            dropZone.style.backgroundColor = "#e8fdf0";
+        }
+    });
+
+    // Efeitinho visual de drag-and-drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+</script>
+
+{% endblock %}

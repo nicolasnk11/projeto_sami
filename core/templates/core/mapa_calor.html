@@ -1,0 +1,102 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>Mapa de Calor da Turma</h4>
+            <p class="text-muted small mb-0">{{ avaliacao.titulo }} - {{ avaliacao.turma.nome }}</p>
+        </div>
+        <a href="{% url 'dashboard' %}?avaliacao={{ avaliacao.id }}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="bi bi-arrow-left me-2"></i> Voltar
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0" style="font-size: 0.85rem;">
+                    
+                    <thead class="bg-light text-center align-middle">
+                        <tr>
+                            <th class="bg-white border-0 text-start ps-4 py-3" style="min-width: 200px;">ALUNO</th>
+                            <th class="bg-white border-0" style="width: 80px;">NOTA</th>
+                            
+                            {% for item in itens %}
+                            <th class="py-2" style="width: 45px; min-width: 45px;" title="{{ item.descritor.descricao|default:'Sem descritor' }}">
+                                <div class="small fw-bold text-muted">Q.{{ item.numero }}</div>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size: 0.6rem;">
+                                    {{ item.descritor.codigo|default:'-' }}
+                                </span>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <tbody class="align-middle">
+                        {% for linha in matriz %}
+                        <tr>
+                            <td class="fw-bold text-dark ps-4 text-truncate" style="max-width: 200px;">
+                                {{ linha.aluno.nome_completo }}
+                            </td>
+                            
+                            <td class="text-center fw-bold 
+                                {% if linha.nota >= 6 %}text-success{% else %}text-danger{% endif %}">
+                                {{ linha.nota }}
+                            </td>
+
+                            {% for q in linha.questoes %}
+                            <td class="text-center p-0">
+                                <div class="d-flex align-items-center justify-content-center" style="height: 40px;">
+                                    {% if q.acertou == True %}
+                                        <div class="rounded-1 bg-success shadow-sm" style="width: 20px; height: 20px;" title="Acertou - Q{{ q.numero }}"></div>
+                                    {% elif q.acertou == False %}
+                                        <div class="rounded-1 bg-danger bg-opacity-75 shadow-sm" style="width: 20px; height: 20px;" title="Errou - Q{{ q.numero }}"></div>
+                                    {% else %}
+                                        <div class="rounded-1 bg-light border" style="width: 20px; height: 20px;" title="Não respondeu"></div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="100" class="text-center py-5">Nenhum dado lançado ainda.</td></tr>
+                        {% endfor %}
+                    </tbody>
+
+                    <tfoot class="bg-light border-top border-2">
+                        <tr class="text-center fw-bold text-muted small">
+                            <td class="text-end pe-3 py-3">TURMA %</td>
+                            <td>-</td>
+                            {% for stat in stats_questoes %}
+                            <td class="{% if stat.perc < 50 %}text-danger{% else %}text-success{% endif %}">
+                                {{ stat.perc }}%
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tfoot>
+
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-4 mt-3 ms-2">
+        <div class="d-flex align-items-center gap-2">
+            <div class="rounded-1 bg-success shadow-sm" style="width: 15px; height: 15px;"></div>
+            <small class="text-muted">Acerto</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="rounded-1 bg-danger bg-opacity-75 shadow-sm" style="width: 15px; height: 15px;"></div>
+            <small class="text-muted">Erro</small>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    tbody tr:hover { background-color: #f8f9fa; }
+    tbody tr:hover td { color: #000; }
+</style>
+{% endblock %}

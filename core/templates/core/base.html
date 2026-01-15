@@ -1,0 +1,311 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMI | Gestão Inteligente</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+   <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-color: #3b82f6; 
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            --sidebar-bg: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.08);
+            --bg-body: #f1f5f9; 
+            --text-muted: #94a3b8;
+        }
+
+        body { 
+            background-color: var(--bg-body); 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden; /* Evita barra horizontal na página toda */
+            color: #334155;
+        }
+        
+        /* --- SIDEBAR --- */
+        .sidebar {
+            height: 100vh;
+            width: var(--sidebar-width);
+            position: fixed;
+            top: 0; left: 0;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        /* CORREÇÃO DA BARRA DE ROLAGEM ESTRANHA */
+        .custom-scrollbar {
+            overflow-y: auto; /* Rola só verticalmente */
+            overflow-x: hidden; /* Esconde a barra horizontal */
+        }
+        
+        /* Estilo da Barra de Rolagem (Fina e Escura) */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155; /* Cor cinza escuro discreto */
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        
+        /* Logo Wrapper */
+        .brand-wrapper {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0; /* Impede que a logo encolha */
+        }
+
+        .logo-img {
+            max-height: 55px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .nav-label {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        
+        .nav-link {
+            color: #cbd5e1;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            white-space: nowrap; /* Evita quebra de linha que gera scroll */
+        }
+        
+        .nav-link i {
+            font-size: 1.2rem;
+            margin-right: 14px;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            background-color: var(--sidebar-hover);
+            color: #fff;
+            transform: translateX(4px);
+        }
+        .nav-link:hover i { color: #fff; }
+        
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #2563eb 100%);
+            color: #fff;
+            box-shadow: 0 8px 20px -4px var(--primary-glow);
+            font-weight: 600;
+        }
+        .nav-link.active i { color: #fff; }
+
+        /* Conteúdo */
+        .content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            min-height: 100vh;
+        }
+        
+        /* Topbar */
+        .top-navbar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(255,255,255,0.5);
+            margin-bottom: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-profile { display: flex; align-items: center; gap: 15px; }
+        
+        .user-avatar {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .card { 
+            border: none; border-radius: 16px; background: #fff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); }
+
+        .btn-logout {
+            background-color: rgba(239, 68, 68, 0.1); color: #ef4444;
+            border: none; padding: 8px 16px; border-radius: 8px;
+            font-weight: 600; transition: all 0.2s;
+        }
+        .btn-logout:hover { background-color: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        
+        <div class="brand-wrapper">
+            <img src="{% static 'img/logo_sami.png' %}" alt="SAMI Logo" class="logo-img" 
+                 onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='block';">
+            
+            <div id="fallback-logo" style="display:none; color: #1e293b;">
+                <i class="bi bi-mortarboard-fill fs-2 text-primary"></i>
+                <div class="fw-bold mt-1" style="font-size: 1.2rem;">SAMI</div>
+            </div>
+        </div>
+        
+        <div class="d-flex flex-column flex-grow-1 overflow-auto custom-scrollbar">
+            
+            <div class="nav-label">Visão Geral</div>
+            
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-grid-fill"></i> 
+                <span>Dashboard</span>
+            </a>
+            
+            <a href="{% url 'gerenciar_avaliacoes' %}" class="nav-link {% if request.resolver_match.url_name == 'gerenciar_avaliacoes' %}active{% endif %}">
+                <i class="bi bi-clipboard-data-fill"></i> 
+                <span>Avaliações</span>
+            </a>
+
+            <div class="nav-label">Acadêmico</div>
+            
+            <a href="{% url 'lancar_nota' %}" class="nav-link {% if request.resolver_match.url_name == 'lancar_nota' %}active{% endif %}">
+                <i class="bi bi-pen-fill"></i> 
+                <span>Lançar Notas</span>
+            </a>
+            
+            <a href="{% url 'gerenciar_alunos' %}" class="nav-link {% if request.resolver_match.url_name == 'gerenciar_alunos' %}active{% endif %}">
+                <i class="bi bi-people-fill"></i> 
+                <span>Alunos & Turmas</span>
+            </a>
+
+            <div class="nav-label">Ferramentas</div>
+
+            <a href="{% url 'importar_questoes' %}" class="nav-link {% if request.resolver_match.url_name == 'importar_questoes' %}active{% endif %}">
+                <i class="bi bi-cloud-arrow-up-fill"></i> 
+                <span>Importar Questões</span>
+            </a>
+            
+            <a href="{% url 'importar_alunos' %}" class="nav-link {% if request.resolver_match.url_name == 'importar_alunos' %}active{% endif %}">
+                <i class="bi bi-person-plus-fill"></i> 
+                <span>Importar Alunos</span>
+            </a>
+
+            <div class="mt-auto"></div> <div class="nav-label">Sistema</div>
+            <a href="{% url 'painel_gestao' %}" class="nav-link {% if request.resolver_match.url_name == 'painel_gestao' %}active{% endif %}">
+                <i class="bi bi-gear-wide-connected"></i> 
+                <span>Configurações</span>
+            </a>
+        </div>
+
+        <div class="text-center pt-4 border-top border-secondary border-opacity-10 mt-2">
+            <small style="color: #64748b; font-size: 0.75rem;">SAMI v2.0 &copy; 2026</small>
+        </div>
+    </nav>
+
+    <main class="content">
+        
+        <header class="top-navbar">
+            <div class="d-flex align-items-center">
+                <h4 class="mb-0 fw-bold text-dark me-3" style="letter-spacing: -0.5px;">
+                    {% if request.resolver_match.url_name == 'dashboard' %} Visão Geral
+                    {% elif 'aluno' in request.path %} Gestão de Alunos
+                    {% elif 'avaliacao' in request.path %} Avaliações
+                    {% else %} Portal SAMI
+                    {% endif %}
+                </h4>
+            </div>
+
+            <div class="user-profile">
+                <div class="text-end d-none d-md-block">
+                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">
+                        {% if user.username == 'admin.pmbc' %}
+                            Administração Escolar
+                        {% else %}
+                            {{ user.username|title }}
+                        {% endif %}
+                    </div>
+                    <div class="text-muted" style="font-size: 0.75rem;">EEMTI Parque Maria Bernardo</div>
+                </div>
+                
+                <div class="user-avatar">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+
+                <form action="{% url 'logout' %}" method="post" class="ms-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout" title="Sair do Sistema">
+                        <i class="bi bi-power"></i>
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px;">
+                    <div class="d-flex align-items-center">
+                        {% if message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill fs-5 me-3 text-success"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="bi bi-x-circle-fill fs-5 me-3 text-danger"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill fs-5 me-3 text-info"></i>
+                        {% endif %}
+                        <div class="fw-medium">{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+        
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark mb-0"><i class="bi bi-stack me-2 text-success"></i>Banco de Questões</h3>
+        <button class="btn btn-success shadow-sm rounded-pill px-4" onclick="abrirModalCriar()">
+            <i class="bi bi-plus-lg me-2"></i> Nova Questão
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4 rounded-4">
+        <div class="card-body p-3">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                        <input type="text" name="busca" class="form-control bg-light border-0" placeholder="Buscar no enunciado..." value="{{ busca_atual }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="disciplina" class="form-select bg-light border-0" onchange="this.form.submit()">
+                        <option value="">Todas as Disciplinas</option>
+                        {% for d in disciplinas %}
+                            <option value="{{ d.id }}" {% if filtro_disciplina == d.id %}selected{% endif %}>{{ d.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-secondary w-100">Filtrar</button>
+                </div>
+                <div class="col-md-1">
+                     <a href="{% url 'listar_questoes' %}" class="btn btn-outline-secondary w-100" title="Limpar"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary">
+                        <tr>
+                            <th class="ps-4" style="width: 50px;">ID</th>
+                            <th>Enunciado</th>
+                            <th>Disciplina / Descritor</th>
+                            <th class="text-center">Nível</th>
+                            <th class="text-center">Gab.</th>
+                            <th class="text-end pe-4" style="width: 120px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in page_obj %}
+                        <tr>
+                            <td class="ps-4 text-muted small fw-bold">#{{ q.id }}</td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 400px;" title="{{ q.enunciado }}">
+                                    {% if q.imagem %}
+                                        <i class="bi bi-image-fill text-primary me-1" title="Possui imagem"></i>
+                                    {% endif %}
+                                    {{ q.enunciado }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ q.disciplina.nome }}</span>
+                                {% if q.descritor %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25" title="{{ q.descritor.descricao }}">{{ q.descritor.codigo }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if q.dificuldade == 'F' %}
+                                    <span class="badge bg-success">Fácil</span>
+                                {% elif q.dificuldade == 'M' %}
+                                    <span class="badge bg-warning text-dark">Médio</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Difícil</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center"><span class="badge bg-dark fw-bold">{{ q.gabarito }}</span></td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-primary border-0 me-1" 
+                                        onclick="abrirModalEditar(
+                                            '{{ q.id }}', 
+                                            `{{ q.enunciado|escapejs }}`, 
+                                            '{{ q.disciplina.id }}', 
+                                            '{{ q.gabarito }}', 
+                                            '{{ q.dificuldade }}', 
+                                            '{{ q.serie }}', 
+                                            '{{ q.descritor.codigo|default:'' }}', 
+                                            `{{ q.alternativa_a|escapejs }}`, 
+                                            `{{ q.alternativa_b|escapejs }}`, 
+                                            `{{ q.alternativa_c|escapejs }}`, 
+                                            `{{ q.alternativa_d|escapejs }}`, 
+                                            `{{ q.alternativa_e|default:''|escapejs }}`
+                                        )">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger border-0" onclick="abrirModalExcluir('{{ q.id }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Nenhuma questão encontrada.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if page_obj.has_other_pages %}
+            <div class="card-footer bg-white border-0 py-3">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link border-0" href="?page={{ page_obj.previous_page_number }}{% if busca_atual %}&busca={{ busca_atual }}{% endif %}{% if filtro_disciplina %}&disciplina={{ filtro_disciplina }}{% endif %}">&laquo;</a>
+                            </li>
+                        {% endif %}
+                        <li class="page-item disabled"><span class="page-link border-0 text-dark fw-bold">Página {{ page_obj.number }}</span></li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link border-0" href="?page={{ page_obj.next_page_number }}{% if busca_atual %}&busca={{ busca_atual }}{% endif %}{% if filtro_disciplina %}&disciplina={{ filtro_disciplina }}{% endif %}">&raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalQuestao" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form method="post" enctype="multipart/form-data" class="modal-content border-0 shadow-lg">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="salvar">
+            <input type="hidden" name="questao_id" id="inputQuestaoId">
+            
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="tituloModal">Nova Questão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body bg-light">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Disciplina</label>
+                        <select name="disciplina" id="inputDisciplina" class="form-select" required>
+                            {% for d in disciplinas %}
+                                <option value="{{ d.id }}">{{ d.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Cód. Descritor (Ex: D12)</label>
+                        <input type="text" name="descritor_cod" id="inputDescritor" class="form-control" placeholder="Opcional">
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold small text-primary"><i class="bi bi-image me-1"></i>Imagem de Apoio (Opcional)</label>
+                        <input type="file" name="imagem_arquivo" class="form-control" accept="image/*">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Série (1-3)</label>
+                        <input type="number" name="serie" id="inputSerie" class="form-control" value="3">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Dificuldade</label>
+                        <select name="dificuldade" id="inputDificuldade" class="form-select">
+                            <option value="F">Fácil</option>
+                            <option value="M" selected>Média</option>
+                            <option value="D">Difícil</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-success">Gabarito</label>
+                        <select name="gabarito" id="inputGabarito" class="form-select border-success fw-bold">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold small">Enunciado</label>
+                        <textarea name="enunciado" id="inputEnunciado" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <div class="col-12"><hr class="my-1"></div>
+                    
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">A</span>
+                            <input type="text" name="alternativa_a" id="inputA" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">B</span>
+                            <input type="text" name="alternativa_b" id="inputB" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">C</span>
+                            <input type="text" name="alternativa_c" id="inputC" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">D</span>
+                            <input type="text" name="alternativa_d" id="inputD" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">E</span>
+                            <input type="text" name="alternativa_e" id="inputE" class="form-control" placeholder="Opcional">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success px-4 fw-bold">Salvar Questão</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalExcluir" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" class="modal-content border-0 shadow">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="excluir">
+            <input type="hidden" name="questao_id" id="idExcluir">
+            
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-trash text-danger display-4 mb-3 d-block"></i>
+                <h5 class="fw-bold">Excluir Questão?</h5>
+                <p class="text-muted mb-0">Essa ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pt-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-danger px-4 fw-bold">Confirmar Exclusão</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function getModalInstance(id) {
+        const elemento = document.getElementById(id);
+        return bootstrap.Modal.getOrCreateInstance(elemento);
+    }
+
+    function abrirModalCriar() {
+        const form = document.querySelector('#modalQuestao form');
+        if(form) form.reset();
+
+        document.getElementById('inputQuestaoId').value = '';
+        document.getElementById('tituloModal').innerText = 'Nova Questão';
+        
+        document.getElementById('inputDisciplina').selectedIndex = 0;
+        document.getElementById('inputGabarito').selectedIndex = 0;
+        document.getElementById('inputDificuldade').selectedIndex = 1; 
+        document.getElementById('inputSerie').value = '3';
+        
+        getModalInstance('modalQuestao').show();
+    }
+
+    function abrirModalEditar(id, enun, disc, gab, dif, serie, desc, a, b, c, d, e) {
+        document.getElementById('inputQuestaoId').value = id;
+        document.getElementById('tituloModal').innerText = 'Editar Questão #' + id;
+        
+        document.getElementById('inputEnunciado').value = enun;
+        document.getElementById('inputDisciplina').value = disc;
+        document.getElementById('inputGabarito').value = gab;
+        document.getElementById('inputDificuldade').value = dif;
+        document.getElementById('inputSerie').value = serie;
+        document.getElementById('inputDescritor').value = desc;
+        
+        document.getElementById('inputA').value = a;
+        document.getElementById('inputB').value = b;
+        document.getElementById('inputC').value = c;
+        document.getElementById('inputD').value = d;
+        document.getElementById('inputE').value = e;
+
+        getModalInstance('modalQuestao').show();
+    }
+
+    function abrirModalExcluir(id) {
+        document.getElementById('idExcluir').value = id;
+        getModalInstance('modalExcluir').show();
+    }
+</script>
+{% endblock %}

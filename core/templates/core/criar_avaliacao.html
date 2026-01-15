@@ -1,0 +1,137 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-primary text-white p-4 rounded-top-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-file-earmark-plus me-2"></i>Nova Avaliação Manual</h4>
+                    <p class="mb-0 opacity-75 small">Configure os detalhes e escolha o método de criação.</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <h6 class="text-primary fw-bold text-uppercase small mb-3">Informações da Prova</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">TÍTULO</label>
+                            <input type="text" name="titulo" class="form-control form-control-lg" placeholder="Ex: Prova Bimestral de História" required>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">TURMA</label>
+                                <select name="turma" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    {% for t in turmas %}
+                                        <option value="{{ t.id }}">{{ t.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">DISCIPLINA</label>
+                                <select name="disciplina" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    {% for d in disciplinas %}
+                                        <option value="{{ d.id }}">{{ d.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted small">DATA DE APLICAÇÃO</label>
+                                <input type="date" name="data_aplicacao" class="form-control" value="{% now 'Y-m-d' %}">
+                            </div>
+                        </div>
+
+                        <hr class="text-muted opacity-25">
+
+                        <h6 class="text-primary fw-bold text-uppercase small mb-3">Como você vai montar a prova?</h6>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <input type="radio" class="btn-check" name="modo_prova" id="modo_banco" value="banco" checked>
+                                <label class="btn btn-outline-light text-dark border w-100 p-3 text-start position-relative shadow-sm h-100 card-opcao" for="modo_banco">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
+                                            <i class="bi bi-collection-fill fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Usar Banco de Questões</h6>
+                                            <p class="text-muted small mb-0 lh-sm">Vou selecionar questões do sistema e gerar o PDF.</p>
+                                        </div>
+                                    </div>
+                                    <div class="position-absolute top-0 end-0 m-2 text-primary check-icon">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="col-md-6">
+                                <input type="radio" class="btn-check" name="modo_prova" id="modo_manual" value="manual">
+                                <label class="btn btn-outline-light text-dark border w-100 p-3 text-start position-relative shadow-sm h-100 card-opcao" for="modo_manual">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning me-3">
+                                            <i class="bi bi-pencil-square fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Apenas Gabarito</h6>
+                                            <p class="text-muted small mb-0 lh-sm">Já tenho a prova. Só quero definir as respostas (1-A, 2-B...).</p>
+                                        </div>
+                                    </div>
+                                    <div class="position-absolute top-0 end-0 m-2 text-warning check-icon d-none">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-light border px-4">Cancelar</a>
+                            
+                            <button type="submit" name="acao" value="salvar_sair" class="btn btn-outline-primary px-4 fw-bold">
+                                Salvar e Sair
+                            </button>
+                            
+                            <button type="submit" name="acao" value="salvar_configurar" class="btn btn-success px-4 fw-bold shadow-sm">
+                                Continuar <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilo visual para a seleção dos cards */
+    .btn-check:checked + label {
+        border-color: var(--bs-primary) !important;
+        background-color: var(--bs-primary-bg-subtle);
+        transform: translateY(-2px);
+        transition: all 0.2s;
+    }
+    .btn-check:checked + label .check-icon {
+        display: block !important;
+    }
+    
+    /* Cor específica para o modo manual (Amarelo/Warning) */
+    #modo_manual:checked + label {
+        border-color: var(--bs-warning) !important;
+        background-color: #fff3cd; 
+    }
+    #modo_manual:checked + label .check-icon {
+        color: var(--bs-warning) !important;
+    }
+
+    .check-icon { display: none; }
+    .card-opcao { cursor: pointer; transition: transform 0.2s; }
+    .card-opcao:hover { background-color: #f8f9fa; }
+</style>
+{% endblock %}

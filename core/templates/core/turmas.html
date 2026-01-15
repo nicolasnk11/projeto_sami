@@ -1,0 +1,151 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-gear-fill text-primary me-2"></i>Gerenciar Turmas</h4>
+            <p class="text-muted small mb-0">Renomeie ou exclua turmas duplicadas.</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovaTurma">
+                <i class="bi bi-plus-lg"></i> Nova Turma
+            </button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Nome da Turma</th>
+                        <th class="text-center">Qtd. Alunos</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in turmas %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">{{ t.nome }}</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill {% if t.qtd_alunos > 0 %}bg-primary{% else %}bg-secondary{% endif %}">
+                                {{ t.qtd_alunos }} alunos
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            {% if t.qtd_alunos == 0 %}
+                                <span class="badge bg-light text-muted border">Vazia</span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">Ativa</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-secondary border-0" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEditar{{ t.id }}" 
+                                    title="Renomear">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger border-0" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalExcluir{{ t.id }}" 
+                                    title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNovaTurma" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" class="modal-content shadow">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="criar">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Nova Turma</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <label class="form-label fw-bold">Nome da Turma</label>
+                <input type="text" name="nome_turma" class="form-control" placeholder="Ex: 3º Ano D" required>
+            </div>
+            <div class="modal-footer bg-white">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Turma</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% for t in turmas %}
+<div class="modal fade" id="modalEditar{{ t.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" class="modal-content shadow">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar">
+            <input type="hidden" name="id_turma" value="{{ t.id }}">
+            
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Renomear Turma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Nome Atual</label>
+                <input type="text" name="novo_nome" class="form-control" value="{{ t.nome }}" required>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Alteração</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalExcluir{{ t.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" class="modal-content shadow">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="excluir">
+            <input type="hidden" name="id_turma" value="{{ t.id }}">
+            
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-trash me-2"></i>Excluir Turma?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-white">
+                <p class="fs-5 mb-3">Você está prestes a excluir: <strong>{{ t.nome }}</strong></p>
+                
+                {% if t.qtd_alunos > 0 %}
+                    <div class="alert alert-warning border-warning d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>ATENÇÃO MÁXIMA!</strong><br>
+                            Existem <strong>{{ t.qtd_alunos }} alunos</strong> nesta turma.<br>
+                            Eles também serão apagados!
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                        <div>Turma vazia. Exclusão segura.</div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

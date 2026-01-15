@@ -1,0 +1,177 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill text-primary me-2"></i>Gestão de Alunos</h4>
+            <p class="text-muted small mb-0">Gerencie matrículas e visualize o histórico individual.</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'importar_alunos' %}" class="btn btn-outline-success btn-sm shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Importar em Massa
+            </a>
+            <button type="button" class="btn btn-primary btn-sm shadow-sm ms-2" data-bs-toggle="modal" data-bs-target="#modalNovoAluno">
+                <i class="bi bi-plus-lg"></i> Novo Aluno
+            </button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body py-3">
+            <form method="get" class="row g-2 align-items-center">
+                
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="busca" class="form-control border-start-0 ps-0" placeholder="Buscar aluno..." value="{{ busca_atual|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="serie" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">🏫 Série Geral</option>
+                        <option value="1" {% if serie_selecionada == "1" %}selected{% endif %}>1º Anos (Todos)</option>
+                        <option value="2" {% if serie_selecionada == "2" %}selected{% endif %}>2º Anos (Todos)</option>
+                        <option value="3" {% if serie_selecionada == "3" %}selected{% endif %}>3º Anos (Todos)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="turma" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">👥 Turma Específica</option>
+                        {% for t in turmas %}
+                            <option value="{{ t.id }}" {% if turma_selecionada == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="ordem" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="nome" {% if ordem_atual == "nome" %}selected{% endif %}>🔤 Nome (A-Z)</option>
+                        <option value="melhores" {% if ordem_atual == "melhores" %}selected{% endif %}>🏆 Melhores Notas</option>
+                        <option value="criticos" {% if ordem_atual == "criticos" %}selected{% endif %}>🚨 Menores Notas</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <a href="{% url 'gerenciar_alunos' %}" class="btn btn-outline-secondary btn-sm w-100">Limpar Filtros</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Aluno</th>
+                        <th>Turma</th>
+                        <th>Média Geral</th>
+                        <th>Situação</th>
+                        <th class="text-end pe-4">Desempenho</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aluno in alunos %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold me-3 border" style="width: 40px; height: 40px;">
+                                    {{ aluno.nome_completo|slice:":1" }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark small text-uppercase">{{ aluno.nome_completo }}</h6>
+                                    <small class="text-muted" style="font-size: 11px;">ID: {{ aluno.id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-white text-dark border">{{ aluno.turma.nome }}</span></td>
+                        <td>
+                            {% if aluno.media_geral > 0 %}
+                                <span class="fw-bold {% if aluno.media_geral >= 70 %}text-success{% elif aluno.media_geral >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ aluno.media_geral }}%
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if aluno.media_geral > 0 %}
+                                {% if aluno.media_geral >= 70 %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Excelência</span>
+                                {% elif aluno.media_geral >= 50 %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">Atenção</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Crítico</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-light text-muted border rounded-pill">Sem dados</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'dashboard' %}?aluno={{ aluno.id }}" class="btn btn-sm btn-outline-primary border-0 bg-light shadow-sm" title="Ver Gráficos do Aluno">
+                                <i class="bi bi-bar-chart-line-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-emoji-frown fs-1 d-block mb-3 opacity-25"></i>
+                            <p>Nenhum aluno encontrado.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if alunos.has_other_pages %}
+        <div class="card-footer bg-white py-3">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if alunos.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ alunos.previous_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Anterior</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link text-muted">{{ alunos.number }}</span></li>
+                    {% if alunos.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ alunos.next_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Próxima</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="modalNovoAluno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Novo Aluno</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body bg-light">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nome Completo</label>
+                        {{ form.nome_completo }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Turma</label>
+                        {{ form.turma }}
+                    </div>
+                </div>
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Aluno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
