@@ -215,6 +215,16 @@
                 <i class="bi bi-pen-fill"></i> 
                 <span>Lançar Notas</span>
             </a>
+
+            <a href="{% url 'plano_anual' %}" class="nav-link {% if request.resolver_match.url_name == 'plano_anual' %}active{% endif %}">
+                <i class="bi bi-map-fill"></i> 
+                <span>Plano de Aula</span>
+            </a>
+
+            <a href="{% url 'gerenciar_ndi' %}" class="nav-link {% if request.resolver_match.url_name == 'gerenciar_ndi' %}active{% endif %}">
+                <i class="bi bi-calculator-fill"></i> 
+                <span>Notas NDI</span>
+            </a>
             
             <a href="{% url 'gerenciar_alunos' %}" class="nav-link {% if request.resolver_match.url_name == 'gerenciar_alunos' %}active{% endif %}">
                 <i class="bi bi-people-fill"></i> 

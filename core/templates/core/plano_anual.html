@@ -1,0 +1,252 @@
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h4 class="fw-bold mb-1 text-primary"><i class="bi bi-kanban me-2"></i>Gestão de Aulas</h4>
+                    <p class="text-muted small mb-0">Planejamento e acompanhamento pedagógico</p>
+                </div>
+                
+                <form method="get" class="d-flex gap-3 align-items-center">
+                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-journal-bookmark-fill text-primary"></i></span>
+                        <select name="disciplina" class="form-select border-0 fw-bold bg-light" onchange="this.form.submit()" style="min-width: 150px;">
+                            {% for disc in disciplinas %}
+                            <option value="{{ disc }}" {% if disciplina_atual == disc %}selected{% endif %}>{{ disc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-people-fill text-primary"></i></span>
+                        <select name="turma" class="form-select border-0 fw-bold bg-light" onchange="this.form.submit()" style="min-width: 150px;">
+                            <option value="">Selecionar Turma...</option>
+                            {% for t in turmas %}
+                            <option value="{{ t.id }}" {% if turma_selecionada_id == t.id %}selected{% endif %}>{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if plano %}
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 d-flex flex-row align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    {% if plano.arquivo %}
+                        <a href="{{ plano.arquivo.url }}" target="_blank" class="btn btn-light border d-flex align-items-center gap-2 rounded-pill px-3">
+                            <i class="bi {{ plano.icone_arquivo }}"></i> Baixar Plano Oficial
+                        </a>
+                        <button class="btn btn-sm btn-link text-muted" onclick="document.getElementById('inputArquivo').click()"><i class="bi bi-pencil"></i></button>
+                    {% else %}
+                        <button class="btn btn-outline-primary border-dashed rounded-pill" onclick="document.getElementById('inputArquivo').click()">
+                            <i class="bi bi-cloud-upload me-2"></i> Anexar Plano (PDF/Word)
+                        </button>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data" id="formArquivo" class="d-none">
+                        {% csrf_token %}
+                        <input type="file" name="arquivo_plano" id="inputArquivo" onchange="document.getElementById('formArquivo').submit()">
+                    </form>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 w-50 justify-content-end">
+                    <span class="small fw-bold text-muted">Progresso Anual</span>
+                    <div class="progress w-50" style="height: 10px; border-radius: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ plano.progresso }}%"></div>
+                    </div>
+                    <span class="fw-bold text-success small">{{ plano.progresso }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-3 gap-2" id="pills-tab" role="tablist">
+        {% for bim in "1234"|make_list %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold rounded-pill px-4 {% if forloop.first %}active{% endif %}" 
+                    id="pills-{{ bim }}-tab" 
+                    data-bs-toggle="pill" 
+                    data-bs-target="#pills-{{ bim }}" 
+                    type="button" role="tab">
+                {{ bim }}º Bimestre
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+        {% for bim_id, colunas in dados_kanban.items %}
+        <div class="tab-pane fade {% if bim_id == 1 %}show active{% endif %}" id="pills-{{ bim_id }}" role="tabpanel">
+            
+            <div class="row g-3">
+                
+                <div class="col-md-4">
+                    <div class="bg-light rounded-4 p-3 h-100 border border-secondary border-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-secondary mb-0"><i class="bi bi-circle me-2"></i>A Planejar</h6>
+                            <span class="badge bg-white text-dark border">{{ colunas.TODO|length }}</span>
+                        </div>
+                        
+                        <div class="kanban-column gap-2 d-flex flex-column">
+                            {% for card in colunas.TODO %}
+                                {% include 'core/includes/card_topico.html' with card=card cor="border-start border-4 border-secondary" %}
+                            {% endfor %}
+                        </div>
+
+                        <button class="btn btn-white w-100 mt-3 text-secondary fw-bold border-dashed shadow-sm"
+                                onclick="abrirModalCriar('{{ bim_id }}')">
+                            <i class="bi bi-plus text-lg"></i> Novo Tópico
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="bg-blue-light rounded-4 p-3 h-100 border border-primary border-opacity-10" style="background-color: #eff6ff;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-primary mb-0"><i class="bi bi-hourglass-split me-2"></i>Em Aula</h6>
+                            <span class="badge bg-white text-primary border border-primary border-opacity-25">{{ colunas.DOING|length }}</span>
+                        </div>
+                        
+                        <div class="kanban-column gap-2 d-flex flex-column">
+                            {% for card in colunas.DOING %}
+                                {% include 'core/includes/card_topico.html' with card=card cor="border-start border-4 border-primary" %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="bg-green-light rounded-4 p-3 h-100 border border-success border-opacity-10" style="background-color: #f0fdf4;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-success mb-0"><i class="bi bi-check-circle-fill me-2"></i>Concluído</h6>
+                            <span class="badge bg-white text-success border border-success border-opacity-25">{{ colunas.DONE|length }}</span>
+                        </div>
+                        
+                        <div class="kanban-column gap-2 d-flex flex-column">
+                            {% for card in colunas.DONE %}
+                                {% include 'core/includes/card_topico.html' with card=card cor="border-start border-4 border-success" opacity="opacity-75" %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-4" style="width: 120px; height: 120px;">
+            <i class="bi bi-kanban fs-1 text-primary opacity-50"></i>
+        </div>
+        <h3 class="fw-bold text-dark">Área de Planejamento</h3>
+        <p class="text-muted">Selecione uma disciplina e uma turma para começar.</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="modal fade" id="modalTopico" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Novo Tópico</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="acao" id="inputAcao" value="criar">
+                    <input type="hidden" name="bimestre" id="inputBimestre">
+                    <input type="hidden" name="topico_id" id="inputTopicoId">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Conteúdo / Atividade</label>
+                        <textarea name="conteudo" id="inputConteudo" rows="3" class="form-control bg-light border-0 fw-bold" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalExcluir" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-exclamation-circle text-danger fs-1 mb-3"></i>
+                <h6 class="fw-bold">Excluir este tópico?</h6>
+                <p class="small text-muted mb-4">Essa ação não pode ser desfeita.</p>
+                
+                <form method="post" class="d-flex gap-2 justify-content-center">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="excluir">
+                    <input type="hidden" name="topico_id" id="inputExcluirId">
+                    <button type="button" class="btn btn-light w-50 fw-bold" data-bs-dismiss="modal">Não</button>
+                    <button type="submit" class="btn btn-danger w-50 fw-bold">Sim, Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirModalCriar(bim) {
+        document.getElementById('modalTitle').innerText = 'Novo Tópico';
+        document.getElementById('inputAcao').value = 'criar';
+        document.getElementById('inputBimestre').value = bim;
+        document.getElementById('inputTopicoId').value = '';
+        document.getElementById('inputConteudo').value = '';
+        
+        new bootstrap.Modal(document.getElementById('modalTopico')).show();
+        setTimeout(() => document.getElementById('inputConteudo').focus(), 500);
+    }
+
+    function abrirModalEditar(id, texto) {
+        document.getElementById('modalTitle').innerText = 'Editar Tópico';
+        document.getElementById('inputAcao').value = 'editar';
+        document.getElementById('inputTopicoId').value = id;
+        document.getElementById('inputConteudo').value = texto;
+        
+        new bootstrap.Modal(document.getElementById('modalTopico')).show();
+    }
+
+    function abrirModalExcluir(id) {
+        document.getElementById('inputExcluirId').value = id;
+        new bootstrap.Modal(document.getElementById('modalExcluir')).show();
+    }
+
+    function moverCard(id, novoStatus) {
+        // Feedback Visual Imediato (Opcional: Recarregar a página é mais seguro sem JS complexo)
+        // Aqui vamos recarregar para simplificar, mas chamando a API
+        fetch(`/api/mover-topico/${id}/${novoStatus}/`)
+            .then(() => window.location.reload());
+    }
+</script>
+
+<style>
+    .border-dashed { border-style: dashed !important; }
+    .nav-pills .nav-link.active { background-color: var(--bs-primary); }
+    .nav-pills .nav-link { color: var(--bs-primary); background: #fff; border: 1px solid #e2e8f0; }
+    
+    /* Card Hover Effect */
+    .kanban-card { transition: transform 0.2s, box-shadow 0.2s; cursor: grab; }
+    .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }
+    .dropdown-toggle::after { display: none; }
+</style>
+{% endblock %}

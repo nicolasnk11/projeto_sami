@@ -198,3 +198,115 @@ class RespostaDetalhada(models.Model):
     
     def __str__(self):
         return f"{self.resultado.aluno} - {self.acertou}"
+
+class ConfiguracaoSistema(models.Model):
+    # Singleton: Só queremos ter UMA configuração no sistema
+    nome_escola = models.CharField(max_length=100, default="SAMI Escolar")
+    cor_primaria = models.CharField(max_length=7, default="#0f172a", help_text="Cor do menu lateral e cabeçalhos (Ex: #0f172a)")
+    cor_destaque = models.CharField(max_length=7, default="#3b82f6", help_text="Cor dos botões e links (Ex: #3b82f6)")
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+
+    def __str__(self):
+        return "Configuração Visual da Escola"
+
+    def save(self, *args, **kwargs):
+        # Garante que só exista 1 registro no banco
+        if not self.pk and ConfiguracaoSistema.objects.exists():
+            return
+        super(ConfiguracaoSistema, self).save(*args, **kwargs)
+
+class NDI(models.Model):
+    BIMESTRES = [
+        (1, '1º Bimestre'), (2, '2º Bimestre'),
+        (3, '3º Bimestre'), (4, '4º Bimestre'),
+    ]
+
+    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE)
+    turma = models.ForeignKey(Turma, on_delete=models.CASCADE) # Redundante mas ajuda na filtragem
+    bimestre = models.IntegerField(choices=BIMESTRES, default=1)
+    
+    # Notas Qualitativas (0-10)
+    nota_frequencia = models.FloatField(default=0)
+    nota_atividade = models.FloatField(default=0)
+    nota_comportamento = models.FloatField(default=0)
+    
+    # Notas Quantitativas (0-10)
+    nota_prova_parcial = models.FloatField(default=0)
+    nota_prova_bimestral = models.FloatField(default=0)
+
+    class Meta:
+        unique_together = ('aluno', 'bimestre') # Um aluno só pode ter uma NDI por bimestre
+
+    def __str__(self):
+        return f"NDI {self.aluno.nome_completo} - {self.bimestre}º Bim"
+
+    @property
+    def ndi_parcial(self):
+        return (self.nota_frequencia + self.nota_atividade + self.nota_comportamento) / 3
+
+    @property
+    def ndi_final(self):
+        return (self.ndi_parcial + self.nota_prova_parcial + self.nota_prova_bimestral) / 3
+
+class PlanoEnsino(models.Model):
+    turma = models.ForeignKey(Turma, on_delete=models.CASCADE)
+    disciplina_nome = models.CharField(max_length=100)
+    ano_letivo = models.IntegerField(default=2026)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    # Campo para o arquivo (PDF/Word/Excel)
+    arquivo = models.FileField(upload_to='planos_ensino/', blank=True, null=True)
+
+    class Meta:
+        unique_together = ('turma', 'disciplina_nome', 'ano_letivo')
+
+    def __str__(self):
+        return f"Plano {self.disciplina_nome} - {self.turma}"
+
+    # ... dentro da class PlanoEnsino ...
+
+    def progresso(self):
+        total = self.topicos.count()
+        if total == 0: return 0
+        
+        # CORREÇÃO AQUI: Agora filtramos por status='DONE' em vez de concluido=True
+        concluidos = self.topicos.filter(status='DONE').count()
+        
+        return int((concluidos / total) * 100)
+
+    @property
+    def icone_arquivo(self):
+        if not self.arquivo: return 'bi-file-earmark'
+        try:
+            ext = os.path.splitext(self.arquivo.name)[1].lower()
+        except:
+            return 'bi-file-earmark'
+            
+        if ext in ['.pdf']: return 'bi-file-earmark-pdf text-danger'
+        if ext in ['.doc', '.docx']: return 'bi-file-earmark-word text-primary'
+        if ext in ['.xls', '.xlsx']: return 'bi-file-earmark-excel text-success'
+        if ext in ['.jpg', '.png', '.jpeg']: return 'bi-file-earmark-image text-warning'
+        return 'bi-file-earmark-text text-secondary'
+
+class TopicoPlano(models.Model):
+    BIMESTRES = [
+        (1, '1º Bimestre'), (2, '2º Bimestre'),
+        (3, '3º Bimestre'), (4, '4º Bimestre'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('TODO', 'A Planejar'),
+        ('DOING', 'Em Aula'),
+        ('DONE', 'Concluído'),
+    ]
+    
+    plano = models.ForeignKey(PlanoEnsino, related_name='topicos', on_delete=models.CASCADE)
+    bimestre = models.IntegerField(choices=BIMESTRES)
+    conteudo = models.CharField(max_length=255)
+    # Novo campo de Status
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='TODO')
+    # Data opcional para controle
+    data_prevista = models.DateField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.conteudo} ({self.get_status_display()})"

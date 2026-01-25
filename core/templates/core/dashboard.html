@@ -4,51 +4,74 @@
 <div class="container-fluid py-4">
 
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-body bg-white p-4">
-            <form method="get" class="row g-3 align-items-center">
+        <div class="card-body bg-white p-3">
+            <form method="get" class="row g-2 align-items-center">
                 
-                <div class="col-md-3 border-end">
-                    <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">Visualizando</small>
+                <div class="col-lg-3 col-md-12 border-end pe-3">
+                    <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Contexto Atual</small>
                     <h5 class="mb-0 text-primary fw-bold text-truncate" title="{{ nome_filtro }}">
                         <i class="bi bi-funnel-fill me-1"></i> {{ nome_filtro }}
                     </h5>
                 </div>
 
-                <div class="col-md-7">
-                    <div class="d-flex gap-2">
-                        <select name="avaliacao" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
-                            <option value="">📋 Selecionar Prova (Para Heatmap)</option>
-                            {% for av in avaliacoes_todas %}
-                                <option value="{{ av.id }}" {% if avaliacao_selecionada == av.id|stringformat:"s" %}selected{% endif %}>{{ av.titulo }} - {{ av.turma.nome }}</option>
-                            {% endfor %}
-                        </select>
+                <div class="col-lg-8 col-md-12">
+                    <div class="d-flex flex-wrap gap-2">
+                        
+                        <div class="flex-grow-1">
+                            <select name="serie" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
+                                <option value="">🏫 Série Geral</option>
+                                <option value="1" {% if serie_selecionada == "1" %}selected{% endif %}>1º Ano</option>
+                                <option value="2" {% if serie_selecionada == "2" %}selected{% endif %}>2º Ano</option>
+                                <option value="3" {% if serie_selecionada == "3" %}selected{% endif %}>3º Ano</option>
+                            </select>
+                        </div>
 
-                        <select name="serie" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
-                            <option value="">🏫 Série Geral</option>
-                            <option value="1" {% if serie_selecionada == "1" %}selected{% endif %}>1º Ano</option>
-                            <option value="2" {% if serie_selecionada == "2" %}selected{% endif %}>2º Ano</option>
-                            <option value="3" {% if serie_selecionada == "3" %}selected{% endif %}>3º Ano</option>
-                        </select>
+                        <div class="flex-grow-1">
+                            <select name="turma" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
+                                <option value="">👥 Todas as Turmas</option>
+                                {% for t in turmas_da_serie %}
+                                    <option value="{{ t.id }}" {% if turma_selecionada == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                        <select name="turma" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
-                            <option value="">👥 Turma</option>
-                            {% for t in turmas_da_serie %}
-                                <option value="{{ t.id }}" {% if turma_selecionada == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="flex-grow-1">
+                            <select name="aluno" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" 
+                                    onchange="this.form.submit()"
+                                    {% if not alunos_da_turma %}disabled style="opacity: 0.6; cursor: not-allowed;"{% endif %}>
+                                <option value="">
+                                    {% if not alunos_da_turma %}🚫 Selecione a Turma{% else %}👤 Filtrar Aluno{% endif %}
+                                </option>
+                                {% for a in alunos_da_turma %}
+                                    <option value="{{ a.id }}" {% if aluno_selecionado == a.id|stringformat:"s" %}selected{% endif %}>{{ a.nome_completo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                        <select name="disciplina" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
-                            <option value="">📚 Matéria</option>
-                            {% for d in disciplinas %}
-                                <option value="{{ d.id }}" {% if disciplina_selecionada == d.id|stringformat:"s" %}selected{% endif %}>{{ d.nome }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="flex-grow-1">
+                            <select name="disciplina" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
+                                <option value="">📚 Todas Matérias</option>
+                                {% for d in disciplinas %}
+                                    <option value="{{ d.id }}" {% if disciplina_selecionada == d.id|stringformat:"s" %}selected{% endif %}>{{ d.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="flex-grow-1" style="min-width: 200px;">
+                            <select name="avaliacao" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary" onchange="this.form.submit()">
+                                <option value="">📋 Selecionar Prova (Heatmap)</option>
+                                {% for av in avaliacoes_todas %}
+                                    <option value="{{ av.id }}" {% if avaliacao_selecionada == av.id|stringformat:"s" %}selected{% endif %}>{{ av.titulo }} - {{ av.turma.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
                     </div>
                 </div>
 
-                <div class="col-md-2 text-end">
-                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light text-muted fw-bold border hover-danger w-100">
-                        <i class="bi bi-x-circle"></i> Limpar Filtros
+                <div class="col-lg-1 col-md-12 text-end">
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light text-danger fw-bold border hover-danger w-100" title="Limpar Filtros">
+                        <i class="bi bi-x-lg"></i>
                     </a>
                 </div>
             </form>
@@ -137,8 +160,10 @@
             <div class="card shadow-sm border-0 mb-4 rounded-4">
                 <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
                     <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-fill me-2"></i>Proficiência por Descritor</h6>
-                    <a href="{% url 'gerar_relatorio_proficiencia' %}?serie={{ serie_selecionada }}&turma={{ turma_selecionada }}&aluno={{ aluno_selecionado }}" class="btn btn-sm btn-danger rounded-pill px-3">
-                        <i class="bi bi-file-pdf-fill me-1"></i> Baixar Relatório
+                    
+                    <a href="{% url 'gerar_relatorio_proficiencia' %}?serie={{ serie_selecionada|default:'' }}&turma={{ turma_selecionada|default:'' }}&aluno={{ aluno_selecionado|default:'' }}" 
+                       class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm hover-scale">
+                        <i class="bi bi-file-pdf-fill me-1"></i> Baixar Relatório PDF
                     </a>
                 </div>
                 <div class="card-body">
@@ -479,6 +504,7 @@
 
 <style>
     .hover-danger:hover { background-color: #dc3545; color: white !important; border-color: #dc3545 !important; }
+    .hover-scale:hover { transform: scale(1.05); transition: transform 0.2s; }
 </style>
 
 {% endblock %}

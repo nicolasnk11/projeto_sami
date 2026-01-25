@@ -16,7 +16,7 @@ from django.db.models import Avg, Count, Sum, Q
 from django.http import FileResponse, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
-
+from django.views.decorators.http import require_POST
 # ReportLab Imports (PDF)
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -34,7 +34,8 @@ from reportlab.lib.utils import ImageReader
 # Seus Modelos e Forms
 from .models import (
     Turma, Resultado, Avaliacao, Questao, Aluno, Disciplina, 
-    RespostaDetalhada, ItemGabarito, Descritor
+    RespostaDetalhada, ItemGabarito, Descritor, NDI, PlanoEnsino,
+    TopicoPlano
 )
 from .forms import (
     AvaliacaoForm, ResultadoForm, GerarProvaForm, ImportarQuestoesForm, 
@@ -1144,7 +1145,7 @@ def gerenciar_turmas(request):
 
 @login_required
 def listar_questoes(request):
-    # --- LÓGICA DE POST (CRUD) ---
+    # --- LÓGICA DE POST (CRUD - Mantida igual) ---
     if request.method == 'POST':
         acao = request.POST.get('acao')
         
@@ -1172,11 +1173,9 @@ def listar_questoes(request):
                 'alternativa_e': request.POST.get('alternativa_e'),
             }
 
-            # LÓGICA DA IMAGEM (NOVO)
             if 'imagem_arquivo' in request.FILES:
                 dados['imagem'] = request.FILES['imagem_arquivo']
             
-            # Tratamento do Descritor (Opcional)
             desc_cod = request.POST.get('descritor_cod')
             if desc_cod:
                 desc_obj, _ = Descritor.objects.get_or_create(
@@ -1188,7 +1187,6 @@ def listar_questoes(request):
             try:
                 if questao_id: # Edição
                     q = Questao.objects.get(id=questao_id)
-                    # Atualiza campos manualmente para garantir que imagem funcione no update
                     for key, value in dados.items():
                         setattr(q, key, value)
                     q.save()
@@ -1201,21 +1199,33 @@ def listar_questoes(request):
                 
         return redirect('listar_questoes')
 
-    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
+    # --- LÓGICA DE VISUALIZAÇÃO (GET - Atualizada com Filtros) ---
     questoes = Questao.objects.select_related('disciplina', 'descritor').order_by('-id')
     
+    # Captura os parâmetros da URL
     filtro_disc = request.GET.get('disciplina')
     filtro_busca = request.GET.get('busca')
+    filtro_dificuldade = request.GET.get('dificuldade') # Novo
+    filtro_serie = request.GET.get('serie')             # Novo
     
-    # CORREÇÃO DO ERRO 'None'
-    if filtro_disc and filtro_disc != 'None': 
+    # 1. Filtro de Disciplina
+    if filtro_disc and filtro_disc not in ['None', '']: 
         try:
             questoes = questoes.filter(disciplina_id=int(filtro_disc))
         except ValueError:
             pass 
             
-    if filtro_busca and filtro_busca != 'None':
+    # 2. Filtro de Busca
+    if filtro_busca and filtro_busca not in ['None', '']:
         questoes = questoes.filter(enunciado__icontains=filtro_busca)
+
+    # 3. Filtro de Dificuldade (Novo)
+    if filtro_dificuldade and filtro_dificuldade in ['F', 'M', 'D']:
+        questoes = questoes.filter(dificuldade=filtro_dificuldade)
+
+    # 4. Filtro de Série (Novo)
+    if filtro_serie and filtro_serie in ['1', '2', '3']:
+        questoes = questoes.filter(serie=filtro_serie)
     
     paginator = Paginator(questoes, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -1223,8 +1233,11 @@ def listar_questoes(request):
     context = {
         'page_obj': page_obj,
         'disciplinas': Disciplina.objects.all(),
-        'filtro_disciplina': int(filtro_disc) if (filtro_disc and filtro_disc != 'None' and filtro_disc.isdigit()) else None,
-        'busca_atual': filtro_busca if (filtro_busca and filtro_busca != 'None') else ''
+        # Passa os filtros de volta para o template manter selecionado
+        'filtro_disciplina': int(filtro_disc) if (filtro_disc and filtro_disc.isdigit()) else None,
+        'busca_atual': filtro_busca if filtro_busca else '',
+        'filtro_dificuldade': filtro_dificuldade,
+        'filtro_serie': filtro_serie
     }
     return render(request, 'core/listar_questoes.html', context)
 
@@ -1254,25 +1267,57 @@ def editar_avaliacao(request, avaliacao_id):
 
 @login_required
 def gerar_relatorio_proficiencia(request):
-    # Importação necessária para cores
+    # Importação necessária para cores (caso não esteja no topo)
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
 
-    # 1. Filtros e Dados
+    # 1. OBTER E LIMPAR INPUTS (A Correção Principal) 🛡️
     aluno_id = request.GET.get('aluno')
+    turma_id = request.GET.get('turma')
+    serie_id = request.GET.get('serie')
+
+    # Funçãozinha rápida para limpar "None" (texto) e vazios
+    def limpar_param(param):
+        if param in ['None', 'null', '', None]:
+            return None
+        return param
+
+    aluno_id = limpar_param(aluno_id)
+    turma_id = limpar_param(turma_id)
+    serie_id = limpar_param(serie_id)
+
+    # 2. FILTRAGEM INTELIGENTE 🧠
     resultados = Resultado.objects.all()
-    subtitulo = "Visão Geral da Turma"
-    nome_aluno = None
+    subtitulo = "Visão Geral da Escola"
     
     if aluno_id:
+        # Se tem aluno, filtra só ele
         aluno = get_object_or_404(Aluno, id=aluno_id)
-        resultados = resultados.filter(aluno_id=aluno_id)
+        resultados = resultados.filter(aluno=aluno)
         subtitulo = f"Aluno(a): {aluno.nome_completo}"
-        nome_aluno = aluno.nome_completo
+    elif turma_id:
+        # Se não tem aluno, mas tem turma, filtra a turma
+        turma = get_object_or_404(Turma, id=turma_id)
+        resultados = resultados.filter(avaliacao__turma=turma)
+        subtitulo = f"Turma: {turma.nome}"
+    elif serie_id:
+        # Filtro por série (se você usar padrão de nomes como '1º Ano')
+        resultados = resultados.filter(avaliacao__turma__nome__startswith=serie_id)
+        subtitulo = f"{serie_id}º Ano Geral"
 
+    # Se não houver resultados após o filtro, evita gerar PDF vazio
+    if not resultados.exists():
+        # Você pode redirecionar ou gerar um PDF avisando
+        # Aqui vou deixar passar, mas os gráficos ficarão zerados
+        pass
+
+    # ==========================================================
+    # DAQUI PARA BAIXO É A GERAÇÃO DO PDF (Visual Mantido)
+    # ==========================================================
+    
     respostas = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related('item_gabarito__descritor')
     
-    # 2. Processamento dos Dados
+    # Processamento dos Dados
     stats = {}
     for resp in respostas:
         desc_cod = "Geral"
@@ -1291,7 +1336,7 @@ def gerar_relatorio_proficiencia(request):
     # Ordenar por código do descritor
     lista_ordenada = sorted(stats.items())
 
-    # 3. Configuração do PDF
+    # Configuração do PDF
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -1354,7 +1399,7 @@ def gerar_relatorio_proficiencia(request):
         acertos = dados['acertos']
         perc = (acertos / total) * 100 if total > 0 else 0
         
-        # Linha Zebrada (opcional, aqui faremos linha separadora)
+        # Linha Zebrada
         p.setStrokeColor(colors.lightgrey)
         p.setLineWidth(0.5)
         p.line(40, y - 5, width - 40, y - 5)
@@ -1942,3 +1987,164 @@ def gerar_cartoes_pdf(request, avaliacao_id):
     c.save()
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f'Cartoes_{avaliacao.titulo}.pdf')
+
+
+@login_required
+def gerenciar_ndi(request):
+    turma_id = request.GET.get('turma')
+    bimestre = int(request.GET.get('bimestre', 1))
+    
+    turmas = Turma.objects.all().order_by('nome')
+    alunos_data = []
+    turma_selecionada = None
+
+    # --- FUNÇÃO AUXILIAR PARA LIMPAR A NOTA ---
+    def tratar_nota(valor_str):
+        if not valor_str or valor_str.strip() == '':
+            return 0.0
+        try:
+            # Troca vírgula por ponto e converte
+            valor = float(valor_str.replace(',', '.'))
+            # Trava entre 0 e 10
+            if valor < 0: return 0.0
+            if valor > 10: return 10.0
+            return valor
+        except ValueError:
+            return 0.0
+    # ------------------------------------------
+
+    if turma_id:
+        turma_selecionada = get_object_or_404(Turma, id=turma_id)
+        alunos = Aluno.objects.filter(turma_id=turma_id, ativo=True).order_by('nome_completo')
+        
+        # Salvar Dados (POST)
+        if request.method == 'POST':
+            salvos = 0
+            for aluno in alunos:
+                # Usa a função auxiliar para proteger contra erros
+                freq = tratar_nota(request.POST.get(f'freq_{aluno.id}'))
+                atv = tratar_nota(request.POST.get(f'atv_{aluno.id}'))
+                comp = tratar_nota(request.POST.get(f'comp_{aluno.id}'))
+                pp = tratar_nota(request.POST.get(f'pp_{aluno.id}'))
+                pb = tratar_nota(request.POST.get(f'pb_{aluno.id}'))
+                
+                # Salva ou Atualiza
+                NDI.objects.update_or_create(
+                    aluno=aluno, bimestre=bimestre,
+                    defaults={
+                        'turma': turma_selecionada,
+                        'nota_frequencia': freq, 
+                        'nota_atividade': atv,
+                        'nota_comportamento': comp,
+                        'nota_prova_parcial': pp, 
+                        'nota_prova_bimestral': pb
+                    }
+                )
+                salvos += 1
+            messages.success(request, f"NDI salva para {salvos} alunos no {bimestre}º Bimestre!")
+            return redirect(f"{request.path}?turma={turma_id}&bimestre={bimestre}")
+
+        # Preparar dados para exibição
+        for aluno in alunos:
+            # Corrigido: Adicionado NDI na importação lá no topo se ainda não tiver
+            ndi = NDI.objects.filter(aluno=aluno, bimestre=bimestre).first()
+            alunos_data.append({
+                'obj': aluno,
+                'ndi': ndi
+            })
+
+    return render(request, 'core/gerenciar_ndi.html', {
+        'turmas': turmas,
+        'turma_selecionada': turma_selecionada,
+        'alunos_data': alunos_data,
+        'bimestre_atual': bimestre,
+        'bimestres_opts': [1, 2, 3, 4]
+    })
+
+@login_required
+def plano_anual(request):
+    turma_id = request.GET.get('turma')
+    disciplina_selecionada = request.GET.get('disciplina', 'Matemática') # Padrão
+    
+    turmas = Turma.objects.all()
+    
+    # Lista de Disciplinas (Idealmente viria do banco, mas vamos fixar para teste)
+    disciplinas = ['Matemática', 'Português', 'História', 'Geografia', 'Ciências']
+
+    plano = None
+    # Estrutura: { Bimestre: { 'TODO': [], 'DOING': [], 'DONE': [] } }
+    dados_kanban = {} 
+
+    # Inicializa a estrutura vazia para os 4 bimestres
+    for b in range(1, 5):
+        dados_kanban[b] = {'TODO': [], 'DOING': [], 'DONE': []}
+
+    if turma_id:
+        turma = get_object_or_404(Turma, id=turma_id)
+        
+        # Cria ou recupera o plano daquela matéria específica
+        plano, created = PlanoEnsino.objects.get_or_create(
+            turma=turma, 
+            disciplina_nome=disciplina_selecionada, 
+            defaults={'ano_letivo': 2026}
+        )
+
+        # POST: Adicionar Novo Tópico
+        if request.method == 'POST':
+            acao = request.POST.get('acao') # identificar o que fazer
+
+            if 'arquivo_plano' in request.FILES:
+                plano.arquivo = request.FILES['arquivo_plano']
+                plano.save()
+                messages.success(request, "Arquivo anexado!")
+            
+            elif acao == 'criar':
+                conteudo = request.POST.get('conteudo')
+                bimestre = int(request.POST.get('bimestre'))
+                if conteudo:
+                    TopicoPlano.objects.create(plano=plano, bimestre=bimestre, conteudo=conteudo, status='TODO')
+                    messages.success(request, "Tópico criado!")
+
+            elif acao == 'editar':
+                topico_id = request.POST.get('topico_id')
+                topico = get_object_or_404(TopicoPlano, id=topico_id)
+                topico.conteudo = request.POST.get('conteudo')
+                topico.save()
+                messages.success(request, "Tópico atualizado!")
+
+            elif acao == 'excluir':
+                topico_id = request.POST.get('topico_id')
+                TopicoPlano.objects.filter(id=topico_id).delete()
+                messages.warning(request, "Tópico removido.")
+            
+            return redirect(f"{request.path}?turma={turma_id}&disciplina={disciplina_selecionada}")
+
+        # Organizar os tópicos nas colunas certas
+        topicos = plano.topicos.all().order_by('id')
+        for t in topicos:
+            dados_kanban[t.bimestre][t.status].append(t)
+
+    return render(request, 'core/plano_anual.html', {
+        'turmas': turmas,
+        'disciplinas': disciplinas,
+        'turma_selecionada_id': int(turma_id) if turma_id else None,
+        'disciplina_atual': disciplina_selecionada,
+        'plano': plano,
+        'dados_kanban': dados_kanban
+    })
+
+# API para Mover Card (Drag & Drop lógico)
+@login_required
+def mover_topico(request, id, novo_status):
+    topico = get_object_or_404(TopicoPlano, id=id)
+    if novo_status in ['TODO', 'DOING', 'DONE']:
+        topico.status = novo_status
+        topico.save()
+    return JsonResponse({'status': 'ok'})
+@login_required
+@require_POST
+def toggle_topico(request, id):
+    topico = get_object_or_404(TopicoPlano, id=id)
+    topico.concluido = not topico.concluido
+    topico.save()
+    return JsonResponse({'status': 'ok', 'concluido': topico.concluido})

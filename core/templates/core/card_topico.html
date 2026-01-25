@@ -1,0 +1,32 @@
+<div class="card border-0 shadow-sm p-3 bg-white rounded-3 kanban-card {{ cor }} {{ opacity }}">
+    <div class="d-flex justify-content-between align-items-start">
+        <span class="fw-bold text-dark lh-sm" style="font-size: 0.95rem;">{{ card.conteudo }}</span>
+        
+        <div class="dropdown">
+            <button class="btn btn-link text-muted p-0 ms-2" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul class="dropdown-menu shadow border-0 rounded-3">
+                {% if card.status != 'TODO' %}
+                <li><a class="dropdown-item small" href="#" onclick="moverCard('{{ card.id }}', 'TODO')"><i class="bi bi-arrow-left me-2"></i>Mover para Planejamento</a></li>
+                {% endif %}
+                
+                {% if card.status != 'DOING' %}
+                <li><a class="dropdown-item small text-primary" href="#" onclick="moverCard('{{ card.id }}', 'DOING')"><i class="bi bi-hourglass-split me-2"></i>Mover para Em Aula</a></li>
+                {% endif %}
+                
+                {% if card.status != 'DONE' %}
+                <li><a class="dropdown-item small text-success" href="#" onclick="moverCard('{{ card.id }}', 'DONE')"><i class="bi bi-check-circle me-2"></i>Concluir</a></li>
+                {% endif %}
+                
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item small" href="#" onclick="abrirModalEditar('{{ card.id }}', '{{ card.conteudo }}')"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                <li><a class="dropdown-item small text-danger" href="#" onclick="abrirModalExcluir('{{ card.id }}')"><i class="bi bi-trash me-2"></i>Excluir</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="mt-2 d-flex justify-content-end">
+        <small class="text-muted" style="font-size: 0.7rem;">ID: {{ card.id }}</small>
+    </div>
+</div>

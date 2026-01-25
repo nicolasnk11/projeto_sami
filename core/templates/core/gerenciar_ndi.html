@@ -1,0 +1,296 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h4 class="fw-bold mb-1 text-primary"><i class="bi bi-calculator-fill me-2"></i>Gestão de NDI</h4>
+            <p class="text-muted mb-0">Cálculo: (Freq + Ativ + Comp)/3 = <span class="fw-bold text-primary">Parcial</span> → (Parcial + P.Parcial + P.Bimestral)/3 = <span class="fw-bold text-success">Final</span></p>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-sm">
+                <i class="bi bi-calendar-event me-1"></i> Ano Letivo: 2026
+            </span>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4 bg-white rounded-4">
+        <div class="card-body p-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="fw-bold small text-muted text-uppercase mb-1">Turma</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-people-fill text-primary"></i></span>
+                        <select name="turma" class="form-select border-0 bg-light fw-bold py-2" onchange="this.form.submit()">
+                            <option value="">-- Selecione a Turma --</option>
+                            {% for t in turmas %}
+                            <option value="{{ t.id }}" {% if turma_selecionada.id == t.id %}selected{% endif %}>{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-bold small text-muted text-uppercase mb-1">Período</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-range text-primary"></i></span>
+                        <select name="bimestre" class="form-select border-0 bg-light fw-bold py-2" onchange="this.form.submit()">
+                            {% for b in bimestres_opts %}
+                            <option value="{{ b }}" {% if bimestre_atual == b %}selected{% endif %}>{{ b }}º Bimestre</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if turma_selecionada %}
+                    <span class="text-muted small">Editando notas de <strong>{{ alunos_data|length }}</strong> alunos</span>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if turma_selecionada %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="table-responsive custom-scrollbar" style="max-height: 70vh;">
+                <table class="table table-hover align-middle mb-0 text-center" style="border-collapse: separate; border-spacing: 0;">
+                    <thead class="sticky-top bg-white shadow-sm" style="z-index: 10;">
+                        <tr>
+                            <th class="text-start ps-4 py-3 bg-white sticky-col" style="min-width: 250px; left: 0; z-index: 20;">
+                                ALUNO
+                            </th>
+                            
+                            <th colspan="3" class="text-primary bg-primary bg-opacity-10 py-1 small fw-bold border-bottom border-primary">
+                                AVALIAÇÃO CONTÍNUA
+                            </th>
+                            <th class="bg-white border-bottom"></th>
+                            
+                            <th colspan="2" class="text-purple bg-purple bg-opacity-10 py-1 small fw-bold border-bottom border-purple">
+                                PROVAS
+                            </th>
+                            
+                            <th class="bg-success text-white py-3" style="min-width: 100px; border-top-left-radius: 10px;">RESULTADO</th>
+                        </tr>
+                        <tr>
+                            <th class="bg-white sticky-col border-bottom" style="left:0; top: 28px; z-index: 20;"></th> <th class="small text-muted bg-light border-bottom" style="width: 80px;">FREQ.</th>
+                            <th class="small text-muted bg-light border-bottom" style="width: 80px;">ATIV.</th>
+                            <th class="small text-muted bg-light border-bottom" style="width: 80px;">COMP.</th>
+                            
+                            <th class="bg-primary text-white small fw-bold border-bottom" style="width: 90px; border-radius: 8px 8px 0 0;">PARCIAL</th>
+                            
+                            <th class="small text-muted bg-light border-bottom" style="width: 90px;">P. PARCIAL</th>
+                            <th class="small text-muted bg-light border-bottom" style="width: 90px;">P. BIMESTRAL</th>
+                            
+                            <th class="bg-success bg-opacity-75 text-white small border-bottom">NDI FINAL</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for item in alunos_data %}
+                        <tr class="aluno-row" id="row-{{ item.obj.id }}">
+                            <td class="text-start ps-4 fw-bold text-dark sticky-col bg-white border-end shadow-sm-right" style="left: 0;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shadow-sm" 
+                                         style="width: 35px; height: 35px; background: linear-gradient(135deg, var(--bs-primary) 0%, #6366f1 100%); font-size: 0.85rem;">
+                                        {{ item.obj.nome_completo|slice:":1" }}
+                                    </div>
+                                    <div class="d-flex flex-column" style="line-height: 1.2;">
+                                        <span>{{ item.obj.nome_completo }}</span>
+                                        <span class="text-muted" style="font-size: 0.7rem;">Matrícula: {{ item.obj.id }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td class="bg-light bg-opacity-50">
+                                <input type="number" step="0.1" min="0" max="10" name="freq_{{ item.obj.id }}" 
+                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners" placeholder="-"
+                                       value="{{ item.ndi.nota_frequencia|default:''|stringformat:'.1f' }}"
+                                       oninput="calcularNDI('{{ item.obj.id }}')">
+                            </td>
+                            <td class="bg-light bg-opacity-50">
+                                <input type="number" step="0.1" min="0" max="10" name="atv_{{ item.obj.id }}" 
+                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners" placeholder="-"
+                                       value="{{ item.ndi.nota_atividade|default:''|stringformat:'.1f' }}"
+                                       oninput="calcularNDI('{{ item.obj.id }}')">
+                            </td>
+                            <td class="bg-light bg-opacity-50">
+                                <input type="number" step="0.1" min="0" max="10" name="comp_{{ item.obj.id }}" 
+                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners" placeholder="-"
+                                       value="{{ item.ndi.nota_comportamento|default:''|stringformat:'.1f' }}"
+                                       oninput="calcularNDI('{{ item.obj.id }}')">
+                            </td>
+
+                            <td class="bg-primary bg-opacity-10 fw-bold text-primary position-relative">
+                                <span id="res-parcial-{{ item.obj.id }}" class="fs-6">0.0</span>
+                                <div class="position-absolute top-0 start-0 h-100 border-end border-primary opacity-25"></div>
+                            </td>
+
+                            <td class="bg-white">
+                                <input type="number" step="0.1" min="0" max="10" name="pp_{{ item.obj.id }}" 
+                                       class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners" placeholder="-"
+                                       value="{{ item.ndi.nota_prova_parcial|default:''|stringformat:'.1f' }}"
+                                       oninput="calcularNDI('{{ item.obj.id }}')">
+                            </td>
+                            <td class="bg-white">
+                                <input type="number" step="0.1" min="0" max="10" name="pb_{{ item.obj.id }}" 
+                                       class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners" placeholder="-"
+                                       value="{{ item.ndi.nota_prova_bimestral|default:''|stringformat:'.1f' }}"
+                                       oninput="calcularNDI('{{ item.obj.id }}')">
+                            </td>
+
+                            <td class="bg-success bg-opacity-10 fw-bold align-middle border-start border-success border-opacity-25">
+                                <span id="res-final-{{ item.obj.id }}" class="badge bg-secondary px-3 py-2 rounded-pill fs-6 shadow-sm">0.0</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card-footer bg-white p-4 border-top">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="small text-muted">
+                        <i class="bi bi-info-circle me-1"></i> As notas são salvas automaticamente ao clicar em Salvar.
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow-lg hover-scale">
+                        <i class="bi bi-check-lg me-2"></i> SALVAR NDI
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+            <i class="bi bi-person-workspace fs-1 text-primary opacity-50"></i>
+        </div>
+        <h4 class="fw-bold text-dark">Área do Professor</h4>
+        <p class="text-muted">Selecione uma turma e um bimestre acima para começar a lançar as notas.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Esconde as setinhas do input number */
+    .no-spinners::-webkit-outer-spin-button,
+    .no-spinners::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .no-spinners {
+        -moz-appearance: textfield;
+    }
+
+    /* Estilo dos Inputs */
+    .input-nota {
+        border: 1px solid transparent;
+        background-color: transparent;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+        color: #475569;
+    }
+    .input-nota:focus {
+        background-color: #fff;
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        color: #000;
+        transform: scale(1.05);
+    }
+    .input-nota:hover {
+        background-color: rgba(255,255,255,0.8);
+        border-color: #e2e8f0;
+    }
+
+    /* Input diferenciado para provas */
+    .input-prova:focus {
+        border-color: #8b5cf6; /* Roxo */
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+    }
+
+    /* Coluna Sticky (Nome do Aluno) */
+    .sticky-col {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background-color: #fff;
+    }
+    .shadow-sm-right {
+        box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+    }
+
+    /* Cores Custom */
+    .text-purple { color: #6b21a8; }
+    .bg-purple { background-color: #a855f7; }
+    .border-purple { border-color: #d8b4fe; }
+
+    /* Animação Botão */
+    .hover-scale { transition: transform 0.2s; }
+    .hover-scale:hover { transform: translateY(-2px); }
+</style>
+
+<script>
+    function calcularNDI(id) {
+        const row = document.getElementById(`row-${id}`);
+        
+        // Função auxiliar para pegar valor E LIMITAR VISUALMENTE
+        const getVal = (name) => {
+            const input = row.querySelector(`[name="${name}_${id}"]`);
+            let rawVal = input.value;
+            
+            if (!rawVal) return 0;
+            
+            let val = parseFloat(rawVal.replace(',', '.'));
+            
+            // TRAVA DE SEGURANÇA VISUAL (0 a 10)
+            if (val > 10) {
+                val = 10;
+                input.value = 10; // Corrige o campo visualmente
+            } else if (val < 0) {
+                val = 0;
+                input.value = 0;
+            }
+            
+            return val;
+        };
+
+        const fre = getVal('freq');
+        const atv = getVal('atv');
+        const comp = getVal('comp');
+        
+        const pp = getVal('pp');
+        const pb = getVal('pb');
+
+        // Cálculo 1: NDI Parcial
+        const ndiParcial = (fre + atv + comp) / 3;
+        document.getElementById(`res-parcial-${id}`).innerText = ndiParcial.toFixed(1);
+
+        // Cálculo 2: NDI Final
+        const ndiFinal = (ndiParcial + pp + pb) / 3;
+
+        // Exibe Final
+        const elFinal = document.getElementById(`res-final-${id}`);
+        elFinal.innerText = ndiFinal.toFixed(1);
+        
+        // Cores do Badge
+        elFinal.className = "badge px-3 py-2 rounded-pill fs-6 shadow-sm transition-all";
+        if(ndiFinal >= 6) {
+            elFinal.classList.remove("bg-warning", "bg-danger", "text-dark");
+            elFinal.classList.add("bg-success");
+        } else if (ndiFinal >= 4) {
+            elFinal.classList.remove("bg-success", "bg-danger");
+            elFinal.classList.add("bg-warning", "text-dark");
+        } else {
+            elFinal.classList.remove("bg-success", "bg-warning", "text-dark");
+            elFinal.classList.add("bg-danger");
+        }
+    }
+
+    // Calcular ao carregar
+    document.addEventListener("DOMContentLoaded", function() {
+        {% for item in alunos_data %}
+            calcularNDI('{{ item.obj.id }}');
+        {% endfor %}
+    });
+</script>
+{% endblock %}
