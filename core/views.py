@@ -43,6 +43,7 @@ from .forms import (
 )
 
 from reportlab.lib.utils import ImageReader
+from .services.ai_generator import gerar_questao_ia
 
 # ==============================================================================
 # 🖨️ FUNÇÕES AUXILIARES DE PDF (LAYOUT)
@@ -2148,3 +2149,28 @@ def toggle_topico(request, id):
     topico.concluido = not topico.concluido
     topico.save()
     return JsonResponse({'status': 'ok', 'concluido': topico.concluido})
+
+@login_required
+def api_gerar_questao(request):
+    disciplina_id = request.GET.get('disciplina_id')
+    topico = request.GET.get('topico')
+    dificuldade = request.GET.get('dificuldade')
+    
+    # Busca nomes para passar pro prompt
+    disciplina = "Geral"
+    if disciplina_id:
+        disc_obj = Disciplina.objects.filter(id=disciplina_id).first()
+        if disc_obj: disciplina = disc_obj.nome
+
+    # Busca habilidade selecionada (se houver)
+    descritor_cod = request.GET.get('descritor') # Ex: "H1"
+    habilidade_texto = "Foco em competências gerais"
+    if descritor_cod:
+        # Tenta achar a descrição no banco para ajudar a IA
+        desc = Descritor.objects.filter(codigo=descritor_cod).first()
+        if desc: habilidade_texto = f"{desc.codigo} - {desc.descricao}"
+
+    # Chama a IA
+    dados_ia = gerar_questao_ia(disciplina, topico, habilidade_texto, dificuldade)
+    
+    return JsonResponse(dados_ia)

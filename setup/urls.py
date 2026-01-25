@@ -50,4 +50,5 @@ urlpatterns = [
     path('plano-aula/', views.plano_anual, name='plano_anual'),
     path('api/toggle-topico/<int:id>/', views.toggle_topico, name='toggle_topico'), 
     path('api/mover-topico/<int:id>/<str:novo_status>/', views.mover_topico, name='mover_topico'),
+    path('api/gerar-questao/', views.api_gerar_questao, name='api_gerar_questao'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

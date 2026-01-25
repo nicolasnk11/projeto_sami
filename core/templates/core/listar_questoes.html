@@ -1,6 +1,26 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
+<style>
+    .gradient-magic {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        border: none;
+        color: white;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .gradient-magic:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+        color: white;
+    }
+    .gradient-magic:disabled {
+        opacity: 0.7;
+        transform: none;
+        box-shadow: none;
+    }
+</style>
+
 <div class="container-fluid py-4">
     
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,7 +37,7 @@
                 <div class="col-md-3">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
-                        <input type="text" name="busca" class="form-control bg-light border-0" placeholder="Buscar..." value="{{ busca_atual }}">
+                        <input type="text" name="busca" class="form-control bg-light border-0" placeholder="Buscar no enunciado..." value="{{ busca_atual }}">
                     </div>
                 </div>
 
@@ -67,7 +87,8 @@
                             <th class="ps-4" style="width: 50px;">ID</th>
                             <th>Enunciado</th>
                             <th>Disciplina / Descritor</th>
-                            <th class="text-center">Série</th> <th class="text-center">Nível</th>
+                            <th class="text-center">Série</th>
+                            <th class="text-center">Nível</th>
                             <th class="text-center">Gab.</th>
                             <th class="text-end pe-4" style="width: 120px;">Ações</th>
                         </tr>
@@ -139,11 +160,7 @@
                     <ul class="pagination justify-content-center mb-0">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link border-0" href="?page={{ page_obj.previous_page_number }}
-                                    {% if busca_atual %}&busca={{ busca_atual }}{% endif %}
-                                    {% if filtro_disciplina %}&disciplina={{ filtro_disciplina }}{% endif %}
-                                    {% if filtro_dificuldade %}&dificuldade={{ filtro_dificuldade }}{% endif %}
-                                    {% if filtro_serie %}&serie={{ filtro_serie }}{% endif %}">
+                                <a class="page-link border-0" href="?page={{ page_obj.previous_page_number }}{% if busca_atual %}&busca={{ busca_atual }}{% endif %}{% if filtro_disciplina %}&disciplina={{ filtro_disciplina }}{% endif %}{% if filtro_dificuldade %}&dificuldade={{ filtro_dificuldade }}{% endif %}{% if filtro_serie %}&serie={{ filtro_serie }}{% endif %}">
                                     &laquo;
                                 </a>
                             </li>
@@ -153,11 +170,7 @@
                         
                         {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link border-0" href="?page={{ page_obj.next_page_number }}
-                                    {% if busca_atual %}&busca={{ busca_atual }}{% endif %}
-                                    {% if filtro_disciplina %}&disciplina={{ filtro_disciplina }}{% endif %}
-                                    {% if filtro_dificuldade %}&dificuldade={{ filtro_dificuldade }}{% endif %}
-                                    {% if filtro_serie %}&serie={{ filtro_serie }}{% endif %}">
+                                <a class="page-link border-0" href="?page={{ page_obj.next_page_number }}{% if busca_atual %}&busca={{ busca_atual }}{% endif %}{% if filtro_disciplina %}&disciplina={{ filtro_disciplina }}{% endif %}{% if filtro_dificuldade %}&dificuldade={{ filtro_dificuldade }}{% endif %}{% if filtro_serie %}&serie={{ filtro_serie }}{% endif %}">
                                     &raquo;
                                 </a>
                             </li>
@@ -183,6 +196,29 @@
             </div>
             
             <div class="modal-body bg-light">
+                
+                <div class="card border-primary border-opacity-25 shadow-sm mb-4">
+                    <div class="card-body bg-white py-3 rounded-3">
+                        <div class="row align-items-end g-2">
+                            <div class="col-md-9">
+                                <label class="form-label fw-bold small text-primary mb-1">
+                                    <i class="bi bi-stars me-1"></i>Gerar com IA (Opcional)
+                                </label>
+                                <input type="text" id="inputTopicoIA" class="form-control border-primary bg-light" 
+                                       placeholder="Digite um tema (Ex: Revolução Industrial, Regra de Três, Citologia...)">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-primary w-100 fw-bold gradient-magic" onclick="gerarQuestaoIA()">
+                                    <i class="bi bi-robot me-2"></i>Criar Mágica
+                                </button>
+                            </div>
+                        </div>
+                        <div id="loadingIA" class="text-center mt-2 d-none">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <small class="text-muted ms-2 fst-italic">A IA está pensando...</small>
+                        </div>
+                    </div>
+                </div>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold small">Disciplina</label>
@@ -306,10 +342,12 @@
         document.getElementById('inputQuestaoId').value = '';
         document.getElementById('tituloModal').innerText = 'Nova Questão';
         
+        // Reset padrão
         document.getElementById('inputDisciplina').selectedIndex = 0;
         document.getElementById('inputGabarito').selectedIndex = 0;
         document.getElementById('inputDificuldade').selectedIndex = 1; 
         document.getElementById('inputSerie').value = '3';
+        document.getElementById('inputTopicoIA').value = ''; // Limpa campo IA
         
         getModalInstance('modalQuestao').show();
     }
@@ -331,12 +369,73 @@
         document.getElementById('inputD').value = d;
         document.getElementById('inputE').value = e;
 
+        document.getElementById('inputTopicoIA').value = ''; // Limpa IA na edição
+
         getModalInstance('modalQuestao').show();
     }
 
     function abrirModalExcluir(id) {
         document.getElementById('idExcluir').value = id;
         getModalInstance('modalExcluir').show();
+    }
+
+    // --- LÓGICA DA INTELIGÊNCIA ARTIFICIAL ---
+    function gerarQuestaoIA() {
+        const topico = document.getElementById('inputTopicoIA').value;
+        const disciplina = document.getElementById('inputDisciplina').value;
+        const dificuldade = document.getElementById('inputDificuldade').value;
+        const descritor = document.getElementById('inputDescritor').value;
+
+        if (!topico) {
+            alert("Por favor, digite um tema/tópico para a IA saber o que criar!");
+            document.getElementById('inputTopicoIA').focus();
+            return;
+        }
+
+        // UI de Carregamento
+        const btn = document.querySelector('.gradient-magic');
+        const loading = document.getElementById('loadingIA');
+        const iconOriginal = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Criando...';
+        loading.classList.remove('d-none');
+
+        // Chama a API do Django
+        fetch(`/api/gerar-questao/?topico=${encodeURIComponent(topico)}&disciplina_id=${disciplina}&dificuldade=${dificuldade}&descritor=${descritor}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) {
+                    alert("Erro da IA: " + data.erro);
+                } else {
+                    // Preenchimento Automático
+                    document.getElementById('inputEnunciado').value = data.enunciado;
+                    document.getElementById('inputA').value = data.A;
+                    document.getElementById('inputB').value = data.B;
+                    document.getElementById('inputC').value = data.C;
+                    document.getElementById('inputD').value = data.D;
+                    document.getElementById('inputE').value = data.E;
+                    document.getElementById('inputGabarito').value = data.gabarito;
+                    // Se a IA sugeriu um descritor, preenche o campo
+                    if (data.descritor_sugerido) {
+                        document.getElementById('inputDescritor').value = data.descritor_sugerido;
+                    }
+                    
+                    // Feedback Visual
+                    const enunciado = document.getElementById('inputEnunciado');
+                    enunciado.classList.add('bg-success', 'bg-opacity-10');
+                    setTimeout(() => enunciado.classList.remove('bg-success', 'bg-opacity-10'), 1500);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro ao conectar com o servidor.");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = iconOriginal;
+                loading.classList.add('d-none');
+            });
     }
 </script>
 {% endblock %}
