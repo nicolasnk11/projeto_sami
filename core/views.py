@@ -1243,11 +1243,6 @@ def listar_questoes(request):
     return render(request, 'core/listar_questoes.html', context)
 
 @login_required
-def listar_descritores(request):
-    descritores = Descritor.objects.all().order_by('codigo')
-    return render(request, 'core/listar_descritores.html', {'descritores': descritores})
-
-@login_required
 def editar_avaliacao(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     if request.method == 'POST':
@@ -2174,3 +2169,65 @@ def api_gerar_questao(request):
     dados_ia = gerar_questao_ia(disciplina, topico, habilidade_texto, dificuldade)
     
     return JsonResponse(dados_ia)
+
+@login_required
+def gerenciar_descritores(request):
+    # LÓGICA DE FILTROS (GET)
+    filtro_disc = request.GET.get('disciplina')
+    filtro_fonte = request.GET.get('fonte') # 'ENEM' ou 'SAEB'
+
+    # Começa pegando todas as disciplinas
+    disciplinas_queryset = Disciplina.objects.all().order_by('nome')
+
+    # Se filtrou por disciplina, reduz o queryset principal
+    if filtro_disc:
+        disciplinas_queryset = disciplinas_queryset.filter(id=filtro_disc)
+
+    # Prepara a lista final com pré-carregamento filtrado dos descritores
+    # Isso é Python avançado: filtramos a sub-lista (descritores) dentro da lista principal (disciplinas)
+    from django.db.models import Prefetch
+    
+    descritores_filter = Descritor.objects.all().order_by('codigo')
+    if filtro_fonte:
+        if filtro_fonte == 'ENEM':
+            descritores_filter = descritores_filter.filter(tema__icontains='ENEM')
+        elif filtro_fonte == 'SAEB':
+            descritores_filter = descritores_filter.exclude(tema__icontains='ENEM')
+            
+    disciplinas = disciplinas_queryset.prefetch_related(
+        Prefetch('descritor_set', queryset=descritores_filter)
+    )
+
+    # --- LÓGICA DE SALVAR/EXCLUIR (POST) ---
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        if acao == 'excluir':
+            desc_id = request.POST.get('descritor_id')
+            Descritor.objects.filter(id=desc_id).delete()
+            messages.success(request, 'Removido com sucesso.')
+        elif acao == 'salvar':
+            # (Código de salvar igual ao anterior...)
+            desc_id = request.POST.get('descritor_id')
+            disciplina_id = request.POST.get('disciplina')
+            codigo = request.POST.get('codigo')
+            descricao = request.POST.get('descricao')
+            tema = request.POST.get('tema')
+            
+            dados = {'disciplina_id': disciplina_id, 'codigo': codigo, 'descricao': descricao, 'tema': tema}
+            if desc_id:
+                d = Descritor.objects.get(id=desc_id)
+                for k, v in dados.items(): setattr(d, k, v)
+                d.save()
+                messages.success(request, 'Atualizado!')
+            else:
+                Descritor.objects.create(**dados)
+                messages.success(request, 'Criado!')
+        return redirect('gerenciar_descritores')
+
+    context = {
+        'disciplinas': disciplinas,
+        'todas_disciplinas': Disciplina.objects.all().order_by('nome'), # Para o select do filtro
+        'filtro_atual_disc': int(filtro_disc) if filtro_disc else '',
+        'filtro_atual_fonte': filtro_fonte or ''
+    }
+    return render(request, 'core/gerenciar_descritores.html', context)

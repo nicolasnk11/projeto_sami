@@ -6,7 +6,7 @@ from core import views
 from django.contrib.auth import views as auth_views
 from core.views import (dashboard, criar_avaliacao, lancar_nota, gerar_prova_pdf, api_filtrar_alunos,
  importar_questoes, definir_gabarito, gerar_relatorio_proficiencia, importar_alunos, gerenciar_alunos, gerenciar_turmas,
-  gerenciar_avaliacoes, editar_avaliacao, montar_prova, baixar_prova_existente, painel_gestao, listar_questoes, listar_descritores, perfil_aluno,
+  gerenciar_avaliacoes, editar_avaliacao, montar_prova, baixar_prova_existente, painel_gestao, gerenciar_descritores, listar_questoes, perfil_aluno,
   mapa_calor)
 
 
@@ -41,7 +41,6 @@ urlpatterns = [
     path('baixar_prova/<int:avaliacao_id>/', views.baixar_prova_existente, name='baixar_prova_existente'),
     path('gestao/', views.painel_gestao, name='painel_gestao'),
     path('banco-questoes/', views.listar_questoes, name='listar_questoes'),
-    path('matriz-descritores/', views.listar_descritores, name='listar_descritores'),
     path('aluno/<int:aluno_id>/perfil/', views.perfil_aluno, name='perfil_aluno'),
     path('avaliacao/<int:avaliacao_id>/mapa/', views.mapa_calor, name='mapa_calor'),
     path('aluno/<int:aluno_id>/boletim/', views.gerar_boletim_pdf, name='gerar_boletim_pdf'),
@@ -51,4 +50,5 @@ urlpatterns = [
     path('api/toggle-topico/<int:id>/', views.toggle_topico, name='toggle_topico'), 
     path('api/mover-topico/<int:id>/<str:novo_status>/', views.mover_topico, name='mover_topico'),
     path('api/gerar-questao/', views.api_gerar_questao, name='api_gerar_questao'),
+    path('gestao/descritores/', views.gerenciar_descritores, name='gerenciar_descritores'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
