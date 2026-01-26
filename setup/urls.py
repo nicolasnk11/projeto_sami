@@ -51,4 +51,5 @@ urlpatterns = [
     path('api/mover-topico/<int:id>/<str:novo_status>/', views.mover_topico, name='mover_topico'),
     path('api/gerar-questao/', views.api_gerar_questao, name='api_gerar_questao'),
     path('gestao/descritores/', views.gerenciar_descritores, name='gerenciar_descritores'),
+    path('api/ler-cartao/', views.api_ler_cartao, name='api_ler_cartao'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,4 +1,5 @@
 import io
+import os
 import json
 import csv
 import qrcode
@@ -17,6 +18,7 @@ from django.http import FileResponse, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 # ReportLab Imports (PDF)
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -44,6 +46,7 @@ from .forms import (
 
 from reportlab.lib.utils import ImageReader
 from .services.ai_generator import gerar_questao_ia
+from .services.omr_scanner import OMRScanner
 
 # ==============================================================================
 # 🖨️ FUNÇÕES AUXILIARES DE PDF (LAYOUT)
@@ -1886,99 +1889,124 @@ def gerar_boletim_pdf(request, aluno_id):
     return FileResponse(buffer, as_attachment=True, filename=f'Boletim_{aluno.nome_completo}.pdf')
 
 
-
+# ==========================================
+# 2. GERADOR DE CARTÕES (COM QR CODE)
+# ==========================================
 @login_required
 def gerar_cartoes_pdf(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     
-    # --- CORREÇÃO AQUI ---
-    # Verifica se a avaliação é individual ou da turma
+    # Define quem vai receber o cartão
     if avaliacao.aluno:
-        # Se tiver aluno vinculado, gera SÓ pra ele
         alunos = [avaliacao.aluno]
     else:
-        # Se não, gera pra turma toda
         alunos = Aluno.objects.filter(turma=avaliacao.turma).order_by('nome_completo')
     
-    # ... (Restante do código de desenho dos cartões permanece IDÊNTICO) ...
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     margin = 1 * cm
+    
+    # Configuração para 4 cartões por folha (Grade 2x2)
     card_w = (width - (3 * margin)) / 2
     card_h = (height - (3 * margin)) / 2
     
     positions = [
-        (margin, height - margin - card_h), 
-        (margin + card_w + margin, height - margin - card_h),
-        (margin, margin),
-        (margin + card_w + margin, margin)
+        (margin, height - margin - card_h),          # Top-Esq
+        (margin + card_w + margin, height - margin - card_h), # Top-Dir
+        (margin, margin),                            # Bot-Esq
+        (margin + card_w + margin, margin)           # Bot-Dir
     ]
     
     aluno_idx = 0
     total_alunos = len(alunos)
     
     while aluno_idx < total_alunos:
+        # Loop para preencher as 4 posições da página
         for pos_x, pos_y in positions:
             if aluno_idx >= total_alunos: break
+            
             aluno = alunos[aluno_idx]
             
+            # Borda pontilhada para corte
             c.setStrokeColor(colors.black)
             c.setLineWidth(1)
             c.setDash([2, 4])
             c.rect(pos_x, pos_y, card_w, card_h, stroke=1, fill=0)
-            c.setDash([])
+            c.setDash([]) # Reseta o pontilhado
             
-            # Marcadores Fiduciais
+            # --- MARCADORES FIDUCIAIS (Âncoras para o Scanner) ---
             c.setFillColor(colors.black)
             marker_size = 15
+            # Top-Esq
             c.rect(pos_x + 10, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
+            # Top-Dir
             c.rect(pos_x + card_w - 10 - marker_size, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
+            # Bot-Esq
             c.rect(pos_x + 10, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
+            # Bot-Dir
             c.rect(pos_x + card_w - 10 - marker_size, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
 
-            # QR Code
+            # --- QR CODE (IDENTIDADE) ---
+            # Formato: A{id_avaliacao}-U{id_aluno} (Ex: A15-U102)
             qr_data = f"A{avaliacao.id}-U{aluno.id}"
-            qr = qrcode.make(qr_data)
-            qr_img = ImageReader(qr._img)
-            c.drawImage(qr_img, pos_x + card_w - 80, pos_y + card_h - 90, width=60, height=60)
             
-            # Texto
+            qr = qrcode.QRCode(box_size=2, border=0)
+            qr.add_data(qr_data)
+            qr.make(fit=True)
+            img_qr = qr.make_image(fill_color="black", back_color="white")
+            
+            # Converte para Reportlab desenhar
+            qr_img_reader = ImageReader(img_qr._img)
+            # Posiciona no canto inferior direito do cartão
+            c.drawImage(qr_img_reader, pos_x + card_w - 70, pos_y + 20, width=50, height=50)
+            
+            # --- CABEÇALHO ---
             c.setFillColor(colors.black)
-            c.setFont("Helvetica-Bold", 10)
+            c.setFont("Helvetica-Bold", 11)
             c.drawString(pos_x + 35, pos_y + card_h - 25, "CARTÃO RESPOSTA")
-            c.setFont("Helvetica", 8)
-            c.drawString(pos_x + 35, pos_y + card_h - 40, f"Aluno: {aluno.nome_completo[:25]}")
-            c.drawString(pos_x + 35, pos_y + card_h - 52, f"Prova: {avaliacao.titulo[:25]}")
-            c.drawString(pos_x + 35, pos_y + card_h - 64, f"Turma: {aluno.turma.nome}")
             
-            # Bolinhas
-            y_start = pos_y + card_h - 90
+            c.setFont("Helvetica", 9)
+            c.drawString(pos_x + 35, pos_y + card_h - 45, f"Aluno: {aluno.nome_completo[:28]}")
+            c.drawString(pos_x + 35, pos_y + card_h - 58, f"Prova: {avaliacao.titulo[:28]}")
+            c.setFont("Helvetica", 8)
+            c.drawString(pos_x + 35, pos_y + card_h - 70, f"Turma: {aluno.turma.nome} | Cód.: {aluno.id}")
+            
+            # --- GRADE DE BOLINHAS ---
+            y_start = pos_y + card_h - 95
             x_col1 = pos_x + 30
-            x_col2 = pos_x + card_w/2 + 10
+            x_col2 = pos_x + card_w/2 + 20
+            
+            # Busca total de questões real ou usa padrão 10
             total_questoes = ItemGabarito.objects.filter(avaliacao=avaliacao).count() or 10
             
-            c.setFont("Helvetica", 8)
+            c.setFont("Helvetica", 9)
             for q_num in range(1, total_questoes + 1):
+                # Coluna 1 (1-10) ou Coluna 2 (11-20)
                 if q_num <= 10:
                     curr_x = x_col1
-                    curr_y = y_start - ((q_num - 1) * 15)
+                    curr_y = y_start - ((q_num - 1) * 16) # Espaçamento vertical
                 else:
                     curr_x = x_col2
-                    curr_y = y_start - ((q_num - 11) * 15)
+                    curr_y = y_start - ((q_num - 11) * 16)
                 
+                # Número da questão
                 c.drawString(curr_x, curr_y, str(q_num).zfill(2))
+                
+                # Bolinhas A B C D E
                 opcoes = ['A', 'B', 'C', 'D', 'E']
                 for i, opt in enumerate(opcoes):
-                    bubble_x = curr_x + 25 + (i * 15)
+                    bubble_x = curr_x + 25 + (i * 14) # Espaçamento horizontal
                     bubble_y = curr_y + 3
-                    c.circle(bubble_x, bubble_y, 5, stroke=1, fill=0)
-                    c.setFont("Helvetica", 5)
-                    c.drawCentredString(bubble_x, bubble_y - 1.5, opt)
-                    c.setFont("Helvetica", 8)
+                    
+                    c.circle(bubble_x, bubble_y, 5.5, stroke=1, fill=0)
+                    c.setFont("Helvetica", 6)
+                    c.drawCentredString(bubble_x, bubble_y - 2, opt) # Letra centralizada
+                    c.setFont("Helvetica", 9) # Volta fonte normal
 
             aluno_idx += 1
-        c.showPage() 
+            
+        c.showPage() # Quebra a página a cada 4 cartões
 
     c.save()
     buffer.seek(0)
@@ -2231,3 +2259,126 @@ def gerenciar_descritores(request):
         'filtro_atual_fonte': filtro_fonte or ''
     }
     return render(request, 'core/gerenciar_descritores.html', context)
+
+def upload_correcao_cartao(request, avaliacao_id):
+    avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
+    
+    if request.method == 'POST' and request.FILES.get('foto_cartao'):
+        foto = request.FILES['foto_cartao']
+        aluno_id = request.POST.get('aluno_id') # Você pode selecionar o aluno num dropdown antes
+        
+        # 1. Salva a foto temporariamente
+        path = f"media/temp/{foto.name}"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb+') as destination:
+            for chunk in foto.chunks():
+                destination.write(chunk)
+        
+        # 2. Roda o Scanner
+        scanner = OMRScanner()
+        # Ajuste qtd_questoes para bater com a prova
+        qtd_q = ItemGabarito.objects.filter(avaliacao=avaliacao).count() or 10
+        resultado = scanner.processar_cartao(path, qtd_questoes=qtd_q)
+        
+        # 3. Processa o Resultado
+        if resultado['sucesso']:
+            respostas = resultado['respostas'] # Ex: {1: 'A', 2: 'C'}
+            aluno = get_object_or_404(Aluno, id=aluno_id)
+            
+            acertos = 0
+            # Salva no banco (RespostaDetalhada)
+            for num, letra_marcada in respostas.items():
+                item_prova = ItemGabarito.objects.filter(avaliacao=avaliacao, numero=num).first()
+                if item_prova:
+                    acertou = (letra_marcada == item_prova.resposta_correta)
+                    if acertou: acertos += 1
+                    
+                    RespostaDetalhada.objects.update_or_create(
+                        resultado__aluno=aluno,
+                        resultado__avaliacao=avaliacao,
+                        questao=item_prova.questao_banco,
+                        defaults={
+                            'resposta_aluno': letra_marcada,
+                            'acertou': acertou
+                        }
+                    )
+            
+            # Atualiza nota final
+            ResultadoAvaliacao.objects.update_or_create(
+                aluno=aluno,
+                avaliacao=avaliacao,
+                defaults={'nota': acertos, 'data_realizacao': datetime.now()}
+            )
+            
+            messages.success(request, f"Cartão lido! Nota calculada: {acertos}")
+        else:
+            messages.error(request, f"Erro na leitura: {resultado.get('erro')}")
+            
+        # Limpa arquivo temp
+        os.remove(path)
+        return redirect('detalhes_avaliacao', avaliacao_id=avaliacao.id)
+
+    # GET: Mostra formulário de upload
+    alunos = Aluno.objects.filter(turma=avaliacao.turma)
+    return render(request, 'core/professor/upload_cartao.html', {'avaliacao': avaliacao, 'alunos': alunos})
+
+# ==========================================
+# 1. API DE LEITURA (COM INTEGRAÇÃO QR CODE)
+# ==========================================
+@csrf_exempt 
+def api_ler_cartao(request):
+    if request.method == 'POST' and request.FILES.get('foto'):
+        path = ""
+        try:
+            foto = request.FILES['foto']
+            avaliacao_id = request.POST.get('avaliacao_id')
+            
+            # 1. Salva temporariamente
+            path = f"media/temp/{foto.name}"
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'wb+') as destination:
+                for chunk in foto.chunks():
+                    destination.write(chunk)
+
+            # 2. Define questões (Padrão 10 ou busca do banco)
+            qtd_questoes = 10
+            if avaliacao_id:
+                # Opcional: qtd_questoes = ItemGabarito.objects.filter(avaliacao_id=avaliacao_id).count() or 10
+                pass
+
+            # 3. Roda o Scanner
+            scanner = OMRScanner()
+            resultado = scanner.processar_cartao(path, qtd_questoes=qtd_questoes)
+            
+            # 4. Lógica de Identificação do Aluno pelo QR Code
+            # O formato gerado no PDF é: "A{id}-U{id}" (Ex: A15-U102)
+            if resultado.get('qr_code'):
+                try:
+                    codigo = resultado['qr_code'] # Ex: "A15-U102"
+                    partes = codigo.split('-') # ['A15', 'U102']
+                    
+                    for p in partes:
+                        if p.startswith('U'):
+                            # Remove o 'U' e pega o ID (Ex: 102)
+                            aluno_id = int(p[1:])
+                            resultado['aluno_detectado_id'] = aluno_id
+                            
+                        # Opcional: Verificar se a prova é a correta
+                        # if p.startswith('A') and int(p[1:]) != int(avaliacao_id):
+                        #     resultado['aviso'] = "Atenção: O QR Code indica uma prova diferente!"
+                except Exception as e:
+                    print(f"Erro ao parsear QR Code: {e}")
+
+            # 5. Apaga o arquivo temp
+            if os.path.exists(path):
+                os.remove(path)
+
+            return JsonResponse(resultado)
+
+        except Exception as e:
+            # Garante limpeza em caso de erro
+            if os.path.exists(path):
+                os.remove(path)
+            return JsonResponse({'sucesso': False, 'erro': str(e)})
+
+    return JsonResponse({'sucesso': False, 'erro': 'Nenhuma imagem enviada'})

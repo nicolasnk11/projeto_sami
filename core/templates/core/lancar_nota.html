@@ -72,8 +72,16 @@
             <div class="card shadow-lg border-0 rounded-4 h-100">
                 <div class="card-header bg-primary text-white py-3 border-0 d-flex justify-content-between align-items-center px-4">
                     <h5 class="mb-0 fw-bold"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Cartão Resposta</h5>
-                    <span class="badge bg-white text-primary fw-bold">Modo Rápido</span>
+                    
+                    <div>
+                        <input type="file" id="inputFotoCartao" accept="image/*" capture="environment" style="display: none;">
+                        
+                        <button type="button" class="btn btn-light text-primary fw-bold btn-sm shadow-sm transition-hover" onclick="document.getElementById('inputFotoCartao').click()">
+                            <i class="bi bi-camera-fill me-1"></i> Preencher por Foto
+                        </button>
+                    </div>
                 </div>
+
                 <div class="card-body p-4 bg-light">
                     
                     <div class="d-flex flex-wrap gap-2 justify-content-start" id="gradeQuestoes">
@@ -85,6 +93,7 @@
                             <div class="card-body p-1">
                                 <input type="text" 
                                        name="resposta_{{ item.id }}" 
+                                       data-numero="{{ item.numero }}"
                                        class="form-control form-control-lg text-center fw-bold border-0 bg-light input-resposta p-0" 
                                        style="height: 40px; font-size: 1.2rem; border-radius: 8px;"
                                        maxlength="1" 
@@ -191,6 +200,101 @@ document.addEventListener('DOMContentLoaded', function() {
         // Seleciona texto ao focar (facilita correção)
         input.addEventListener('focus', function() { this.select(); });
     });
+
+    // 3. LEITURA DE CARTÃO POR FOTO (OMR SCANNER)
+    const inputFoto = document.getElementById('inputFotoCartao');
+    // Pegamos o ID da avaliação do template (se existir)
+    const avaliacaoId = "{{ avaliacao_selecionada.id|default:'' }}"; 
+
+    if(inputFoto) {
+        inputFoto.addEventListener('change', async function(e) {
+            if (this.files && this.files[0]) {
+                const arquivo = this.files[0];
+                
+                // Feedback visual (Loading) no botão
+                const btnOriginal = this.nextElementSibling; // O botão é o irmão logo após o input
+                const textoOriginal = btnOriginal.innerHTML;
+                btnOriginal.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Processando...';
+                btnOriginal.disabled = true;
+
+                try {
+                    // Prepara o envio
+                    const formData = new FormData();
+                    formData.append('foto', arquivo);
+                    formData.append('avaliacao_id', avaliacaoId);
+
+                    // Envia para o Backend Python (API)
+                    const response = await fetch('/api/ler-cartao/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}' // Segurança do Django
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.sucesso) {
+                        // A. SELEÇÃO AUTOMÁTICA DO ALUNO (NOVIDADE!)
+                        // Se a API retornou um ID de aluno via QR Code
+                        if (data.aluno_detectado_id) {
+                            // Procura o radio button com value="ID_DO_ALUNO"
+                            const radioAluno = document.querySelector(`input[name="aluno"][value="${data.aluno_detectado_id}"]`);
+                            if (radioAluno) {
+                                radioAluno.checked = true;
+                                // Rola a lista até o aluno selecionado
+                                radioAluno.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                
+                                // Realça visualmente o item da lista
+                                const labelPai = radioAluno.closest('label');
+                                if(labelPai) {
+                                    labelPai.classList.add('bg-success', 'text-white');
+                                    setTimeout(() => labelPai.classList.remove('bg-success', 'text-white'), 2000);
+                                }
+                                console.log("Aluno identificado pelo QR Code: " + data.aluno_detectado_id);
+                            } else {
+                                console.warn("Aluno do QR Code não encontrado na lista desta turma.");
+                                // Opcional: alert("Atenção: O cartão lido pertence a um aluno que não está nesta lista.");
+                            }
+                        }
+
+                        // B. PREENCHIMENTO DAS RESPOSTAS
+                        let preenchidos = 0;
+                        
+                        // O backend retorna: { "1": "A", "2": "C", ... }
+                        for (const [numeroQuestao, letraResposta] of Object.entries(data.respostas)) {
+                            // Procura o input pelo atributo data-numero
+                            const inputAlvo = document.querySelector(`.input-resposta[data-numero="${numeroQuestao}"]`);
+                            
+                            if (inputAlvo) {
+                                inputAlvo.value = letraResposta;
+                                
+                                // Efeito visual flash verde para confirmar preenchimento
+                                inputAlvo.style.transition = "background-color 0.3s";
+                                inputAlvo.style.backgroundColor = '#d1e7dd'; // Verde Sucesso
+                                setTimeout(() => inputAlvo.style.backgroundColor = '#f8f9fa', 1500);
+                                preenchidos++;
+                            }
+                        }
+                        
+                        // Feedback discreto
+                        console.log(`Sucesso! ${preenchidos} questões preenchidas via scanner.`);
+                    } else {
+                        alert('Erro ao ler cartão: ' + (data.erro || 'Falha desconhecida. Tente uma foto melhor iluminada.'));
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    alert('Erro de conexão com o servidor ao enviar a foto.');
+                } finally {
+                    // Restaura o botão ao estado original
+                    btnOriginal.innerHTML = textoOriginal;
+                    btnOriginal.disabled = false;
+                    inputFoto.value = ''; // Limpa para permitir subir a mesma foto novamente se errar
+                }
+            }
+        });
+    }
 });
 </script>
 
