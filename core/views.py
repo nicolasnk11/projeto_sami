@@ -1890,13 +1890,13 @@ def gerar_boletim_pdf(request, aluno_id):
 
 
 # ==========================================
-# 2. GERADOR DE CARTÕES (COM QR CODE)
+# 2. GERADOR DE CARTÕES (COM QR CODE)      #
 # ==========================================
 @login_required
 def gerar_cartoes_pdf(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     
-    # Define quem vai receber o cartão
+    # ... (Seleção de alunos continua igual) ...
     if avaliacao.aluno:
         alunos = [avaliacao.aluno]
     else:
@@ -1907,106 +1907,119 @@ def gerar_cartoes_pdf(request, avaliacao_id):
     width, height = A4
     margin = 1 * cm
     
-    # Configuração para 4 cartões por folha (Grade 2x2)
     card_w = (width - (3 * margin)) / 2
     card_h = (height - (3 * margin)) / 2
     
     positions = [
-        (margin, height - margin - card_h),          # Top-Esq
-        (margin + card_w + margin, height - margin - card_h), # Top-Dir
-        (margin, margin),                            # Bot-Esq
-        (margin + card_w + margin, margin)           # Bot-Dir
+        (margin, height - margin - card_h), 
+        (margin + card_w + margin, height - margin - card_h),
+        (margin, margin),
+        (margin + card_w + margin, margin)
     ]
+    
+    # BUSCA TOTAL DE QUESTÕES
+    total_questoes = ItemGabarito.objects.filter(avaliacao=avaliacao).count() or 10
+
+    # LÓGICA DE COLUNAS (CORREÇÃO AQUI)
+    # Define quantas questões cabem na coluna 1 antes de pular para a 2
+    # Se tiver muitas questões (> 20), vamos tentar balancear melhor
+    # Capacidade máxima visual da coluna ~17 questões
+    limite_coluna_1 = 15 
     
     aluno_idx = 0
     total_alunos = len(alunos)
     
     while aluno_idx < total_alunos:
-        # Loop para preencher as 4 posições da página
         for pos_x, pos_y in positions:
             if aluno_idx >= total_alunos: break
             
             aluno = alunos[aluno_idx]
             
-            # Borda pontilhada para corte
+            # ... (Desenho da borda e marcadores CONTINUA IGUAL) ...
             c.setStrokeColor(colors.black)
             c.setLineWidth(1)
             c.setDash([2, 4])
             c.rect(pos_x, pos_y, card_w, card_h, stroke=1, fill=0)
-            c.setDash([]) # Reseta o pontilhado
-            
-            # --- MARCADORES FIDUCIAIS (Âncoras para o Scanner) ---
+            c.setDash([])
+
+            # Marcadores Fiduciais
             c.setFillColor(colors.black)
             marker_size = 15
-            # Top-Esq
             c.rect(pos_x + 10, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
-            # Top-Dir
             c.rect(pos_x + card_w - 10 - marker_size, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
-            # Bot-Esq
             c.rect(pos_x + 10, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
-            # Bot-Dir
             c.rect(pos_x + card_w - 10 - marker_size, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
 
-            # --- QR CODE (IDENTIDADE) ---
-            # Formato: A{id_avaliacao}-U{id_aluno} (Ex: A15-U102)
+            # QR Code (Mantido no canto inferior direito)
             qr_data = f"A{avaliacao.id}-U{aluno.id}"
-            
             qr = qrcode.QRCode(box_size=2, border=0)
             qr.add_data(qr_data)
             qr.make(fit=True)
             img_qr = qr.make_image(fill_color="black", back_color="white")
-            
-            # Converte para Reportlab desenhar
             qr_img_reader = ImageReader(img_qr._img)
-            # Posiciona no canto inferior direito do cartão
+            
+            # Posição do QR Code
             c.drawImage(qr_img_reader, pos_x + card_w - 70, pos_y + 20, width=50, height=50)
             
-            # --- CABEÇALHO ---
+            # Cabeçalho
             c.setFillColor(colors.black)
             c.setFont("Helvetica-Bold", 11)
             c.drawString(pos_x + 35, pos_y + card_h - 25, "CARTÃO RESPOSTA")
-            
             c.setFont("Helvetica", 9)
-            c.drawString(pos_x + 35, pos_y + card_h - 45, f"Aluno: {aluno.nome_completo[:28]}")
-            c.drawString(pos_x + 35, pos_y + card_h - 58, f"Prova: {avaliacao.titulo[:28]}")
+            c.drawString(pos_x + 35, pos_y + card_h - 45, f"Aluno: {aluno.nome_completo[:25]}")
+            c.drawString(pos_x + 35, pos_y + card_h - 58, f"Prova: {avaliacao.titulo[:25]}")
             c.setFont("Helvetica", 8)
             c.drawString(pos_x + 35, pos_y + card_h - 70, f"Turma: {aluno.turma.nome} | Cód.: {aluno.id}")
             
-            # --- GRADE DE BOLINHAS ---
+            # --- DESENHO DAS BOLINHAS (CORRIGIDO) ---
             y_start = pos_y + card_h - 95
             x_col1 = pos_x + 30
-            x_col2 = pos_x + card_w/2 + 20
-            
-            # Busca total de questões real ou usa padrão 10
-            total_questoes = ItemGabarito.objects.filter(avaliacao=avaliacao).count() or 10
+            x_col2 = pos_x + card_w/2 + 10 # Um pouco mais pra esquerda pra caber
             
             c.setFont("Helvetica", 9)
+            
             for q_num in range(1, total_questoes + 1):
-                # Coluna 1 (1-10) ou Coluna 2 (11-20)
-                if q_num <= 10:
+                # Se for menor que o limite, desenha na esquerda
+                if q_num <= limite_coluna_1:
                     curr_x = x_col1
-                    curr_y = y_start - ((q_num - 1) * 16) # Espaçamento vertical
+                    curr_y = y_start - ((q_num - 1) * 16)
                 else:
+                    # Coluna da direita
+                    # CUIDADO: Se tiver muitas questões aqui, vai bater no QR Code
+                    # O QR Code começa em Y + 20 e tem altura 50. Vai até Y + 70.
+                    # Precisamos parar antes de Y + 80.
+                    
+                    idx_col2 = q_num - limite_coluna_1 - 1
                     curr_x = x_col2
-                    curr_y = y_start - ((q_num - 11) * 16)
-                
-                # Número da questão
+                    curr_y = y_start - (idx_col2 * 16)
+                    
+                    # Checagem de segurança (Colisão com QR Code)
+                    if curr_y < (pos_y + 80): 
+                        # Se for bater no QR Code, joga um pouco pra esquerda?
+                        # Ou avisa que não cabe.
+                        # Por enquanto, vamos apenas recuar o X para não ficar EM CIMA do QR
+                        # O QR Code está em X + card_w - 70.
+                        # Nossa coluna 2 está em card_w/2 + 10.
+                        # Se card_w é ~280, metade é 140. QR começa em 210.
+                        # As bolinhas ocupam uns 100px. 140+100 = 240. Bate!
+                        
+                        # SOLUÇÃO: Mover a segunda coluna mais para a esquerda se estivermos na parte de baixo
+                        curr_x = x_col2 - 20 
+
                 c.drawString(curr_x, curr_y, str(q_num).zfill(2))
                 
-                # Bolinhas A B C D E
                 opcoes = ['A', 'B', 'C', 'D', 'E']
                 for i, opt in enumerate(opcoes):
-                    bubble_x = curr_x + 25 + (i * 14) # Espaçamento horizontal
+                    bubble_x = curr_x + 25 + (i * 14)
                     bubble_y = curr_y + 3
-                    
                     c.circle(bubble_x, bubble_y, 5.5, stroke=1, fill=0)
                     c.setFont("Helvetica", 6)
-                    c.drawCentredString(bubble_x, bubble_y - 2, opt) # Letra centralizada
-                    c.setFont("Helvetica", 9) # Volta fonte normal
+                    c.drawCentredString(bubble_x, bubble_y - 2, opt)
+                    c.setFont("Helvetica", 9)
 
             aluno_idx += 1
             
-        c.showPage() # Quebra a página a cada 4 cartões
+        c.showPage() 
 
     c.save()
     buffer.seek(0)
