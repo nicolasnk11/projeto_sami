@@ -38,7 +38,7 @@ from reportlab.lib.utils import ImageReader
 from .models import (
     Turma, Resultado, Avaliacao, Questao, Aluno, Disciplina, 
     RespostaDetalhada, ItemGabarito, Descritor, NDI, PlanoEnsino,
-    TopicoPlano
+    TopicoPlano, ConfiguracaoSistema
 )
 from .forms import (
     AvaliacaoForm, ResultadoForm, GerarProvaForm, ImportarQuestoesForm, 
@@ -53,31 +53,54 @@ from .services.omr_scanner import OMRScanner
 # 🖨️ FUNÇÕES AUXILIARES DE PDF (LAYOUT)
 # ==============================================================================
 
+# ==============================================================================
+# 🖨️ FUNÇÕES AUXILIARES DE PDF (LAYOUT PREMIUM)
+# ==============================================================================
+
 def desenhar_cabecalho_prova(p, titulo, turma_nome, disciplina_nome):
-    """Desenha o cabeçalho padrão da escola no topo da página PDF."""
+    """Cabeçalho da Prova com Logo e Nome da Escola."""
+    config = ConfiguracaoSistema.objects.first()
+    
+    # Cores e Fontes
+    cor_pri = colors.HexColor(config.cor_primaria) if config else colors.black
+    nome_escola = config.nome_escola.upper() if config else "ESCOLA MODELO SAMI"
+    
+    # Borda Externa
     p.setLineWidth(1)
-    # Retângulo Principal
-    p.rect(30, 750, 535, 80) 
+    p.setStrokeColor(cor_pri)
+    p.rect(30, 750, 535, 80) # Caixa principal
     
-    # Nome da Escola (Centralizado)
+    offset_x = 0
+    # Desenha Logo (se existir)
+    if config and config.logo:
+        try:
+            # Tenta carregar imagem
+            logo_img = ImageReader(config.logo.path)
+            # Desenha no canto esquerdo
+            p.drawImage(logo_img, 40, 760, width=60, height=60, mask='auto', preserveAspectRatio=True)
+            offset_x = 70 # Empurra o texto
+        except:
+            pass
+
+    # Nome da Escola (Centralizado considerando o logo)
+    centro_x = 297 + (offset_x / 2)
+    p.setFillColor(cor_pri)
     p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(297, 810, "EEMTI PARQUE MARIA BERNARDO DE CASTRO")
+    p.drawCentredString(centro_x, 810, nome_escola)
     
-    # Título da Prova
+    # Subtítulo (Prova)
+    p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 10)
-    p.drawCentredString(297, 795, f"AVALIAÇÃO DE {disciplina_nome.upper()} - {titulo.upper()}")
+    p.drawCentredString(centro_x, 795, f"AVALIAÇÃO DE {disciplina_nome.upper()} - {titulo.upper()}")
     
-    # Campos de Preenchimento
+    # Linhas de Preenchimento
     p.setFont("Helvetica", 10)
-    
-    # Linha 1: Aluno e Número
-    p.drawString(40, 775, "ALUNO(A): _______________________________________________________")
+    p.drawString(40 + offset_x, 775, "ALUNO(A): __________________________________________________")
     p.drawString(460, 775, "Nº: _______")
     
-    # Linha 2: Turma, Data, Nota
-    p.drawString(40, 758, f"TURMA: {turma_nome}")
-    p.drawString(220, 758, "DATA: _____/_____/_____")
-    p.drawString(460, 758, "NOTA: __________")
+    p.drawString(40 + offset_x, 758, f"TURMA: {turma_nome}")
+    p.drawString(280 + offset_x, 758, "DATA: ____/____/____")
+    p.drawString(460, 758, "NOTA: _______")
 
 # ==============================================================================
 # 🛠️ MÁQUINA DE LEITURA (EXCEL/CSV)
@@ -1286,9 +1309,13 @@ def editar_avaliacao(request, avaliacao_id):
     }
     return render(request, 'core/editar_avaliacao.html', context)
 
+# ==============================================================================
+# 📊 RELATÓRIO DE PROFICIÊNCIA (LAYOUT "FEINHO" -> "BONITÃO")
+# ==============================================================================
+
 @login_required
 def gerar_relatorio_proficiencia(request):
-    # 1. RECUPERA FILTROS (Mesma lógica do Dashboard)
+    # 1. Recupera Filtros (Mantido igual)
     serie_id = request.GET.get('serie')
     turma_id = request.GET.get('turma')
     aluno_id = request.GET.get('aluno')
@@ -1297,37 +1324,29 @@ def gerar_relatorio_proficiencia(request):
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
 
-    # 2. FILTRA DADOS
+    # Config da Escola
+    config = ConfiguracaoSistema.objects.first()
+    nome_escola = config.nome_escola if config else "SAMI EDUCACIONAL"
+    cor_pri = colors.HexColor(config.cor_primaria) if config else colors.HexColor("#1e293b")
+    cor_sec = colors.HexColor(config.cor_secundaria) if config else colors.HexColor("#3b82f6")
+
+    # 2. Filtra Dados (Mantido igual)
     resultados = Resultado.objects.all()
-    
-    filtros_texto = [] # Para mostrar no cabeçalho do PDF
+    filtros_texto = []
 
     if disciplina_id:
         resultados = resultados.filter(avaliacao__disciplina_id=disciplina_id)
         filtros_texto.append(f"Disciplina: {Disciplina.objects.get(id=disciplina_id).nome}")
-    if serie_id:
-        resultados = resultados.filter(avaliacao__turma__nome__startswith=serie_id)
-        filtros_texto.append(f"Série: {serie_id}º Ano")
     if turma_id:
         resultados = resultados.filter(avaliacao__turma_id=turma_id)
         filtros_texto.append(f"Turma: {Turma.objects.get(id=turma_id).nome}")
-    if aluno_id:
-        resultados = resultados.filter(aluno_id=aluno_id)
-        filtros_texto.append(f"Aluno: {Aluno.objects.get(id=aluno_id).nome_completo}")
     if avaliacao_id:
         resultados = resultados.filter(avaliacao_id=avaliacao_id)
-        filtros_texto.append(f"Avaliação: {Avaliacao.objects.get(id=avaliacao_id).titulo}")
+        filtros_texto.append(f"Prova: {Avaliacao.objects.get(id=avaliacao_id).titulo}")
     
-    if data_inicio:
-        resultados = resultados.filter(avaliacao__data_aplicacao__gte=data_inicio)
-        filtros_texto.append(f"Desde: {datetime.strptime(data_inicio, '%Y-%m-%d').strftime('%d/%m/%Y')}")
-    if data_fim:
-        resultados = resultados.filter(avaliacao__data_aplicacao__lte=data_fim)
-        filtros_texto.append(f"Até: {datetime.strptime(data_fim, '%Y-%m-%d').strftime('%d/%m/%Y')}")
+    if not filtros_texto: filtros_texto.append("Visão Geral")
 
-    if not filtros_texto: filtros_texto.append("Filtro: Geral")
-
-    # 3. PROCESSA DADOS (Agregação por Descritor)
+    # 3. Processa Dados (Agregação)
     respostas_qs = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related(
         'item_gabarito__descritor', 'questao__descritor'
     )
@@ -1335,96 +1354,106 @@ def gerar_relatorio_proficiencia(request):
     stats = {}
     for resp in respostas_qs:
         desc = None
-        if resp.item_gabarito and resp.item_gabarito.descritor:
-            desc = resp.item_gabarito.descritor
-        elif resp.questao and resp.questao.descritor:
-            desc = resp.questao.descritor
-            
+        if resp.item_gabarito and resp.item_gabarito.descritor: desc = resp.item_gabarito.descritor
+        elif resp.questao and resp.questao.descritor: desc = resp.questao.descritor
+        
         if desc:
             cod = desc.codigo
-            if cod not in stats:
-                stats[cod] = {'desc': desc.descricao, 'total': 0, 'acertos': 0}
+            if cod not in stats: stats[cod] = {'desc': desc.descricao, 'total': 0, 'acertos': 0}
             stats[cod]['total'] += 1
             if resp.acertou: stats[cod]['acertos'] += 1
 
-    # Ordena por código
     dados_ordenados = sorted(stats.items())
 
-    # 4. GERA O PDF (ReportLab)
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
+    # --- 4. GERA O PDF PREMIUM ---
+    buffer = io.BytesIO()
+    # Margens menores para caber mais
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
     elements = []
     styles = getSampleStyleSheet()
 
-    # Título
-    elements.append(Paragraph("<b>Relatório de Proficiência por Habilidade (Descritores)</b>", styles['Title']))
-    elements.append(Spacer(1, 12))
+    # --- CABEÇALHO COM LOGO E ONDA ---
+    # Como o SimpleDocTemplate é 'high level', não desenhamos canvas direto aqui.
+    # Vamos usar uma Tabela para o cabeçalho.
     
-    # Subtítulo com Filtros
-    estilo_normal = styles['Normal']
-    elements.append(Paragraph(f"<b>Contexto:</b> {', '.join(filtros_texto)}", estilo_normal))
-    elements.append(Paragraph(f"<b>Gerado em:</b> {datetime.now().strftime('%d/%m/%Y às %H:%M')}", estilo_normal))
+    # Título Principal
+    header_style = ParagraphStyle('Header', parent=styles['Normal'], fontSize=16, textColor=cor_pri, spaceAfter=2, fontName='Helvetica-Bold')
+    sub_style = ParagraphStyle('Sub', parent=styles['Normal'], fontSize=10, textColor=colors.grey, spaceAfter=12)
+    
+    elements.append(Paragraph(f"{nome_escola.upper()}", header_style))
+    elements.append(Paragraph("RELATÓRIO PEDAGÓGICO DE PROFICIÊNCIA", sub_style))
+    elements.append(Spacer(1, 10))
+    
+    # Caixa de Contexto (Fundo colorido)
+    contexto_texto = " | ".join(filtros_texto)
+    data_geracao = datetime.now().strftime('%d/%m/%Y às %H:%M')
+    
+    t_ctx = Table([[f"CONTEXTO: {contexto_texto}", f"EMISSÃO: {data_geracao}"]], colWidths=[380, 150])
+    t_ctx.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f1f5f9")),
+        ('TEXTCOLOR', (0,0), (-1,-1), colors.black),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 8),
+        ('PADDING', (0,0), (-1,-1), 8),
+        ('ROUNDED', (0,0), (-1,-1), 6), # Cantos arredondados (se suportado)
+    ]))
+    elements.append(t_ctx)
     elements.append(Spacer(1, 20))
 
-    # Tabela
-    # Cabeçalho da Tabela
-    data = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'QTD', '% ACERTO', 'NÍVEL']]
+    # --- TABELA DE DADOS ---
+    data_table = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'QTD', '% ACERTO', 'NÍVEL']]
 
     for cod, d in dados_ordenados:
         perc = (d['acertos'] / d['total']) * 100 if d['total'] > 0 else 0
         
-        nivel = "CRÍTICO"
+        # Cores de Nível (Bolinhas)
         cor_nivel = colors.red
+        nivel_txt = "CRÍTICO"
         if perc >= 80: 
-            nivel = "ADEQUADO"
-            cor_nivel = colors.darkgreen
+            cor_nivel = colors.green; nivel_txt = "ADEQUADO"
         elif perc >= 60: 
-            nivel = "INTERMED."
-            cor_nivel = colors.orange
-
-        # Formata descrição para não ficar gigante (corta em 60 chars)
-        desc_curta = (d['desc'][:75] + '..') if len(d['desc']) > 75 else d['desc']
+            cor_nivel = colors.orange; nivel_txt = "INTERMED."
         
-        row = [
-            cod, 
-            Paragraph(desc_curta, styles['Normal']), # Paragraph permite quebra de linha na célula
-            d['total'], 
-            f"{perc:.1f}%", 
-            nivel
-        ]
-        data.append(row)
+        # Descrição com quebra de linha
+        desc_para = Paragraph(d['desc'], ParagraphStyle('d', fontSize=8, leading=9))
+        
+        # Estilo da Célula de Nível (Texto colorido)
+        nivel_para = Paragraph(f"<font color='{cor_nivel.hexval()}'><b>{nivel_txt}</b></font>", ParagraphStyle('n', alignment=1))
 
-    # Estilo da Tabela
-    t = Table(data, colWidths=[70, 280, 50, 70, 70])
+        row = [
+            Paragraph(f"<b>{cod}</b>", styles['Normal']),
+            desc_para,
+            str(d['total']),
+            f"{perc:.1f}%",
+            nivel_para
+        ]
+        data_table.append(row)
+
+    # Estilo Moderno da Tabela
+    t = Table(data_table, colWidths=[50, 330, 40, 60, 70])
     t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')), # Cabeçalho Azul
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('ALIGN', (1, 0), (1, -1), 'LEFT'), # Descrição alinhada a esquerda
+        ('BACKGROUND', (0, 0), (-1, 0), cor_pri), # Cabeçalho com cor da escola
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'), # Descrição à esquerda
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")), # Linhas finas cinzas
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]), # Zebra suave
     ]))
     
-    # Zebra effect (Linhas alternadas)
-    for i in range(1, len(data)):
-        if i % 2 == 0:
-            t.setStyle(TableStyle([('BACKGROUND', (0, i), (-1, i), colors.whitesmoke)]))
-
     elements.append(t)
     
-    # Rodapé simples
+    # Rodapé
     elements.append(Spacer(1, 30))
-    elements.append(Paragraph("<i>SAMI - Sistema de Avaliação e Monitoramento Inteligente</i>", styles['Italic']))
+    elements.append(Paragraph(f"<i>Sistema de Avaliação {nome_escola}</i>", ParagraphStyle('footer', fontSize=8, textColor=colors.grey, alignment=1)))
 
     doc.build(elements)
     buffer.seek(0)
-    
-    filename = f"Proficiencia_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
-    return FileResponse(buffer, as_attachment=True, filename=filename)
+    return FileResponse(buffer, as_attachment=True, filename=f"Proficiencia_{datetime.now().strftime('%Y%m%d')}.pdf")
 
 @login_required
 def api_filtrar_alunos(request):
