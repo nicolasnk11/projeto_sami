@@ -247,6 +247,14 @@
                 <i class="bi bi-gear-wide-connected"></i> 
                 <span>Configurações</span>
             </a>
+
+            <a href="{% url 'central_ajuda' %}" class="nav-link {% if request.resolver_match.url_name == 'central_ajuda' %}active{% endif %}">
+               <i class="bi bi-question-circle-fill"></i> 
+               <span>Central de Ajuda</span>
+            </a>
+
+
+
         </div>
 
         <div class="text-center pt-4 border-top border-secondary border-opacity-10 mt-2">

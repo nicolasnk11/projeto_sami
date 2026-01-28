@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     Turma, Aluno, Disciplina, Avaliacao, Resultado, Questao, 
     RespostaDetalhada, ConfiguracaoSistema, ItemGabarito, 
-    Descritor, NDI, PlanoEnsino, TopicoPlano
+    Descritor, NDI, PlanoEnsino, TopicoPlano,CategoriaAjuda, Tutorial
 )
 
 # --- CLASSES PERSONALIZADAS (COM @admin.register) ---
@@ -85,3 +85,16 @@ admin.site.register(Descritor)
 admin.site.register(NDI)
 admin.site.register(PlanoEnsino)
 admin.site.register(TopicoPlano)
+
+
+# core/admin.py
+
+@admin.register(CategoriaAjuda)
+class CategoriaAjudaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'icone')
+
+@admin.register(Tutorial)
+class TutorialAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'categoria', 'publico', 'data_criacao')
+    list_filter = ('publico', 'categoria')
+    search_fields = ('titulo', 'descricao')

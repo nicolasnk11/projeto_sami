@@ -11,9 +11,10 @@ from io import StringIO, BytesIO
 
 # Django Imports
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Sum, Q
+from django.db.models import Avg, Count, Sum, Q, F
 from django.http import FileResponse, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
@@ -38,7 +39,7 @@ from reportlab.lib.utils import ImageReader
 from .models import (
     Turma, Resultado, Avaliacao, Questao, Aluno, Disciplina, 
     RespostaDetalhada, ItemGabarito, Descritor, NDI, PlanoEnsino,
-    TopicoPlano, ConfiguracaoSistema
+    TopicoPlano, ConfiguracaoSistema, Tutorial, CategoriaAjuda
 )
 from .forms import (
     AvaliacaoForm, ResultadoForm, GerarProvaForm, ImportarQuestoesForm, 
@@ -2456,3 +2457,134 @@ def api_ler_cartao(request):
             return JsonResponse({'sucesso': False, 'erro': str(e)})
 
     return JsonResponse({'sucesso': False, 'erro': 'Nenhuma imagem enviada'})
+
+def central_ajuda(request):
+    # Se for professor/admin logado
+    if request.user.is_authenticated and request.user.is_staff:
+        tutoriais = Tutorial.objects.filter(publico__in=['PROF', 'TODOS'])
+        publico_alvo = "Professor"
+    else:
+        # Se for aluno (mesmo sem login ou login simples)
+        tutoriais = Tutorial.objects.filter(publico__in=['ALUNO', 'TODOS'])
+        publico_alvo = "Estudante"
+
+    categorias = CategoriaAjuda.objects.all()
+    
+    # Organiza por categoria
+    conteudo_por_cat = {}
+    for cat in categorias:
+        tuts = tutoriais.filter(categoria=cat)
+        if tuts.exists():
+            conteudo_por_cat[cat] = tuts
+
+    return render(request, 'core/ajuda.html', {
+        'conteudo': conteudo_por_cat,
+        'publico': publico_alvo
+    })
+
+
+@login_required
+def dashboard_aluno(request):
+    # 1. Segurança e Identificação
+    try:
+        aluno = request.user.aluno
+    except:
+        return redirect('dashboard')
+
+    # 2. Busca Resultados Gerais
+    resultados = Resultado.objects.filter(aluno=aluno).order_by('-avaliacao__data_aplicacao')
+
+    # 3. Cálculo da Média Geral
+    media_geral = 0
+    if resultados.exists():
+        # Filtra apenas quem tem percentual calculado
+        notas_validas = [r.percentual for r in resultados if r.percentual is not None]
+        if notas_validas:
+            media_geral = sum(notas_validas) / len(notas_validas)
+
+    # ==========================================================
+    # 4. ALGORITMO DE RAIO-X (DESCRIÇÃO DE HABILIDADES)
+    # ==========================================================
+    # Vamos pegar todas as respostas detalhadas desse aluno
+    respostas = RespostaDetalhada.objects.filter(resultado__aluno=aluno)
+    
+    # Dicionário para agrupar: { 'D12': {'acertos': 5, 'total': 10, 'obj': Descritor} }
+    analise_descritores = {}
+
+    for resp in respostas:
+        # Pega a questão e o descritor associado (se houver)
+        if resp.questao and resp.questao.descritor:
+            desc = resp.questao.descritor
+            cod = desc.codigo
+            
+            if cod not in analise_descritores:
+                analise_descritores[cod] = {
+                    'codigo': cod,
+                    'descricao': desc.descricao,
+                    'total': 0,
+                    'acertos': 0
+                }
+            
+            analise_descritores[cod]['total'] += 1
+            if resp.acertou:
+                analise_descritores[cod]['acertos'] += 1
+
+    # Calcula a porcentagem de cada descritor e converte para lista
+    lista_habilidades = []
+    for cod, dados in analise_descritores.items():
+        porcentagem = (dados['acertos'] / dados['total']) * 100
+        dados['porcentagem'] = porcentagem
+        lista_habilidades.append(dados)
+
+    # Ordena: Os melhores primeiro
+    lista_habilidades.sort(key=lambda x: x['porcentagem'], reverse=True)
+
+    # Separa o Top 3 Melhores e Top 3 Piores
+    pontos_fortes = [h for h in lista_habilidades if h['porcentagem'] >= 70][:3]
+    pontos_atencao = [h for h in lista_habilidades if h['porcentagem'] < 50]
+    # Pega os 3 piores dos pontos de atenção (revertendo a ordem para pegar os menores)
+    pontos_atencao.sort(key=lambda x: x['porcentagem']) 
+    pontos_atencao = pontos_atencao[:3]
+
+    context = {
+        'aluno': aluno,
+        'resultados': resultados,
+        'media_geral': media_geral,
+        'total_provas': resultados.count(),
+        'pontos_fortes': pontos_fortes,
+        'pontos_atencao': pontos_atencao,
+    }
+    
+    return render(request, 'core/dashboard_aluno.html', context)
+
+@login_required
+def dashboard_redirect(request):
+    # 1. Se for Aluno
+    if hasattr(request.user, 'aluno'):
+        return dashboard_aluno(request)
+
+    # 2. Se for Professor/Staff
+    elif request.user.is_staff:
+        # CORREÇÃO: Troque 'return index(request)' por 'return dashboard(request)'
+        return dashboard(request) 
+    
+    # 3. Se não for nada
+    else:
+        return HttpResponse("Acesso não autorizado.")
+    
+
+# core/views.py
+
+def consultar_acesso(request):
+    resultado = None
+    if request.method == 'POST':
+        termo = request.POST.get('nome_busca')
+        # Busca alunos que contenham o nome digitado (case insensitive)
+        if termo:
+            resultado = Aluno.objects.filter(nome_completo__icontains=termo, ativo=True)
+    
+    return render(request, 'core/consultar_acesso.html', {'resultado': resultado})
+
+def logout_view(request):
+    logout(request) # Desloga o usuário
+    return redirect('login') # Manda de volta pra tela de login

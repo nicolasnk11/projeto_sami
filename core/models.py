@@ -1,10 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # ==============================================================================
 # 1. ESTRUTURA BASE (Blindada)
 # ==============================================================================
 
 class Disciplina(models.Model):
+
     nome = models.CharField(max_length=50, unique=True, verbose_name="Nome da Disciplina")
     
     def __str__(self):
@@ -23,6 +25,7 @@ class Aluno(models.Model):
     # SEGURANÇA 1: PROTECT
     # Não deixa apagar a Turma se tiver alunos nela.
     turma = models.ForeignKey(Turma, on_delete=models.PROTECT)
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     
     # SOFT DELETE: Aluno transferido não é apagado, só inativado.
     ativo = models.BooleanField(default=True, verbose_name="Matrícula Ativa")
@@ -217,7 +220,7 @@ class ConfiguracaoSistema(models.Model):
             return
         super(ConfiguracaoSistema, self).save(*args, **kwargs)
 
-        
+
 class NDI(models.Model):
     BIMESTRES = [
         (1, '1º Bimestre'), (2, '2º Bimestre'),
@@ -313,3 +316,33 @@ class TopicoPlano(models.Model):
     
     def __str__(self):
         return f"{self.conteudo} ({self.get_status_display()})"
+    
+# core/models.py
+
+class CategoriaAjuda(models.Model):
+    nome = models.CharField(max_length=50) # Ex: "Correção", "Cadastro", "Boletim"
+    icone = models.CharField(max_length=50, default="bi-question-circle") # Classe do Bootstrap Icon
+    
+    def __str__(self):
+        return self.nome
+
+class Tutorial(models.Model):
+    PUBLICO_CHOICES = [
+        ('PROF', 'Professor / Gestão'),
+        ('ALUNO', 'Aluno / Responsável'),
+        ('TODOS', 'Todos'),
+    ]
+    
+    titulo = models.CharField(max_length=200)
+    descricao = models.TextField(verbose_name="Texto Explicativo")
+    categoria = models.ForeignKey(CategoriaAjuda, on_delete=models.CASCADE)
+    publico = models.CharField(max_length=10, choices=PUBLICO_CHOICES, default='PROF')
+    
+    # Link do YouTube (Ex: https://www.youtube.com/embed/VIDEO_ID)
+    link_video = models.URLField(blank=True, null=True, help_text="Cole o link de embed do YouTube")
+    imagem_capa = models.ImageField(upload_to='tutoriais/', blank=True, null=True)
+    
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.get_publico_display()}] {self.titulo}"
