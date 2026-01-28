@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAMI | Gestão Inteligente</title>
+    <title>{{ escola.nome_escola|default:"SAMI" }} | Gestão Inteligente</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -12,11 +12,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
    <style>
+        /* --- SISTEMA DE CORES DINÂMICO --- */
         :root {
             --sidebar-width: 280px;
-            --primary-color: #3b82f6; 
-            --primary-glow: rgba(59, 130, 246, 0.4);
-            --sidebar-bg: #0f172a; 
+            /* Cores vindas do Banco ou Fallback */
+            --primary-bg: {{ escola.cor_primaria|default:"#0f172a" }}; 
+            --accent-color: {{ escola.cor_secundaria|default:"#3b82f6" }};
+            
+            /* Derivações Automáticas (Glow e Hover) */
+            --primary-glow: rgba(59, 130, 246, 0.4); 
             --sidebar-hover: rgba(255, 255, 255, 0.08);
             --bg-body: #f1f5f9; 
             --text-muted: #94a3b8;
@@ -25,17 +29,17 @@
         body { 
             background-color: var(--bg-body); 
             font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow-x: hidden; /* Evita barra horizontal na página toda */
+            overflow-x: hidden;
             color: #334155;
         }
         
-        /* --- SIDEBAR --- */
+        /* Sidebar usando a cor primária da escola */
         .sidebar {
             height: 100vh;
             width: var(--sidebar-width);
             position: fixed;
             top: 0; left: 0;
-            background-color: var(--sidebar-bg);
+            background-color: var(--primary-bg); /* Dinâmico */
             border-right: 1px solid rgba(255,255,255,0.05);
             display: flex;
             flex-direction: column;
@@ -44,26 +48,19 @@
             transition: all 0.3s ease;
         }
 
-        /* CORREÇÃO DA BARRA DE ROLAGEM ESTRANHA */
+        /* Classes Utilitárias Dinâmicas */
+        .text-primary-dynamic { color: var(--accent-color) !important; }
+        .bg-primary-dynamic { background-color: var(--accent-color) !important; }
+
         .custom-scrollbar {
-            overflow-y: auto; /* Rola só verticalmente */
-            overflow-x: hidden; /* Esconde a barra horizontal */
+            overflow-y: auto; 
+            overflow-x: hidden; 
         }
         
-        /* Estilo da Barra de Rolagem (Fina e Escura) */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #334155; /* Cor cinza escuro discreto */
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         
         /* Logo Wrapper */
         .brand-wrapper {
@@ -78,7 +75,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid rgba(255,255,255,0.1);
-            flex-shrink: 0; /* Impede que a logo encolha */
+            flex-shrink: 0;
         }
 
         .logo-img {
@@ -108,7 +105,7 @@
             display: flex;
             align-items: center;
             transition: all 0.2s;
-            white-space: nowrap; /* Evita quebra de linha que gera scroll */
+            white-space: nowrap; 
         }
         
         .nav-link i {
@@ -125,15 +122,15 @@
         }
         .nav-link:hover i { color: #fff; }
         
+        /* Link Ativo usa a Cor de Destaque da Escola */
         .nav-link.active {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #2563eb 100%);
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color) 100%);
             color: #fff;
-            box-shadow: 0 8px 20px -4px var(--primary-glow);
+            box-shadow: 0 8px 20px -4px rgba(0,0,0,0.3);
             font-weight: 600;
         }
         .nav-link.active i { color: #fff; }
 
-        /* Conteúdo */
         .content {
             margin-left: var(--sidebar-width);
             padding: 30px;
@@ -157,13 +154,14 @@
 
         .user-profile { display: flex; align-items: center; gap: 15px; }
         
+        /* Avatar usa a Cor de Destaque */
         .user-avatar {
             width: 42px; height: 42px;
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, var(--accent-color) 0%, #8b5cf6 100%);
             color: white; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-weight: 700; font-size: 1.1rem;
-            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0, 0.1);
         }
 
         .card { 
@@ -186,13 +184,14 @@
     <nav class="sidebar">
         
         <div class="brand-wrapper">
-            <img src="{% static 'img/logo_sami.png' %}" alt="SAMI Logo" class="logo-img" 
-                 onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='block';">
-            
-            <div id="fallback-logo" style="display:none; color: #1e293b;">
-                <i class="bi bi-mortarboard-fill fs-2 text-primary"></i>
-                <div class="fw-bold mt-1" style="font-size: 1.2rem;">SAMI</div>
-            </div>
+            {% if escola.logo %}
+                <img src="{{ escola.logo.url }}" alt="{{ escola.nome_escola }}" class="logo-img">
+            {% else %}
+                <div style="color: var(--primary-bg);">
+                    <i class="bi bi-mortarboard-fill fs-2"></i>
+                    <div class="fw-bold mt-1" style="font-size: 1.2rem;">SAMI</div>
+                </div>
+            {% endif %}
         </div>
         
         <div class="d-flex flex-column flex-grow-1 overflow-auto custom-scrollbar">
@@ -251,7 +250,9 @@
         </div>
 
         <div class="text-center pt-4 border-top border-secondary border-opacity-10 mt-2">
-            <small style="color: #64748b; font-size: 0.75rem;">SAMI v2.0 &copy; 2026</small>
+            <small style="color: #64748b; font-size: 0.75rem;">
+                {{ escola.nome_escola|default:"SAMI" }} &copy; {% now "Y" %}
+            </small>
         </div>
     </nav>
 
@@ -263,7 +264,7 @@
                     {% if request.resolver_match.url_name == 'dashboard' %} Visão Geral
                     {% elif 'aluno' in request.path %} Gestão de Alunos
                     {% elif 'avaliacao' in request.path %} Avaliações
-                    {% else %} Portal SAMI
+                    {% else %} Portal {{ escola.nome_escola|default:"SAMI" }}
                     {% endif %}
                 </h4>
             </div>
@@ -271,13 +272,11 @@
             <div class="user-profile">
                 <div class="text-end d-none d-md-block">
                     <div class="fw-bold text-dark" style="font-size: 0.9rem;">
-                        {% if user.username == 'admin.pmbc' %}
-                            Administração Escolar
-                        {% else %}
-                            {{ user.username|title }}
-                        {% endif %}
+                        {{ user.username|title }}
                     </div>
-                    <div class="text-muted" style="font-size: 0.75rem;">EEMTI Parque Maria Bernardo</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        {{ escola.nome_escola|default:"Administrador" }}
+                    </div>
                 </div>
                 
                 <div class="user-avatar">

@@ -199,22 +199,25 @@ class RespostaDetalhada(models.Model):
     def __str__(self):
         return f"{self.resultado.aluno} - {self.acertou}"
 
-class ConfiguracaoSistema(models.Model):
-    # Singleton: Só queremos ter UMA configuração no sistema
-    nome_escola = models.CharField(max_length=100, default="SAMI Escolar")
-    cor_primaria = models.CharField(max_length=7, default="#0f172a", help_text="Cor do menu lateral e cabeçalhos (Ex: #0f172a)")
-    cor_destaque = models.CharField(max_length=7, default="#3b82f6", help_text="Cor dos botões e links (Ex: #3b82f6)")
-    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+# Em core/models.py
 
+class ConfiguracaoSistema(models.Model):
+    nome_escola = models.CharField(max_length=100, default="SAMI Escolar")
+    cor_primaria = models.CharField(max_length=7, default="#0f172a", help_text="Cor Hexadecimal (Ex: #0f172a)")
+    cor_secundaria = models.CharField(max_length=7, default="#3b82f6", help_text="Cor Hexadecimal (Ex: #3b82f6)")
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+    endereco = models.CharField(max_length=200, blank=True, null=True)
+    
     def __str__(self):
         return "Configuração Visual da Escola"
 
     def save(self, *args, **kwargs):
-        # Garante que só exista 1 registro no banco
+        # Garante que só exista 1 configuração no banco
         if not self.pk and ConfiguracaoSistema.objects.exists():
             return
         super(ConfiguracaoSistema, self).save(*args, **kwargs)
 
+        
 class NDI(models.Model):
     BIMESTRES = [
         (1, '1º Bimestre'), (2, '2º Bimestre'),

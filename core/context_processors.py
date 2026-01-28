@@ -1,22 +1,13 @@
+# core/context_processors.py
 from .models import ConfiguracaoSistema
-from django.db.utils import OperationalError, ProgrammingError
 
-def configuracao_escola(request):
-    config = None
-    try:
-        # Tenta pegar a configuração do banco
-        config = ConfiguracaoSistema.objects.first()
-    except (OperationalError, ProgrammingError):
-        # Se a tabela não existir ainda (durante migrações ou reset), ignora
-        config = None
-
-    # Se não tiver config ou deu erro, cria um dicionário padrão na memória
+def dados_escola(request):
+    # Pega a config ou cria uma padrão se não existir
+    config = ConfiguracaoSistema.objects.first()
     if not config:
-        config = {
-            'nome_escola': 'SAMI System',
-            'cor_primaria': '#0f172a',
-            'cor_destaque': '#3b82f6',
-            'logo': None
-        }
-    
-    return {'escola_config': config}
+        config = ConfiguracaoSistema.objects.create(
+            nome_escola="Escola Padrão SAMI",
+            cor_primaria="#1e293b",
+            cor_secundaria="#3b82f6"
+        )
+    return {'escola': config}
