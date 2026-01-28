@@ -42,9 +42,16 @@
                 <small class="text-muted">ID: {{ aluno.id }}</small>
             </div>
         </div>
-        <a href="{% url 'logout' %}" class="btn btn-light btn-sm rounded-pill shadow-sm text-danger">
-            <i class="bi bi-box-arrow-right"></i> Sair
-        </a>
+        
+        <div>
+            <button type="button" class="btn btn-light btn-sm rounded-pill shadow-sm text-primary me-2" data-bs-toggle="modal" data-bs-target="#modalSenha">
+                <i class="bi bi-key-fill"></i> <span class="d-none d-sm-inline">Senha</span>
+            </button>
+            
+            <a href="{% url 'logout' %}" class="btn btn-light btn-sm rounded-pill shadow-sm text-danger">
+                <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Sair</span>
+            </a>
+        </div>
     </div>
 
     <div class="card bg-primary text-white border-0 shadow-lg rounded-4 mb-4 position-relative overflow-hidden">
@@ -149,4 +156,54 @@
     </div>
 
 </div>
+
+<div class="modal fade" id="modalSenha" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Alterar Senha</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{% url 'trocar_senha_aluno' %}" method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold">NOVA SENHA</label>
+                        <input type="password" name="nova_senha" class="form-control bg-light border-0 py-3" placeholder="Mínimo 6 caracteres" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small text-muted fw-bold">CONFIRME A SENHA</label>
+                        <input type="password" name="confirmacao_senha" class="form-control bg-light border-0 py-3" placeholder="Digite igual a anterior" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold">
+                            SALVAR NOVA SENHA
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 9999">
+    {% for message in messages %}
+    <div class="toast show align-items-center text-white bg-{{ message.tags }} border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-bold">
+                {% if message.tags == 'success' %}<i class="bi bi-check-circle me-2"></i>{% endif %}
+                {% if message.tags == 'error' %}<i class="bi bi-exclamation-circle me-2"></i>{% endif %}
+                {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 {% endblock %}

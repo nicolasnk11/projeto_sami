@@ -2588,3 +2588,31 @@ def consultar_acesso(request):
 def logout_view(request):
     logout(request) # Desloga o usuário
     return redirect('login') # Manda de volta pra tela de login
+
+
+@login_required
+def trocar_senha_aluno(request):
+    if request.method == 'POST':
+        nova_senha = request.POST.get('nova_senha')
+        confirmacao = request.POST.get('confirmacao_senha')
+        
+        # Validações básicas
+        if not nova_senha or len(nova_senha) < 6:
+            messages.error(request, 'A senha deve ter pelo menos 6 caracteres.')
+            return redirect('dashboard_aluno')
+            
+        if nova_senha != confirmacao:
+            messages.error(request, 'As senhas não conferem.')
+            return redirect('dashboard_aluno')
+            
+        # Salva a nova senha
+        u = request.user
+        u.set_password(nova_senha)
+        u.save()
+        
+        # Mantém o usuário logado (senão o Django desloga ao mudar senha)
+        update_session_auth_hash(request, u)
+        
+        messages.success(request, 'Senha alterada com sucesso! Não esqueça a nova senha.')
+        
+    return redirect('dashboard_aluno')

@@ -29,7 +29,11 @@
                         </div>
                         <div class="text-end">
                             <span class="badge bg-light text-dark border d-block mb-1">Usuário/ID: <strong>{{ aluno.id }}</strong></span>
-                            <small class="text-success fw-bold" style="font-size: 0.7rem;">Senha Inicial: Aluno@{{ aluno.id }}</small>
+                           <small class="text-muted d-block mt-1">
+                               Sua senha inicial é: <strong>Aluno@{{ aluno.id }}</strong>
+                               <br>
+                               <span class="text-danger" style="font-size: 0.75em;">(Altere sua senha no primeiro acesso!)</span>
+                           </small>
                         </div>
                     </div>
                     {% empty %}

@@ -181,6 +181,7 @@
 </head>
 <body>
 
+    {% if user.is_staff %}
     <nav class="sidebar">
         
         <div class="brand-wrapper">
@@ -253,8 +254,6 @@
                <span>Central de Ajuda</span>
             </a>
 
-
-
         </div>
 
         <div class="text-center pt-4 border-top border-secondary border-opacity-10 mt-2">
@@ -263,8 +262,9 @@
             </small>
         </div>
     </nav>
+    {% endif %}
 
-    <main class="content">
+    <main class="content" {% if not user.is_staff %}style="margin-left: 0;"{% endif %}>
         
         <header class="top-navbar">
             <div class="d-flex align-items-center">
@@ -272,6 +272,7 @@
                     {% if request.resolver_match.url_name == 'dashboard' %} Visão Geral
                     {% elif 'aluno' in request.path %} Gestão de Alunos
                     {% elif 'avaliacao' in request.path %} Avaliações
+                    {% elif 'ajuda' in request.path %} Central de Ajuda
                     {% else %} Portal {{ escola.nome_escola|default:"SAMI" }}
                     {% endif %}
                 </h4>
@@ -283,7 +284,7 @@
                         {{ user.username|title }}
                     </div>
                     <div class="text-muted" style="font-size: 0.75rem;">
-                        {{ escola.nome_escola|default:"Administrador" }}
+                        {{ escola.nome_escola|default:"Usuário" }}
                     </div>
                 </div>
                 

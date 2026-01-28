@@ -12,7 +12,7 @@ from core.views import (
     importar_questoes, definir_gabarito, gerar_relatorio_proficiencia, importar_alunos, gerenciar_alunos, gerenciar_turmas,
     gerenciar_avaliacoes, editar_avaliacao, montar_prova, baixar_prova_existente, painel_gestao, gerenciar_descritores, listar_questoes, perfil_aluno,
     mapa_calor, gerenciar_ndi, plano_anual, toggle_topico, mover_topico, api_gerar_questao, api_ler_cartao, gerar_boletim_pdf, gerar_cartoes_pdf,
-    consultar_acesso, logout_view
+    consultar_acesso, logout_view, trocar_senha_aluno
 )
 
 urlpatterns = [
@@ -68,5 +68,6 @@ urlpatterns = [
     path('gestao/descritores/', gerenciar_descritores, name='gerenciar_descritores'),
     path('api/ler-cartao/', api_ler_cartao, name='api_ler_cartao'),
     path('consultar-acesso/', consultar_acesso, name='consultar_acesso'),
+    path('aluno/trocar-senha/', trocar_senha_aluno, name='trocar_senha_aluno'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
