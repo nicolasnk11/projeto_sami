@@ -1,13 +1,21 @@
 from django import forms
-from .models import Avaliacao, Resultado, Turma, Questao, Disciplina, Aluno
+from .models import Avaliacao, Resultado, Turma, Questao, Disciplina, Aluno, Matricula
+
+# ==============================================================================
+# FORMULÁRIOS DE AVALIAÇÃO E RESULTADO
+# ==============================================================================
 
 class ResultadoForm(forms.ModelForm):
     class Meta:
         model = Resultado
-        fields = ['avaliacao', 'aluno', 'acertos', 'total_questoes']
+        # MUDANÇA: Agora usamos 'matricula' em vez de 'aluno'
+        fields = ['avaliacao', 'matricula', 'acertos', 'total_questoes']
+        labels = {
+            'matricula': 'Aluno (Matrícula Ativa)'
+        }
         widgets = {
             'avaliacao': forms.Select(attrs={'class': 'form-select'}),
-            'aluno': forms.Select(attrs={'class': 'form-select'}),
+            'matricula': forms.Select(attrs={'class': 'form-select'}),
             'acertos': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 7'}),
             'total_questoes': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 10'}),
         }
@@ -23,6 +31,41 @@ class AvaliacaoForm(forms.ModelForm):
             'turma': forms.Select(attrs={'class': 'form-select'}),
         }
 
+class DefinirGabaritoForm(forms.ModelForm):
+    class Meta:
+        model = Avaliacao
+        fields = ['questoes']
+        widgets = {
+            'questoes': forms.CheckboxSelectMultiple()
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['questoes'].queryset = Questao.objects.filter(disciplina=self.instance.disciplina)
+
+# ==============================================================================
+# FORMULÁRIOS DE CADASTRO E IMPORTAÇÃO
+# ==============================================================================
+
+class AlunoForm(forms.ModelForm):
+    class Meta:
+        model = Aluno
+        # MUDANÇA: Removemos 'turma' daqui, pois aluno não tem turma fixa no cadastro
+        fields = ['nome_completo', 'cpf', 'data_nascimento', 'foto']
+        widgets = {
+            'nome_completo': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            'data_nascimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'foto': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+class ImportarAlunosForm(forms.Form):
+    arquivo_excel = forms.FileField(
+        label="Selecione a planilha de Alunos (.xlsx)",
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.xlsx, .csv'})
+    )
+
 class GerarProvaForm(forms.Form):
     disciplina = forms.ModelChoiceField(
         queryset=Disciplina.objects.all(),
@@ -37,35 +80,8 @@ class GerarProvaForm(forms.Form):
         label="Quantas questões?"
     )
 
-# CORREÇÃO AQUI: Esta classe deve ficar encostada na margem esquerda (fora da anterior)
 class ImportarQuestoesForm(forms.Form):
-    # CORREÇÃO AQUI: O campo deve estar recuado (para dentro da classe)
     arquivo_excel = forms.FileField(
         label="Selecione o arquivo Excel (.xlsx)",
         widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.xlsx'})
     )
-
-
-class DefinirGabaritoForm(forms.ModelForm):
-    class Meta:
-        model = Avaliacao
-        fields = ['questoes']
-        widgets = {
-            'questoes': forms.CheckboxSelectMultiple() # Cria várias caixinhas para marcar
-        }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Filtra para mostrar só questões da mesma matéria da prova
-        if self.instance and self.instance.pk:
-            self.fields['questoes'].queryset = Questao.objects.filter(disciplina=self.instance.disciplina)
-
-class ImportarAlunosForm(forms.Form):
-    arquivo_excel = forms.FileField(label="Selecione a planilha de Alunos (.xlsx)")
-
-
-# Em core/forms.py
-class AlunoForm(forms.ModelForm):
-    class Meta:
-        model = Aluno
-        fields = ['nome_completo', 'turma']

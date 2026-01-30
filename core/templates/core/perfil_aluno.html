@@ -30,7 +30,7 @@
                     
                     <h4 class="fw-bold text-dark mb-1">{{ aluno.nome_completo }}</h4>
                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 mb-4">
-                        {{ aluno.turma.nome }}
+                        {{ aluno.matriculas.last.turma.nome|default:"Sem Turma" }}
                     </span>
                     
                     <div class="row w-100 g-2">

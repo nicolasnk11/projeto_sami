@@ -1,0 +1,920 @@
+[
+{
+  "model": "core.questao",
+  "pk": 1,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Leia o trecho: \"O cerrado é o segundo maior bioma da América do Sul, ocupando uma área de 2.036.448 km², cerca de 22% do território nacional.\" De acordo com o texto, qual é a porcentagem que o Cerrado ocupa no território nacional?",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "0.1",
+    "alternativa_b": "0.15",
+    "alternativa_c": "0.2",
+    "alternativa_d": "0.22",
+    "alternativa_e": "0.3",
+    "gabarito": "D"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 2,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Leia: \"A vacinação é a forma mais eficaz de prevenir doenças graves. Ela estimula o sistema imunológico a produzir anticorpos.\" Qual é o tema central do texto?",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "A produção de remédios",
+    "alternativa_b": "A importância da vacinação",
+    "alternativa_c": "O sistema digestivo",
+    "alternativa_d": "A história da medicina",
+    "alternativa_e": "O tratamento de gripes",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 3,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "No trecho: \"E aí, mano? Tamo junto nessa parada!\", a linguagem utilizada é característica de qual variação linguística?",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Formal culta",
+    "alternativa_b": "Técnica científica",
+    "alternativa_c": "Regionalista arcaica",
+    "alternativa_d": "Gíria urbana/Social",
+    "alternativa_e": "Jornalística padrão",
+    "gabarito": "D"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 4,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "Na frase: \"Estudou muito, POREM não passou na prova\", a palavra destacada estabelece uma relação de:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Adição",
+    "alternativa_b": "Explicação",
+    "alternativa_c": "Oposição",
+    "alternativa_d": "Conclusão",
+    "alternativa_e": "Tempo",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 5,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 702,
+    "enunciado": "Em \"Aquele menino é um poço de bondade\", a expressão \"poço de bondade\" significa que o menino é:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Muito rico",
+    "alternativa_b": "Dono de um poço",
+    "alternativa_c": "Muito bondoso",
+    "alternativa_d": "Pouco inteligente",
+    "alternativa_e": "Muito triste",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 6,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "Ao observar uma placa de trânsito com um \"E\" cortado, o motorista entende que:",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "É permitido estacionar",
+    "alternativa_b": "É proibido estacionar",
+    "alternativa_c": "Deve seguir em frente",
+    "alternativa_d": "Deve virar à direita",
+    "alternativa_e": "Há uma escola próxima",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 7,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Leia: \"Ele é tão rápido quanto uma tartaruga\". O recurso expressivo utilizado para criar humor/ironia é:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "A comparação irônica",
+    "alternativa_b": "A personificação",
+    "alternativa_c": "A metáfora pura",
+    "alternativa_d": "A onomatopeia",
+    "alternativa_e": "O pleonasmo",
+    "gabarito": "A"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 8,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Texto 1 diz que o café faz mal. Texto 2 diz que o café previne doenças. Ao comparar os textos, percebe-se que eles:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Concordam totalmente",
+    "alternativa_b": "Se complementam",
+    "alternativa_c": "São contraditórios",
+    "alternativa_d": "Falam de assuntos diferentes",
+    "alternativa_e": "São idênticos",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 9,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Leia: \"Joana olhou para o céu cinzento e pegou o guarda-chuva antes de sair.\" O que se pode inferir?",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Que Joana gosta de chuva",
+    "alternativa_b": "Que o dia está ensolarado",
+    "alternativa_c": "Que provavelmente vai chover",
+    "alternativa_d": "Que é noite",
+    "alternativa_e": "Que Joana vai à praia",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 10,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 148,
+    "enunciado": "Em \"Maria comprou um carro. ELA ficou feliz\", o termo destacado refere-se a:",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "Carro",
+    "alternativa_b": "Maria",
+    "alternativa_c": "Feliz",
+    "alternativa_d": "Comprou",
+    "alternativa_e": "Um",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 11,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "No bilhete: \"Mãe, fui jogar bola, volto às 18h. Ass: Pedro\". Quem escreveu o bilhete?",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "A mãe",
+    "alternativa_b": "O pai",
+    "alternativa_c": "Pedro",
+    "alternativa_d": "O treinador",
+    "alternativa_e": "O vizinho",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 12,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "A expressão \"Vossa Mercê\", usada antigamente, evoluiu hoje para \"Você\". Isso demonstra que a língua:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "É estática e não muda",
+    "alternativa_b": "Piora com o tempo",
+    "alternativa_c": "Sofre evolução histórica",
+    "alternativa_d": "É mais difícil hoje",
+    "alternativa_e": "Não segue regras",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 13,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 148,
+    "enunciado": "Na frase \"O chão estava molhado PORQUE choveu\", a relação estabelecida é de:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Causa e consequência",
+    "alternativa_b": "Oposição",
+    "alternativa_c": "Finalidade",
+    "alternativa_d": "Proporção",
+    "alternativa_e": "Comparação",
+    "gabarito": "A"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 14,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "No verso \"O vento beijava seu rosto\", a escolha da palavra \"beijava\" atribui ao vento uma característica:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Agressiva",
+    "alternativa_b": "Humana (Personificação)",
+    "alternativa_c": "Científica",
+    "alternativa_d": "Negativa",
+    "alternativa_e": "Indiferente",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 15,
+  "fields": {
+    "serie": 1,
+    "disciplina": 1,
+    "descritor": 145,
+    "enunciado": "Um texto que narra a história da Chapeuzinho Vermelho tem como tema:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "A desobediência e o perigo",
+    "alternativa_b": "A culinária de bolos",
+    "alternativa_c": "A arquitetura de casas",
+    "alternativa_d": "A vida dos lobos",
+    "alternativa_e": "O clima da floresta",
+    "gabarito": "A"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 16,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 148,
+    "enunciado": "O uso de reticências em \"Eu queria dizer que...\" sugere:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Certeza absoluta",
+    "alternativa_b": "Grito",
+    "alternativa_c": "Interrupção ou hesitação",
+    "alternativa_d": "Fim da frase",
+    "alternativa_e": "Pergunta",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 17,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 702,
+    "enunciado": "Em um artigo de opinião que defende a redução da maioridade penal, a tese é:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "A explicação das leis atuais",
+    "alternativa_b": "A defesa da redução",
+    "alternativa_c": "O exemplo de outros países",
+    "alternativa_d": "A citação de um crime",
+    "alternativa_e": "A conclusão do texto",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 18,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 200,
+    "enunciado": "Qual a finalidade de uma receita de bolo?",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "Narrar uma história",
+    "alternativa_b": "Convencer a comprar o bolo",
+    "alternativa_c": "Informar sobre calorias",
+    "alternativa_d": "Instruir a fazer o bolo",
+    "alternativa_e": "Descrever uma cozinha",
+    "gabarito": "D"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 19,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "Num conto, o momento de maior tensão é chamado de:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Introdução",
+    "alternativa_b": "Clímax",
+    "alternativa_c": "Desfecho",
+    "alternativa_d": "Enredo",
+    "alternativa_e": "Cenário",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 20,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 702,
+    "enunciado": "Qual das frases abaixo apresenta uma OPINIÃO?",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "O Brasil fica na América do Sul",
+    "alternativa_b": "O dia tem 24 horas",
+    "alternativa_c": "Futebol é o melhor esporte do mundo",
+    "alternativa_d": "A água ferve a 100 graus",
+    "alternativa_e": "O sol é uma estrela",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 21,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 200,
+    "enunciado": "Em \"Estude para que passe\", o termo \"para que\" indica:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Causa",
+    "alternativa_b": "Finalidade",
+    "alternativa_c": "Tempo",
+    "alternativa_d": "Consequência",
+    "alternativa_e": "Condição",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 22,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 702,
+    "enunciado": "Era um homem tão bom que roubava doce de criança. A frase contém:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Eufemismo",
+    "alternativa_b": "Ironia",
+    "alternativa_c": "Hipérbole",
+    "alternativa_d": "Metonímia",
+    "alternativa_e": "Antítese",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 23,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "O uso de \"báh\", \"tchê\" e \"tri legal\" é marca de qual dialeto?",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Mineiro",
+    "alternativa_b": "Carioca",
+    "alternativa_c": "Gaúcho",
+    "alternativa_d": "Nordestino",
+    "alternativa_e": "Paulista",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 24,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "Em \"A empresa DEU COM OS BURROS N'ÁGUA\", a expressão significa:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Teve sucesso",
+    "alternativa_b": "Faliu ou fracassou",
+    "alternativa_c": "Comprou burros",
+    "alternativa_d": "Vendeu água",
+    "alternativa_e": "Mudou de ramo",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 25,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Dois jornais noticiam o mesmo jogo. Um diz \"Vitória Heroica\", o outro diz \"Vitória Sortuda\". Isso mostra:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Fatores climáticos",
+    "alternativa_b": "Diferentes pontos de vista",
+    "alternativa_c": "Erros de digitação",
+    "alternativa_d": "Que foi empate",
+    "alternativa_e": "Que não houve jogo",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 26,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Numa notícia sobre um acidente, o detalhe sobre a cor da roupa da vítima é uma informação:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Principal",
+    "alternativa_b": "Secundária",
+    "alternativa_c": "Obrigatória",
+    "alternativa_d": "Científica",
+    "alternativa_e": "Falsa",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 27,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 702,
+    "enunciado": "A escrita \"Muiiito\" com repetição de vogais serve para:",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "Indicar erro",
+    "alternativa_b": "Intensificar o sentido",
+    "alternativa_c": "Economizar espaço",
+    "alternativa_d": "Mostrar dúvida",
+    "alternativa_e": "Imitar outra língua",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 28,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "O argumento serve para:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Enfeitar o texto",
+    "alternativa_b": "Confundir o leitor",
+    "alternativa_c": "Sustentar a tese",
+    "alternativa_d": "Finalizar a história",
+    "alternativa_e": "Descrever o cenário",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 29,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Se o texto diz \"O aluno baixou a cabeça ao receber a prova\", infere-se que ele sentiu:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Alegria",
+    "alternativa_b": "Desânimo ou vergonha",
+    "alternativa_c": "Fome",
+    "alternativa_d": "Sono",
+    "alternativa_e": "Calor",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 30,
+  "fields": {
+    "serie": 2,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "Num gráfico de barras, a altura da barra geralmente indica:",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "A qualidade",
+    "alternativa_b": "A quantidade ou frequência",
+    "alternativa_c": "A cor",
+    "alternativa_d": "O nome",
+    "alternativa_e": "A data",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 31,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 148,
+    "enunciado": "Leia: \"A tecnologia aproxima quem está longe, mas afasta quem está perto. Precisamos de equilíbrio.\" A tese defendida é:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "A tecnologia é ruim",
+    "alternativa_b": "A tecnologia é perfeita",
+    "alternativa_c": "O equilíbrio no uso da tecnologia é necessário",
+    "alternativa_d": "Devemos abandonar a internet",
+    "alternativa_e": "O passado era melhor",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 32,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 200,
+    "enunciado": "O filme estreou ontem. e \"O filme é chato.\" são, respectivamente:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Fato e Opinião",
+    "alternativa_b": "Opinião e Fato",
+    "alternativa_c": "Fato e Fato",
+    "alternativa_d": "Opinião e Opinião",
+    "alternativa_e": "Hipótese e Tese",
+    "gabarito": "A"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 33,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "Embora estivesse cansado, continuou trabalhando. O conectivo \"Embora\" introduz ideia de:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Causa",
+    "alternativa_b": "Concessão",
+    "alternativa_c": "Condição",
+    "alternativa_d": "Tempo",
+    "alternativa_e": "Proporção",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 34,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "No Romantismo, o uso de palavras como \"saudade\", \"morte\" e \"amor\" busca criar um efeito de:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Objetividade",
+    "alternativa_b": "Sentimentalismo",
+    "alternativa_c": "Ironia",
+    "alternativa_d": "Crítica social",
+    "alternativa_e": "Humor",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 35,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 145,
+    "enunciado": "Um Editorial de jornal tem como principal finalidade:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Divertir",
+    "alternativa_b": "Vender produtos",
+    "alternativa_c": "Expressar a opinião do jornal",
+    "alternativa_d": "Ensinar uma receita",
+    "alternativa_e": "Contar uma piada",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 36,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 145,
+    "enunciado": "O uso da norma culta é exigido prioritariamente em:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Conversas de bar",
+    "alternativa_b": "Redações do ENEM e documentos oficiais",
+    "alternativa_c": "Mensagens de WhatsApp",
+    "alternativa_d": "Diários pessoais",
+    "alternativa_e": "Bilhetes domésticos",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 37,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 200,
+    "enunciado": "A intertextualidade ocorre quando:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Um texto conversa com outro",
+    "alternativa_b": "O texto não tem sentido",
+    "alternativa_c": "O texto é muito longo",
+    "alternativa_d": "Não há pontuação",
+    "alternativa_e": "O autor é desconhecido",
+    "gabarito": "A"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 38,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "O tema de \"Vidas Secas\" de Graciliano Ramos gira em torno de:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "A vida urbana no Rio de Janeiro",
+    "alternativa_b": "A seca e a miséria no sertão",
+    "alternativa_c": "As viagens marítimas",
+    "alternativa_d": "A industrialização de São Paulo",
+    "alternativa_e": "A corte portuguesa",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 39,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 145,
+    "enunciado": "Machado de Assis é mestre no uso de qual recurso para criticar a sociedade?",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Elogio sincero",
+    "alternativa_b": "Ironia fina",
+    "alternativa_c": "Linguagem vulgar",
+    "alternativa_d": "Gírias",
+    "alternativa_e": "Desconexão",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 40,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 145,
+    "enunciado": "A coesão textual é garantida pelo uso correto de:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Papel de qualidade",
+    "alternativa_b": "Conectivos e pronomes",
+    "alternativa_c": "Letras maiúsculas",
+    "alternativa_d": "Imagens coloridas",
+    "alternativa_e": "Margens largas",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 41,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 702,
+    "enunciado": "A palavra \"burocracia\" em um texto crítico geralmente conota:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Eficiência",
+    "alternativa_b": "Lentidão e excesso de regras",
+    "alternativa_c": "Modernidade",
+    "alternativa_d": "Liberdade",
+    "alternativa_e": "Rapidez",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 42,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 145,
+    "enunciado": "Em uma narrativa, o \"flashback\" serve para:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Acelerar o tempo",
+    "alternativa_b": "Prever o futuro",
+    "alternativa_c": "Retornar a um evento do passado",
+    "alternativa_d": "Confundir os personagens",
+    "alternativa_e": "Terminar a história",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 43,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 200,
+    "enunciado": "Uma charge jornalística utiliza linguagem verbal e não verbal para:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Elogiar o governo",
+    "alternativa_b": "Fazer uma crítica social com humor",
+    "alternativa_c": "Ilustrar um livro infantil",
+    "alternativa_d": "Decorar a página",
+    "alternativa_e": "Ensinar desenho",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 44,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Num manual de instruções, a informação sobre voltagem (110v/220v) é:",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "Implícita",
+    "alternativa_b": "Explícita",
+    "alternativa_c": "Metafórica",
+    "alternativa_d": "Irônica",
+    "alternativa_e": "Desnecessária",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 45,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 200,
+    "enunciado": "O uso de ponto de exclamação (!) reforça a ideia de:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Dúvida",
+    "alternativa_b": "Emoção ou ênfase",
+    "alternativa_c": "Fim de pensamento",
+    "alternativa_d": "Pausa longa",
+    "alternativa_e": "Citação",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 46,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 157,
+    "enunciado": "Para validar um argumento, o autor pode citar dados estatísticos. Isso é um argumento de:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Autoridade",
+    "alternativa_b": "Prova concreta",
+    "alternativa_c": "Exemplificação",
+    "alternativa_d": "Causa e consequência",
+    "alternativa_e": "Senso comum",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 47,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 148,
+    "enunciado": "Se o personagem diz \"Lavei minhas mãos sobre esse assunto\", infere-se que ele:",
+    "imagem": "",
+    "dificuldade": "D",
+    "alternativa_a": "Foi ao banheiro",
+    "alternativa_b": "Está com as mãos sujas",
+    "alternativa_c": "Desistiu ou se isentou de responsabilidade",
+    "alternativa_d": "Vai cozinhar",
+    "alternativa_e": "Gosta de higiene",
+    "gabarito": "C"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 48,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "A poesia concreta utiliza o espaço visual da página para:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Economizar tinta",
+    "alternativa_b": "Criar sentido junto com as palavras",
+    "alternativa_c": "Dificultar a leitura",
+    "alternativa_d": "Escrever menos",
+    "alternativa_e": "Imitar prosa",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 49,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 148,
+    "enunciado": "Falar \"Nós vai\" em vez de \"Nós vamos\" é considerado:",
+    "imagem": "",
+    "dificuldade": "F",
+    "alternativa_a": "Erro gravíssimo sem explicação",
+    "alternativa_b": "Variação linguística popular",
+    "alternativa_c": "Língua estrangeira",
+    "alternativa_d": "Acerto gramatical",
+    "alternativa_e": "Padrão culto",
+    "gabarito": "B"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 50,
+  "fields": {
+    "serie": 3,
+    "disciplina": 1,
+    "descritor": 204,
+    "enunciado": "O conectivo \"Portanto\" introduz uma:",
+    "imagem": "",
+    "dificuldade": "M",
+    "alternativa_a": "Conclusão",
+    "alternativa_b": "Oposição",
+    "alternativa_c": "Início",
+    "alternativa_d": "Dúvida",
+    "alternativa_e": "Causa",
+    "gabarito": "A"
+  }
+},
+{
+  "model": "core.questao",
+  "pk": 51,
+  "fields": {
+    "serie": 1,
+    "disciplina": 2,
+    "descritor": 703,
+    "enunciado": "A prefeitura de uma cidade planeja construir um novo parque municipal em formato quadrado para a comunidade. Para garantir a eficiência na gestão dos recursos e realizar um planejamento adequado do plantio de árvores e instalação de bancos, os engenheiros precisam determinar o comprimento exato de cada um dos lados do parque. Sabendo que o parque terá uma área total de 1.444 metros quadrados, qual será o comprimento de cada um dos quatro lados desse parque?",
+    "imagem": "questoes/logoSami.png",
+    "dificuldade": "F",
+    "alternativa_a": "32 metros",
+    "alternativa_b": "36 metros",
+    "alternativa_c": "152 metros",
+    "alternativa_d": "38 metros",
+    "alternativa_e": "361 metros",
+    "gabarito": "D"
+  }
+}
+]

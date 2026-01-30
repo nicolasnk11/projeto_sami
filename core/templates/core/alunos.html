@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-4">
 
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
@@ -18,14 +18,14 @@
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4">
+    <div class="card shadow-sm border-0 mb-4 rounded-4">
         <div class="card-body py-3">
             <form method="get" class="row g-2 align-items-center">
                 
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="busca" class="form-control border-start-0 ps-0" placeholder="Buscar aluno..." value="{{ busca_atual|default:'' }}">
+                        <input type="text" name="busca" class="form-control border-start-0 ps-0" placeholder="Buscar aluno por nome..." value="{{ busca_atual|default:'' }}">
                     </div>
                 </div>
 
@@ -56,65 +56,79 @@
                 </div>
 
                 <div class="col-md-2">
-                    <a href="{% url 'gerenciar_alunos' %}" class="btn btn-outline-secondary btn-sm w-100">Limpar Filtros</a>
+                    <a href="{% url 'gerenciar_alunos' %}" class="btn btn-outline-secondary btn-sm w-100">Limpar</a>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="card-body p-0">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+                <thead class="bg-light">
                     <tr>
                         <th class="ps-4">Aluno</th>
                         <th>Turma</th>
                         <th>Média Geral</th>
                         <th>Situação</th>
-                        <th class="text-end pe-4">Desempenho</th>
+                        <th class="text-end pe-4">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for aluno in alunos %}
+                    {% for mat in matriculas %}
                     <tr>
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
                                 <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold me-3 border" style="width: 40px; height: 40px;">
-                                    {{ aluno.nome_completo|slice:":1" }}
+                                    {{ mat.aluno.nome_completo|slice:":1" }}
                                 </div>
                                 <div>
-                                    <h6 class="mb-0 fw-bold text-dark small text-uppercase">{{ aluno.nome_completo }}</h6>
-                                    <small class="text-muted" style="font-size: 11px;">ID: {{ aluno.id }}</small>
+                                    <h6 class="mb-0 fw-bold text-dark small text-uppercase">{{ mat.aluno.nome_completo }}</h6>
+                                    <small class="text-muted cursor-pointer" style="font-size: 11px;" 
+                                           onclick="preencherModalEditar('{{ mat.id }}', '{{ mat.aluno.nome_completo }}', '{{ mat.turma.id }}', '{{ mat.status }}')">
+                                           <i class="bi bi-pencil-square"></i> Editar Rápido
+                                    </small>
                                 </div>
                             </div>
                         </td>
-                        <td><span class="badge bg-white text-dark border">{{ aluno.turma.nome }}</span></td>
+                        <td><span class="badge bg-white text-dark border">{{ mat.turma.nome }}</span></td>
                         <td>
-                            {% if aluno.media_geral > 0 %}
-                                <span class="fw-bold {% if aluno.media_geral >= 70 %}text-success{% elif aluno.media_geral >= 50 %}text-warning{% else %}text-danger{% endif %}">
-                                    {{ aluno.media_geral }}%
+                            {% if mat.media_geral %}
+                                <span class="fw-bold {% if mat.media_geral >= 70 %}text-success{% elif mat.media_geral >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ mat.media_geral|floatformat:1 }}%
                                 </span>
                             {% else %}
                                 <span class="text-muted small">-</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if aluno.media_geral > 0 %}
-                                {% if aluno.media_geral >= 70 %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Excelência</span>
-                                {% elif aluno.media_geral >= 50 %}
+                            {% if mat.media_geral %}
+                                {% if mat.media_geral >= 70 %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Adequado</span>
+                                {% elif mat.media_geral >= 50 %}
                                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">Atenção</span>
                                 {% else %}
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Crítico</span>
                                 {% endif %}
                             {% else %}
-                                <span class="badge bg-light text-muted border rounded-pill">Sem dados</span>
+                                <span class="badge bg-light text-muted border rounded-pill">Sem notas</span>
                             {% endif %}
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{% url 'dashboard' %}?aluno={{ aluno.id }}" class="btn btn-sm btn-outline-primary border-0 bg-light shadow-sm" title="Ver Gráficos do Aluno">
-                                <i class="bi bi-bar-chart-line-fill"></i>
-                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border shadow-sm" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="{% url 'dashboard' %}?aluno={{ mat.aluno.id }}"><i class="bi bi-bar-chart me-2"></i>Ver Desempenho</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button class="dropdown-item text-danger" onclick="confirmarExclusao('{{ mat.id }}')">
+                                            <i class="bi bi-trash me-2"></i>Excluir
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -129,16 +143,16 @@
             </table>
         </div>
         
-        {% if alunos.has_other_pages %}
+        {% if matriculas.has_other_pages %}
         <div class="card-footer bg-white py-3">
             <nav>
-                <ul class="pagination justify-content-center mb-0">
-                    {% if alunos.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ alunos.previous_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Anterior</a></li>
+                <ul class="pagination justify-content-center mb-0 pagination-sm">
+                    {% if matriculas.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ matriculas.previous_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Anterior</a></li>
                     {% endif %}
-                    <li class="page-item disabled"><span class="page-link text-muted">{{ alunos.number }}</span></li>
-                    {% if alunos.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ alunos.next_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Próxima</a></li>
+                    <li class="page-item disabled"><span class="page-link text-dark fw-bold">{{ matriculas.number }}</span></li>
+                    {% if matriculas.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ matriculas.next_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Próxima</a></li>
                     {% endif %}
                 </ul>
             </nav>
@@ -149,29 +163,107 @@
 
 <div class="modal fade" id="modalNovoAluno" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Novo Aluno</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="post">
                 {% csrf_token %}
-                <div class="modal-body bg-light">
+                <input type="hidden" name="acao" value="criar">
+                <div class="modal-body bg-light p-4">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Nome Completo</label>
-                        {{ form.nome_completo }}
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Nome Completo</label>
+                        <input type="text" name="nome" class="form-control" placeholder="Ex: João da Silva" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Turma</label>
-                        {{ form.turma }}
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Turma</label>
+                        <select name="turma" class="form-select" required>
+                            <option value="">Selecione...</option>
+                            {% for t in turmas %}
+                                <option value="{{ t.id }}">{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
-                <div class="modal-footer bg-white">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar Aluno</button>
+                <div class="modal-footer bg-white border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalEditarAluno" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Aluno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="editar">
+                <input type="hidden" name="matricula_id" id="edit_id">
+                
+                <div class="modal-body bg-light p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Nome Completo</label>
+                        <input type="text" name="nome" id="edit_nome" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Turma</label>
+                        <select name="turma" id="edit_turma" class="form-select" required>
+                            {% for t in turmas %}
+                                <option value="{{ t.id }}">{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Status</label>
+                        <select name="status" id="edit_status" class="form-select">
+                            <option value="CURSANDO">Cursando</option>
+                            <option value="APROVADO">Aprovado</option>
+                            <option value="REPROVADO">Reprovado</option>
+                            <option value="TRANSFERIDO">Transferido</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning fw-bold px-4">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<form id="formExcluir" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="acao" value="excluir">
+    <input type="hidden" name="matricula_id" id="delete_id">
+</form>
+
+<script>
+    // Função para abrir o modal de edição já preenchido
+    function preencherModalEditar(id, nome, turmaId, status) {
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_nome').value = nome;
+        document.getElementById('edit_turma').value = turmaId;
+        document.getElementById('edit_status').value = status;
+        
+        var myModal = new bootstrap.Modal(document.getElementById('modalEditarAluno'));
+        myModal.show();
+    }
+
+    // Função para confirmar exclusão
+    function confirmarExclusao(id) {
+        if(confirm("Tem certeza? Isso apagará o aluno e todas as notas dele.")) {
+            document.getElementById('delete_id').value = id;
+            document.getElementById('formExcluir').submit();
+        }
+    }
+</script>
+
 {% endblock %}

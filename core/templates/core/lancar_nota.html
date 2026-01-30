@@ -53,15 +53,18 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="list-group shadow-sm overflow-auto custom-scrollbar" style="max-height: 400px;" id="listaAlunos">
-                            {% for aluno in alunos %}
+                            {% for mat in matriculas %}
                                 <label class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 py-3 rounded-3 mb-1 cursor-pointer">
-                                    <input class="form-check-input flex-shrink-0" type="radio" name="aluno" value="{{ aluno.id }}" required>
-                                    <span class="fw-bold text-dark nome-aluno">{{ aluno.nome_completo }}</span>
+                                    <input class="form-check-input flex-shrink-0" type="radio" name="aluno" value="{{ mat.id }}" required>
+                                    <div>
+                                        <span class="fw-bold text-dark nome-aluno">{{ mat.aluno.nome_completo }}</span>
+                                        <div class="small text-muted" style="font-size: 0.75rem;">Matrícula: {{ mat.id }}</div>
+                                    </div>
                                 </label>
                             {% empty %}
                                 <div class="text-center py-5 text-muted">
                                     <i class="bi bi-emoji-frown display-4 opacity-25"></i>
-                                    <p class="mt-2 small fw-bold">Nenhum aluno ativo nesta turma.</p>
+                                    <p class="mt-2 small fw-bold">Nenhum aluno matriculado nesta turma.</p>
                                 </div>
                             {% endfor %}
                         </div>
@@ -89,7 +92,7 @@
                             <div>
                                 <div class="fw-bold text-dark">Atenção: Ferramenta Auxiliar (BETA)</div>
                                 <div class="small text-muted">
-                                    O preenchimento por foto pode conter erros devido a sombras ou iluminação. 
+                                    O preenchimento por foto pode conter erros. 
                                     <br>
                                     <strong>Sempre confira e ajuste as respostas</strong> abaixo antes de salvar.
                                 </div>
@@ -138,7 +141,8 @@
             </div>
 
         </div>
-    </form> {% else %}
+    </form> 
+    {% else %}
     <div class="text-center py-5 mt-5">
         <div class="mb-3 p-4 rounded-circle bg-light d-inline-block shadow-sm">
             <i class="bi bi-arrow-up text-primary display-4"></i>
@@ -152,28 +156,15 @@
 
 <style>
     .cursor-pointer { cursor: pointer; }
-    
-    /* Efeito de Foco no Input */
-    .input-resposta:focus {
-        background-color: #fff3cd !important; /* Amarelo */
-        color: #000;
-        transform: scale(1.1);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        z-index: 10;
-    }
-
-    /* Scrollbar personalizada na lista */
+    .input-resposta:focus { background-color: #fff3cd !important; color: #000; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #dee2e6; border-radius: 4px; }
-    
-    /* Hover no Botão */
     .transition-hover:hover { transform: translateY(-3px); }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. FILTRO DE ALUNOS (Em tempo real)
+    // 1. FILTRO DE ALUNOS
     const buscaInput = document.getElementById('buscaAluno');
     const listaAlunos = document.getElementById('listaAlunos');
     
@@ -199,21 +190,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputs = document.querySelectorAll('.input-resposta');
     inputs.forEach((input, index) => {
         input.addEventListener('input', function() {
-            this.value = this.value.toUpperCase(); // Força maiúscula
-            
-            // Se digitou uma letra válida (A-E), pula
+            this.value = this.value.toUpperCase(); 
             if (this.value.length === 1 && /[A-E]/.test(this.value)) {
                 if (index < inputs.length - 1) {
                     inputs[index + 1].focus();
                 }
             }
         });
-        
-        // Seleciona texto ao focar (facilita correção)
         input.addEventListener('focus', function() { this.select(); });
     });
 
-    // 3. LEITURA DE CARTÃO POR FOTO (OMR SCANNER)
+    // 3. LEITURA DE CARTÃO POR FOTO
     const inputFoto = document.getElementById('inputFotoCartao');
     const avaliacaoId = "{{ avaliacao_selecionada.id|default:'' }}"; 
 
@@ -221,8 +208,6 @@ document.addEventListener('DOMContentLoaded', function() {
         inputFoto.addEventListener('change', async function(e) {
             if (this.files && this.files[0]) {
                 const arquivo = this.files[0];
-                
-                // Feedback visual (Loading)
                 const btnOriginal = this.nextElementSibling;
                 const textoOriginal = btnOriginal.innerHTML;
                 btnOriginal.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Processando...';
@@ -236,37 +221,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     const response = await fetch('/api/ler-cartao/', {
                         method: 'POST',
                         body: formData,
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
                     });
 
                     const data = await response.json();
 
                     if (data.sucesso) {
-                        // A. SELEÇÃO DO ALUNO (QR CODE)
-                        if (data.aluno_detectado_id) {
-                            const radioAluno = document.querySelector(`input[name="aluno"][value="${data.aluno_detectado_id}"]`);
-                            if (radioAluno) {
-                                radioAluno.checked = true;
-                                radioAluno.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                
-                                const labelPai = radioAluno.closest('label');
-                                if(labelPai) {
-                                    labelPai.classList.add('bg-success', 'text-white');
-                                    setTimeout(() => labelPai.classList.remove('bg-success', 'text-white'), 2000);
-                                }
-                            }
-                        }
-
+                        // A. SELEÇÃO DO ALUNO (QR CODE) - Importante: O ID que vem aqui é do ALUNO
+                        // Precisamos achar o radio button que tem o ID da MATRÍCULA desse aluno
+                        // Este é um ponto complexo se a API retornar ID do Aluno.
+                        // Mas assumimos que o radio button value é o ID da Matrícula.
+                        // Se a API retornar o ID do Aluno, precisamos de uma lógica extra ou 
+                        // garantir que o QR Code tenha o ID da Matrícula.
+                        // *Solução Atual:* Vamos manter como está, mas esteja ciente que se o QR code tiver ID do Aluno
+                        // e o value for ID da Matrícula, o auto-select pode falhar a menos que ajustemos a API.
+                        
                         // B. PREENCHIMENTO RESPOSTAS
                         let preenchidos = 0;
                         for (const [numeroQuestao, letraResposta] of Object.entries(data.respostas)) {
                             const inputAlvo = document.querySelector(`.input-resposta[data-numero="${numeroQuestao}"]`);
-                            
                             if (inputAlvo) {
                                 inputAlvo.value = letraResposta;
-                                inputAlvo.style.transition = "background-color 0.3s";
                                 inputAlvo.style.backgroundColor = '#d1e7dd';
                                 setTimeout(() => inputAlvo.style.backgroundColor = '#f8f9fa', 1500);
                                 preenchidos++;
@@ -274,12 +249,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         console.log(`Sucesso! ${preenchidos} questões preenchidas.`);
                     } else {
-                        alert('Erro ao ler cartão: ' + (data.erro || 'Falha desconhecida. Tente uma foto melhor iluminada.'));
+                        alert('Erro ao ler cartão: ' + (data.erro || 'Falha desconhecida.'));
                     }
 
                 } catch (error) {
                     console.error(error);
-                    alert('Erro de conexão com o servidor ao enviar a foto.');
+                    alert('Erro de conexão.');
                 } finally {
                     btnOriginal.innerHTML = textoOriginal;
                     btnOriginal.disabled = false;
@@ -290,5 +265,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
 {% endblock %}

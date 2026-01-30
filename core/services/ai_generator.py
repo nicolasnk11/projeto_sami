@@ -2,11 +2,13 @@ import google.generativeai as genai
 import json
 import logging
 import random
+import os
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
-
+load_dotenv()
 # SUA CHAVE API (Mantenha segura!)
-API_KEY = "AIzaSyANFKk7lKLAxTzYOKEAa7-8OV98ipy5jVo" 
+API_KEY = os.getenv("GOOGLE_API_KEY") 
 
 def gerar_questao_ia(disciplina, topico, habilidade, dificuldade):
     try:

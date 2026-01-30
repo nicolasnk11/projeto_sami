@@ -4,108 +4,131 @@
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
+        <div class="col-lg-9">
             
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header bg-primary bg-gradient text-white p-4 rounded-top-4">
-                    <h4 class="mb-0 fw-bold"><i class="bi bi-people-fill me-2"></i> Importação de Alunos</h4>
-                    <small class="opacity-75">Cadastre turmas e alunos em massa via Excel</small>
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                
+                <div class="card-header p-4 text-white d-flex justify-content-between align-items-center" 
+                     style="background-color: #0A2619; border-bottom: 3px solid #D4AF37;">
+                    <div>
+                        <h4 class="mb-1 fw-bold" style="font-family: serif;">
+                            <i class="bi bi-file-earmark-spreadsheet me-2" style="color: #D4AF37;"></i> 
+                            Importação de Alunos
+                        </h4>
+                        <small class="opacity-75">Sistema de Gestão Acadêmica EEMTI PMBC</small>
+                    </div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
                 </div>
 
-                <div class="card-body p-5">
+                <div class="card-body p-5 bg-light">
                     
-                    <div class="row mb-4 align-items-center">
-                        <div class="col-md-7">
-                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-1-circle-fill me-2"></i>Prepare seu arquivo</h6>
-                            <p class="text-muted small mb-2">Sua planilha deve conter exatamente estas colunas:</p>
+                    <div class="row mb-5 gx-5">
+                        <div class="col-md-7 border-end">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <span class="badge rounded-pill me-2" style="background-color: #0A2619;">1</span>
+                                Formatação Obrigatória
+                            </h6>
+                            <p class="text-muted small mb-3">O sistema é inteligente, mas precisa destas colunas:</p>
                             
-                            <div class="table-responsive border rounded shadow-sm">
+                            <div class="table-responsive bg-white rounded shadow-sm border">
                                 <table class="table table-sm table-bordered mb-0 text-center small" style="font-family: 'Consolas', monospace;">
-                                    <thead style="background-color: #1D6F42; color: white;">
+                                    <thead style="background-color: #1B5E38; color: white;">
                                         <tr>
                                             <th>A</th>
                                             <th>B</th>
-                                            <th>C</th>
                                         </tr>
-                                        <tr class="bg-light text-dark fw-bold">
-                                            <td>Nome</td>
-                                            <td>Turma</td>
-                                            <td>Série</td>
+                                        <tr style="background-color: #e2e8f0; color: #333; font-weight: bold;">
+                                            <td>NOME COMPLETO</td>
+                                            <td>TURMA</td>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white text-muted">
-                                        <tr><td>Nicolas Castro</td><td>3º Ano B</td><td>3</td></tr>
-                                        <tr><td>Ana Souza</td><td>1º Ano A</td><td>1</td></tr>
+                                    <tbody>
+                                        <tr><td>Nicolas Castro</td><td>3º Ano B</td></tr>
+                                        <tr><td>Ana Souza</td><td>1º Ano A</td></tr>
+                                        <tr><td class="text-muted">...</td><td class="text-muted">...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                         
-                        <div class="col-md-5 text-center mt-3 mt-md-0">
-                            <div class="alert alert-light border-dashed">
-                                <i class="bi bi-file-earmark-spreadsheet text-success display-4"></i>
-                                <p class="small text-muted mt-2 mb-2">Não sabe como formatar?</p>
-                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="alert('Funcionalidade em desenvolvimento!')">
-                                    <i class="bi bi-download me-1"></i> Baixar Modelo
-                                </button>
+                        <div class="col-md-5 d-flex flex-column justify-content-center align-items-center mt-4 mt-md-0">
+                            <div class="text-center p-3 rounded-3" style="background-color: #fff; border: 1px dashed #cbd5e1;">
+                                <i class="bi bi-cloud-download text-success display-6 mb-2"></i>
+                                <h6 class="fw-bold text-dark">Precisa de um modelo?</h6>
+                                <p class="small text-muted mb-3">Baixe a planilha pronta para preencher.</p>
+                                
+                                <a href="?baixar_modelo=1" class="btn w-100 fw-bold text-white shadow-sm" 
+                                   style="background-color: #1B5E38; border: none;">
+                                    <i class="bi bi-download me-2"></i> BAIXAR MODELO
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="text-muted opacity-25 my-4">
+                    <div class="mt-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <span class="badge rounded-pill me-2" style="background-color: #0A2619;">2</span>
+                            Envie o Arquivo
+                        </h6>
 
-                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-2-circle-fill me-2"></i>Faça o Upload</h6>
-                    
-                    <form method="post" enctype="multipart/form-data" id="uploadForm">
-                        {% csrf_token %}
-                        
-                        <div class="upload-zone text-center p-5 border-2 border-dashed rounded-3 bg-light position-relative mb-4" id="dropZone">
-                            <i class="bi bi-cloud-arrow-up-fill text-primary display-3 mb-3"></i>
-                            <h5 class="fw-bold text-dark">Clique para selecionar</h5>
-                            <p class="text-muted small">ou arraste o arquivo .xlsx aqui</p>
+                        <form method="post" enctype="multipart/form-data" id="uploadForm">
+                            {% csrf_token %}
                             
-                            {{ form.arquivo_excel }}
-                        </div>
-
-                        <div id="fileInfo" class="alert alert-success d-none align-items-center">
-                            <i class="bi bi-file-earmark-excel-fill me-2 fs-5"></i>
-                            <div>
-                                <strong id="fileName">arquivo.xlsx</strong>
-                                <br><small>Pronto para importar</small>
+                            <div class="upload-zone text-center p-5 rounded-4 position-relative transition-hover" id="dropZone">
+                                <div class="default-content">
+                                    <i class="bi bi-cloud-arrow-up-fill display-3 mb-3" style="color: #0A2619;"></i>
+                                    <h5 class="fw-bold text-dark">Clique ou arraste aqui</h5>
+                                    <p class="text-muted small">Suporta arquivos .XLSX ou .CSV</p>
+                                </div>
+                                
+                                <div id="successContent" class="d-none">
+                                    <i class="bi bi-file-earmark-excel-fill display-3 text-success mb-3"></i>
+                                    <h5 class="fw-bold text-dark" id="fileNameDisplay">arquivo.xlsx</h5>
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill">
+                                        Arquivo Pronto!
+                                    </span>
+                                </div>
+                                
+                                {{ form.arquivo_excel }}
                             </div>
-                        </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm transition-hover">
-                                <i class="bi bi-check-lg me-2"></i> PROCESSAR IMPORTAÇÃO
-                            </button>
-                            <a href="{% url 'dashboard' %}" class="btn btn-light text-muted">Cancelar e Voltar</a>
-                        </div>
-                    </form>
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-lg fw-bold text-white shadow py-3" 
+                                        style="background-color: #D4AF37; border: 1px solid #c5a028;">
+                                    <i class="bi bi-check-circle-fill me-2"></i> PROCESSAR IMPORTAÇÃO
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                 </div>
             </div>
+            
+            <p class="text-center text-muted mt-4 small">
+                <i class="bi bi-shield-lock me-1"></i> Ambiente Seguro EEMTI PMBC &copy; 2026
+            </p>
         </div>
     </div>
 </div>
 
 <style>
-    .border-dashed {
-        border: 2px dashed #dee2e6;
-    }
-    
+    /* Estilização da Zona de Upload */
     .upload-zone {
         border: 2px dashed #cbd5e1;
+        background-color: white;
         transition: all 0.3s ease;
         cursor: pointer;
     }
     
     .upload-zone:hover, .upload-zone.dragover {
-        border-color: #0d6efd;
-        background-color: #f1f8ff !important;
+        border-color: #1B5E38;
+        background-color: #f0fdf4;
+        transform: translateY(-2px);
     }
-
-    /* Esconde o input original mas mantém funcionalidade */
+    
+    /* Input invisível cobrindo tudo */
     input[type="file"] {
         position: absolute;
         top: 0;
@@ -115,38 +138,53 @@
         opacity: 0;
         cursor: pointer;
     }
-    
-    .transition-hover:hover {
-        transform: translateY(-2px);
+
+    /* Botão Dourado Hover */
+    button[type="submit"]:hover {
+        background-color: #bfa030 !important;
+        transform: scale(1.01);
     }
 </style>
 
 <script>
     const fileInput = document.querySelector('input[type="file"]');
-    const fileInfo = document.getElementById('fileInfo');
-    const fileName = document.getElementById('fileName');
     const dropZone = document.getElementById('dropZone');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const defaultContent = document.querySelector('.default-content');
+    const successContent = document.getElementById('successContent');
 
+    // Quando seleciona arquivo
     fileInput.addEventListener('change', function(e) {
-        if (this.files && this.files[0]) {
-            fileName.textContent = this.files[0].name;
-            fileInfo.classList.remove('d-none');
-            fileInfo.classList.add('d-flex');
-            dropZone.classList.add('border-success');
-            dropZone.classList.remove('border-dashed');
-            dropZone.style.backgroundColor = "#e8fdf0";
-        }
+        handleFile(this.files[0]);
     });
 
-    // Efeitinho visual de drag-and-drop
+    // Drag and Drop Effects
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.classList.add('dragover');
     });
-    
+
     dropZone.addEventListener('dragleave', () => {
         dropZone.classList.remove('dragover');
     });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        // Se quiser suportar drag and drop real no input:
+        fileInput.files = e.dataTransfer.files; 
+        handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+        if (file) {
+            fileNameDisplay.textContent = file.name;
+            defaultContent.classList.add('d-none');
+            successContent.classList.remove('d-none');
+            dropZone.style.borderColor = '#198754';
+            dropZone.style.backgroundColor = '#f0fdf4';
+        }
+    }
 </script>
 
 {% endblock %}

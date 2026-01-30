@@ -37,6 +37,13 @@
                             {% endfor %}
                         </select>
 
+                        <select name="aluno" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary flex-grow-1" style="min-width: 150px;" onchange="this.form.submit()">
+                            <option value="">🎓 Aluno (Selecione a Turma)</option>
+                            {% for a in alunos_da_turma %}
+                                <option value="{{ a.id }}" {% if aluno_selecionado == a.id|stringformat:"s" %}selected{% endif %}>{{ a.nome_completo }}</option>
+                            {% endfor %}
+                        </select>
+
                         <select name="disciplina" class="form-select form-select-sm bg-light border-0 fw-bold text-secondary flex-grow-1" style="min-width: 120px;" onchange="this.form.submit()">
                             <option value="">📚 Matéria</option>
                             {% for d in disciplinas %}
@@ -122,11 +129,6 @@
             <div class="card shadow-sm border-0 mb-4 rounded-4">
                 <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-fill me-2"></i>Habilidades (Descritores)</h6>
-                    
-                    <a href="{% url 'gerar_relatorio_proficiencia' %}?{{ request.GET.urlencode }}" 
-                       class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm hover-scale text-white fw-bold">
-                        <i class="bi bi-file-pdf-fill me-1"></i> Baixar Relatório PDF
-                    </a>
                 </div>
                 <div class="card-body">
                     {% if labels_proficiencia %}
@@ -252,7 +254,7 @@
             </div>
             <div class="modal-body pt-2">
                 <ul class="list-group list-group-flush" id="listaAlunosModal">
-                    </ul>
+                </ul>
             </div>
         </div>
     </div>
@@ -261,21 +263,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Inicializa Tooltips do Bootstrap (Necessário para o Heatmap)
+        // Inicializa Tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         })
 
-        // Configuração Comum dos Gráficos
         const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
         
-        // Dados vindos do Django (JSON)
+        // Dados vindos do Django
         const dadosDetalhados = {{ detalhes_pizza_json|default:"{}"|safe }};
         
         let pizzaChart, proficienciaChart, evolucaoChart;
 
-        // Lógica do Modal (Lista de Alunos)
+        // Modal Alunos
         window.abrirModalAlunos = function(categoria) {
             const modalEl = document.getElementById('modalDetalhesPizza');
             const modal = new bootstrap.Modal(modalEl);
@@ -304,7 +305,7 @@
             modal.show();
         };
 
-        // 1. Gráfico de Pizza (Níveis)
+        // 1. Pizza
         const ctxPizza = document.getElementById('chartPizza');
         if (ctxPizza) {
             pizzaChart = new Chart(ctxPizza, {
@@ -321,7 +322,6 @@
                     ...chartOptions, cutout: '70%',
                     onClick: (evt, el) => { 
                         if(el.length > 0) {
-                            // Mapeia o índice clicado para o nome da categoria
                             const categorias = ['Adequado', 'Intermediário', 'Crítico', 'Muito Crítico'];
                             abrirModalAlunos(categorias[el[0].index]); 
                         }
@@ -330,7 +330,7 @@
             });
         }
 
-        // 2. Gráfico de Proficiência (Barras)
+        // 2. Barras (Proficiência)
         const ctxProf = document.getElementById('chartProficiencia');
         if (ctxProf) {
             proficienciaChart = new Chart(ctxProf, {
@@ -342,10 +342,10 @@
                         data: {{ dados_proficiencia|default:"[]"|safe }},
                         backgroundColor: function(context) {
                             const val = context.raw;
-                            if (val >= 80) return '#198754'; // Verde
-                            if (val >= 60) return '#ffc107'; // Amarelo
-                            if (val >= 21) return '#dc3545'; // Vermelho
-                            return '#212529'; // Preto
+                            if (val >= 80) return '#198754';
+                            if (val >= 60) return '#ffc107';
+                            if (val >= 21) return '#dc3545';
+                            return '#212529';
                         },
                         borderRadius: 6
                     }]
@@ -358,11 +358,10 @@
             });
         }
 
-        // 3. Gráfico de Evolução (Linha com Meta)
+        // 3. Linha (Evolução)
         const ctxEvo = document.getElementById('chartEvolucao');
         if (ctxEvo) {
             const dadosReais = {{ dados_evolucao|default:"[]"|safe }};
-            // Cria linha de meta fixa em 70%
             const metaDados = new Array(dadosReais.length).fill(70);
 
             evolucaoChart = new Chart(ctxEvo, {
@@ -382,7 +381,7 @@
                             label: 'Meta Escola (70%)',
                             data: metaDados,
                             borderColor: '#198754',
-                            borderDash: [5, 5], // Pontilhado
+                            borderDash: [5, 5],
                             pointRadius: 0,
                             borderWidth: 2,
                             fill: false
@@ -393,7 +392,7 @@
             });
         }
 
-        // Ajuste de Redimensionamento dos Gráficos ao Trocar de Aba
+        // Redimensionamento nas abas
         document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(tab => {
             tab.addEventListener('shown.bs.tab', () => {
                 if(pizzaChart) pizzaChart.resize();

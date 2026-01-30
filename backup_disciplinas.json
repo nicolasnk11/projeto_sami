@@ -1,0 +1,114 @@
+[
+{
+  "model": "core.disciplina",
+  "pk": 1,
+  "fields": {
+    "nome": "Língua Portuguesa"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 2,
+  "fields": {
+    "nome": "Matemática"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 3,
+  "fields": {
+    "nome": "História"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 4,
+  "fields": {
+    "nome": "Geografia"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 5,
+  "fields": {
+    "nome": "Ciências"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 6,
+  "fields": {
+    "nome": "Física"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 7,
+  "fields": {
+    "nome": "Química"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 8,
+  "fields": {
+    "nome": "Biologia"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 9,
+  "fields": {
+    "nome": "Inglês"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 10,
+  "fields": {
+    "nome": "Espanhol"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 11,
+  "fields": {
+    "nome": "Educação Física"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 12,
+  "fields": {
+    "nome": "Artes"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 13,
+  "fields": {
+    "nome": "Filosofia"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 14,
+  "fields": {
+    "nome": "Sociologia"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 15,
+  "fields": {
+    "nome": "Projeto de Vida"
+  }
+},
+{
+  "model": "core.disciplina",
+  "pk": 16,
+  "fields": {
+    "nome": "Arte"
+  }
+}
+]

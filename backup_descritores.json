@@ -1,0 +1,5592 @@
+[
+{
+  "model": "core.descritor",
+  "pk": 145,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Localizar informações explícitas a partir da verificação de suas marcas tipográficas (negrito, aspas, etc.).",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 146,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Localizar informações explícitas em textos de gêneros simples de grande circulação.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 147,
+  "fields": {
+    "codigo": "S01H03",
+    "descricao": "Localizar informação explícita em textos narrativos simples (contos, fábulas).",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 148,
+  "fields": {
+    "codigo": "S01H04",
+    "descricao": "Localizar informação explícita em textos descritivos simples (classificados, notas).",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 149,
+  "fields": {
+    "codigo": "S02H02",
+    "descricao": "Inferir sentimentos ou emoções vinculadas a um trecho de texto.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 150,
+  "fields": {
+    "codigo": "S02H20",
+    "descricao": "Inferir ideias contraditórias, ambíguas ou paradoxais em textos complexos.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 151,
+  "fields": {
+    "codigo": "S02H24",
+    "descricao": "Inferir a imagem ou perfil do enunciador/narrador.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 152,
+  "fields": {
+    "codigo": "S23H09",
+    "descricao": "Reconhecer intenções pelo uso de estrangeirismo ou neologismo em textos verbais.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 153,
+  "fields": {
+    "codigo": "S23H10",
+    "descricao": "Reconhecer intenções pelo uso de provérbios ou ditos populares em textos verbais.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 154,
+  "fields": {
+    "codigo": "S23H11",
+    "descricao": "Reconhecer intenções pelo uso de estrangeirismo ou neologismo em textos multissemióticos.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 155,
+  "fields": {
+    "codigo": "S23H12",
+    "descricao": "Reconhecer intenções pelo uso de provérbios em textos multissemióticos.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 156,
+  "fields": {
+    "codigo": "S23H13",
+    "descricao": "Reconhecer propósito comunicativo de determinada função da linguagem.",
+    "disciplina": 1,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 157,
+  "fields": {
+    "codigo": "D1",
+    "descricao": "Localizar informações explícitas em um texto.",
+    "disciplina": 1,
+    "tema": "Descritores SAEB (Clássicos)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 158,
+  "fields": {
+    "codigo": "D3",
+    "descricao": "Inferir o sentido de uma palavra ou expressão.",
+    "disciplina": 1,
+    "tema": "Descritores SAEB (Clássicos)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 159,
+  "fields": {
+    "codigo": "D4",
+    "descricao": "Inferir uma informação implícita em um texto.",
+    "disciplina": 1,
+    "tema": "Descritores SAEB (Clássicos)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 160,
+  "fields": {
+    "codigo": "D6",
+    "descricao": "Identificar o tema de um texto.",
+    "disciplina": 1,
+    "tema": "Descritores SAEB (Clássicos)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 161,
+  "fields": {
+    "codigo": "D14",
+    "descricao": "Distinguir um fato da opinião relativa a esse fato.",
+    "disciplina": 1,
+    "tema": "Descritores SAEB (Clássicos)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 162,
+  "fields": {
+    "codigo": "S01H1",
+    "descricao": "Relacionar a forma escrita por extenso dos números naturais e suas representações numéricas.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 163,
+  "fields": {
+    "codigo": "S01H2",
+    "descricao": "Reconhecer e expressar números naturais em diversos contextos.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 164,
+  "fields": {
+    "codigo": "S01H3",
+    "descricao": "Compreender a noção de cardinalidade e sua expressão como número natural.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 165,
+  "fields": {
+    "codigo": "S01H4",
+    "descricao": "Expressar cardinalidade, ordem ou códigos usando números naturais.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 166,
+  "fields": {
+    "codigo": "S01H5",
+    "descricao": "Compreender e utilizar as noções de antecessor e sucessor.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 167,
+  "fields": {
+    "codigo": "S16H19",
+    "descricao": "Efetuar cálculos de probabilidades utilizando técnicas da Combinatória.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 168,
+  "fields": {
+    "codigo": "S16H20",
+    "descricao": "Compreender a noção de eventos e variáveis aleatórias independentes.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 169,
+  "fields": {
+    "codigo": "S16H21",
+    "descricao": "Calcular probabilidades envolvendo variáveis aleatórias independentes.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 170,
+  "fields": {
+    "codigo": "S16H22",
+    "descricao": "Compreender a noção de probabilidade condicional.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 171,
+  "fields": {
+    "codigo": "S16H23",
+    "descricao": "Calcular a probabilidade de um evento (Ref: SAEB D33).",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 172,
+  "fields": {
+    "codigo": "S16H24",
+    "descricao": "Calcular probabilidades condicionais e probabilidade total.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 173,
+  "fields": {
+    "codigo": "S16H25",
+    "descricao": "Formular e resolver problemas de probabilidade em diversos contextos (Ref: SPAECE D42).",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 174,
+  "fields": {
+    "codigo": "S16H26",
+    "descricao": "Reconhecer aplicações da probabilidade na vida cotidiana.",
+    "disciplina": 2,
+    "tema": "Matriz Sisedu (Foco)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 175,
+  "fields": {
+    "codigo": "D13",
+    "descricao": "Resolver problema envolvendo a área de figuras planas.",
+    "disciplina": 2,
+    "tema": "Descritores SAEB (Clássicos)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 176,
+  "fields": {
+    "codigo": "D36",
+    "descricao": "Resolver problema envolvendo informações apresentadas em tabelas e/ou gráficos.",
+    "disciplina": 2,
+    "tema": "Descritores SAEB (Clássicos)"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 177,
+  "fields": {
+    "codigo": "QS12H01",
+    "descricao": "Identificar e conhecer o princípio que rege o mecanismo de reações de adição.",
+    "disciplina": 7,
+    "tema": "Matriz Sisedu"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 178,
+  "fields": {
+    "codigo": "QS12H02",
+    "descricao": "Identificar e conhecer o princípio que rege o mecanismo de reações de substituição.",
+    "disciplina": 7,
+    "tema": "Matriz Sisedu"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 179,
+  "fields": {
+    "codigo": "QS12H03",
+    "descricao": "Identificar e conhecer o princípio que rege o mecanismo de reações de eliminação.",
+    "disciplina": 7,
+    "tema": "Matriz Sisedu"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 180,
+  "fields": {
+    "codigo": "QS12H04",
+    "descricao": "Identificar e conhecer o princípio que rege o mecanismo de reações de oxidação.",
+    "disciplina": 7,
+    "tema": "Matriz Sisedu"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 181,
+  "fields": {
+    "codigo": "QS12H05",
+    "descricao": "Interpretar resultados e realizar previsões sobre reações orgânicas.",
+    "disciplina": 7,
+    "tema": "Matriz Sisedu"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 182,
+  "fields": {
+    "codigo": "QS12H06",
+    "descricao": "Interpretar textos de divulgação científica relacionados a reações orgânicas.",
+    "disciplina": 7,
+    "tema": "Matriz Sisedu"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 183,
+  "fields": {
+    "codigo": "D1",
+    "descricao": "Identificar propriedades de ondas (período, frequência, amplitude).",
+    "disciplina": 6,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 184,
+  "fields": {
+    "codigo": "D2",
+    "descricao": "Associar fenômenos sonoros (eco, reverberação) a propriedades ondulatórias.",
+    "disciplina": 6,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 185,
+  "fields": {
+    "codigo": "D15",
+    "descricao": "Interpretar o funcionamento de aparelhos resistivos (chuveiros, ferros).",
+    "disciplina": 6,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 186,
+  "fields": {
+    "codigo": "D18",
+    "descricao": "Relacionar potência elétrica com tensão e corrente.",
+    "disciplina": 6,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 187,
+  "fields": {
+    "codigo": "D1",
+    "descricao": "Identificar características de níveis de organização dos seres vivos.",
+    "disciplina": 8,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 188,
+  "fields": {
+    "codigo": "D10",
+    "descricao": "Relacionar os processos vitais das plantas com fatores ambientais.",
+    "disciplina": 8,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 189,
+  "fields": {
+    "codigo": "D16",
+    "descricao": "Identificar a relação entre DNA, genes e características hereditárias.",
+    "disciplina": 8,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 190,
+  "fields": {
+    "codigo": "D22",
+    "descricao": "Reconhecer a importância da biodiversidade.",
+    "disciplina": 8,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 191,
+  "fields": {
+    "codigo": "D1",
+    "descricao": "Identificar marcas das culturas indígenas ou africanas na cultura brasileira.",
+    "disciplina": 3,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 192,
+  "fields": {
+    "codigo": "D2",
+    "descricao": "Analisar as lutas sociais e conquistas da cidadania no Brasil.",
+    "disciplina": 3,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 193,
+  "fields": {
+    "codigo": "D11",
+    "descricao": "Identificar registros de memória de grupos sociais.",
+    "disciplina": 3,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 194,
+  "fields": {
+    "codigo": "D14",
+    "descricao": "Comparar diferentes pontos de vista sobre um mesmo fato histórico.",
+    "disciplina": 3,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 195,
+  "fields": {
+    "codigo": "D1",
+    "descricao": "Localizar informações em representações cartográficas.",
+    "disciplina": 4,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 196,
+  "fields": {
+    "codigo": "D6",
+    "descricao": "Interpretar gráficos e tabelas relacionados a temas geográficos.",
+    "disciplina": 4,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 197,
+  "fields": {
+    "codigo": "D12",
+    "descricao": "Identificar impactos ambientais decorrentes de atividades econômicas.",
+    "disciplina": 4,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 198,
+  "fields": {
+    "codigo": "D20",
+    "descricao": "Reconhecer a dinâmica da população brasileira (migrações, crescimento).",
+    "disciplina": 4,
+    "tema": "Matriz SPAECE/SAEB"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 199,
+  "fields": {
+    "codigo": "S02H01",
+    "descricao": "Inferir o sentido de uma palavra ou expressão pelo contexto.",
+    "disciplina": 1,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 200,
+  "fields": {
+    "codigo": "S06H01",
+    "descricao": "Identificar o tema central de um texto.",
+    "disciplina": 1,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 201,
+  "fields": {
+    "codigo": "S06H02",
+    "descricao": "Diferenciar as partes principais das secundárias em um texto.",
+    "disciplina": 1,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 202,
+  "fields": {
+    "codigo": "S12H01",
+    "descricao": "Identificar a finalidade de textos de diferentes gêneros.",
+    "disciplina": 1,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 203,
+  "fields": {
+    "codigo": "S12H02",
+    "descricao": "Identificar o gênero textual pela sua estrutura e propósito.",
+    "disciplina": 1,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 204,
+  "fields": {
+    "codigo": "S14H01",
+    "descricao": "Distinguir um fato da opinião relativa a esse fato.",
+    "disciplina": 1,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 205,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Localizar informações explícitas em textos em inglês.",
+    "disciplina": 9,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 206,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Inferir o sentido de palavras desconhecidas pelo contexto.",
+    "disciplina": 9,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 207,
+  "fields": {
+    "codigo": "S01H03",
+    "descricao": "Identificar o tema principal de um texto em inglês.",
+    "disciplina": 9,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 208,
+  "fields": {
+    "codigo": "S02H01",
+    "descricao": "Reconhecer características de gêneros textuais em inglês (e-mail, lyrics).",
+    "disciplina": 9,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 209,
+  "fields": {
+    "codigo": "S03H01",
+    "descricao": "Identificar marcas culturais de países falantes de língua inglesa.",
+    "disciplina": 9,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 210,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Localizar informações explícitas em textos em espanhol.",
+    "disciplina": 10,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 211,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Inferir o sentido de falsos cognatos (falsos amigos).",
+    "disciplina": 10,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 212,
+  "fields": {
+    "codigo": "S01H03",
+    "descricao": "Identificar a ideia central de textos jornalísticos ou literários.",
+    "disciplina": 10,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 213,
+  "fields": {
+    "codigo": "S02H01",
+    "descricao": "Reconhecer a diversidade linguística do mundo hispânico.",
+    "disciplina": 10,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 214,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Analisar elementos visuais (cor, linha, ponto, textura) em obras.",
+    "disciplina": 16,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 215,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Reconhecer movimentos artísticos (Renascimento, Modernismo, Arte Contemporânea).",
+    "disciplina": 16,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 216,
+  "fields": {
+    "codigo": "S02H01",
+    "descricao": "Identificar elementos da música (ritmo, melodia, harmonia).",
+    "disciplina": 16,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 217,
+  "fields": {
+    "codigo": "S02H02",
+    "descricao": "Reconhecer gêneros musicais brasileiros e suas origens.",
+    "disciplina": 16,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 218,
+  "fields": {
+    "codigo": "S03H01",
+    "descricao": "Identificar elementos do teatro e da dança.",
+    "disciplina": 16,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 219,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Reconhecer a importância da atividade física para a saúde e bem-estar.",
+    "disciplina": 11,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 220,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Relacionar sedentarismo a doenças crônicas (obesidade, diabetes).",
+    "disciplina": 11,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 221,
+  "fields": {
+    "codigo": "S02H01",
+    "descricao": "Identificar regras e fundamentos de esportes coletivos (futsal, vôlei, etc).",
+    "disciplina": 11,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 222,
+  "fields": {
+    "codigo": "S02H02",
+    "descricao": "Compreender o esporte como fenômeno cultural e social.",
+    "disciplina": 11,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 223,
+  "fields": {
+    "codigo": "S03H01",
+    "descricao": "Analisar padrões de beleza e imagem corporal na mídia.",
+    "disciplina": 11,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 224,
+  "fields": {
+    "codigo": "S02H1",
+    "descricao": "Resolver problemas com as 4 operações (naturais/inteiros).",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 225,
+  "fields": {
+    "codigo": "S02H2",
+    "descricao": "Resolver problemas envolvendo porcentagem e juros simples.",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 226,
+  "fields": {
+    "codigo": "S09H1",
+    "descricao": "Resolver problemas envolvendo equações do 1º grau.",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 227,
+  "fields": {
+    "codigo": "S09H2",
+    "descricao": "Resolver problemas envolvendo equações do 2º grau.",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 228,
+  "fields": {
+    "codigo": "S09H3",
+    "descricao": "Analisar gráficos de funções afim e quadrática.",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 229,
+  "fields": {
+    "codigo": "S12H1",
+    "descricao": "Identificar propriedades de polígonos e poliedros.",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 230,
+  "fields": {
+    "codigo": "S12H2",
+    "descricao": "Reconhecer triângulos e suas propriedades (semelhança, Pitágoras).",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 231,
+  "fields": {
+    "codigo": "S13H1",
+    "descricao": "Calcular área e perímetro de figuras planas.",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 232,
+  "fields": {
+    "codigo": "S13H2",
+    "descricao": "Resolver problemas envolvendo volume de sólidos.",
+    "disciplina": 2,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 233,
+  "fields": {
+    "codigo": "QS01H01",
+    "descricao": "Diferenciar fenômenos físicos e químicos.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 234,
+  "fields": {
+    "codigo": "QS01H02",
+    "descricao": "Identificar métodos de separação de misturas.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 235,
+  "fields": {
+    "codigo": "QS05H01",
+    "descricao": "Relacionar ligações químicas (iônica, covalente) com propriedades.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 236,
+  "fields": {
+    "codigo": "QS12.H01",
+    "descricao": "Identificar princípio de reações de adição.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 237,
+  "fields": {
+    "codigo": "QS12.H02",
+    "descricao": "Identificar princípio de reações de substituição.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 238,
+  "fields": {
+    "codigo": "QS12.H03",
+    "descricao": "Identificar princípio de reações de eliminação.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 239,
+  "fields": {
+    "codigo": "QS12.H04",
+    "descricao": "Identificar princípio de reações de oxidação.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 240,
+  "fields": {
+    "codigo": "QS12.H05",
+    "descricao": "Prever produtos de reações orgânicas simples.",
+    "disciplina": 7,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 241,
+  "fields": {
+    "codigo": "FS01H01",
+    "descricao": "Diferenciar movimento uniforme e uniformemente variado.",
+    "disciplina": 6,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 242,
+  "fields": {
+    "codigo": "FS01H02",
+    "descricao": "Aplicar Leis de Newton em situações cotidianas.",
+    "disciplina": 6,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 243,
+  "fields": {
+    "codigo": "FS01H03",
+    "descricao": "Relacionar trabalho, energia cinética e potencial.",
+    "disciplina": 6,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 244,
+  "fields": {
+    "codigo": "FS02H01",
+    "descricao": "Diferenciar calor e temperatura.",
+    "disciplina": 6,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 245,
+  "fields": {
+    "codigo": "FS02H02",
+    "descricao": "Identificar processos de propagação de calor.",
+    "disciplina": 6,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 246,
+  "fields": {
+    "codigo": "FS03H01",
+    "descricao": "Relacionar tensão, corrente e resistência (Lei de Ohm).",
+    "disciplina": 6,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 247,
+  "fields": {
+    "codigo": "FS03H02",
+    "descricao": "Calcular potência e consumo de energia elétrica.",
+    "disciplina": 6,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 248,
+  "fields": {
+    "codigo": "BS01H01",
+    "descricao": "Identificar estruturas celulares e suas funções.",
+    "disciplina": 8,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 249,
+  "fields": {
+    "codigo": "BS01H02",
+    "descricao": "Diferenciar células procariontes e eucariontes.",
+    "disciplina": 8,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 250,
+  "fields": {
+    "codigo": "BS02H01",
+    "descricao": "Analisar cadeias e teias alimentares.",
+    "disciplina": 8,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 251,
+  "fields": {
+    "codigo": "BS02H02",
+    "descricao": "Identificar relações ecológicas (competição, mutualismo, etc).",
+    "disciplina": 8,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 252,
+  "fields": {
+    "codigo": "BS02H03",
+    "descricao": "Reconhecer impactos ambientais da ação humana.",
+    "disciplina": 8,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 253,
+  "fields": {
+    "codigo": "BS03H01",
+    "descricao": "Relacionar DNA, genes e hereditariedade.",
+    "disciplina": 8,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 254,
+  "fields": {
+    "codigo": "BS03H02",
+    "descricao": "Interpretar as Leis de Mendel.",
+    "disciplina": 8,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 255,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Reconhecer estados físicos da matéria e suas mudanças.",
+    "disciplina": 5,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 256,
+  "fields": {
+    "codigo": "S02H01",
+    "descricao": "Identificar fontes de energia renováveis e não renováveis.",
+    "disciplina": 5,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 257,
+  "fields": {
+    "codigo": "S03H01",
+    "descricao": "Compreender o ciclo da água e sua importância.",
+    "disciplina": 5,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 258,
+  "fields": {
+    "codigo": "HS01H01",
+    "descricao": "Analisar a formação da sociedade colonial brasileira.",
+    "disciplina": 3,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 259,
+  "fields": {
+    "codigo": "HS01H02",
+    "descricao": "Compreender o processo de independência e o Império.",
+    "disciplina": 3,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 260,
+  "fields": {
+    "codigo": "HS02H01",
+    "descricao": "Analisar a República Velha e o Coronelismo.",
+    "disciplina": 3,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 261,
+  "fields": {
+    "codigo": "HS02H02",
+    "descricao": "Compreender a Era Vargas e a industrialização.",
+    "disciplina": 3,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 262,
+  "fields": {
+    "codigo": "HS02H03",
+    "descricao": "Analisar o período da Ditadura Militar e a Redemocratização.",
+    "disciplina": 3,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 263,
+  "fields": {
+    "codigo": "HS03H01",
+    "descricao": "Identificar causas e consequências das Guerras Mundiais.",
+    "disciplina": 3,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 264,
+  "fields": {
+    "codigo": "HS03H02",
+    "descricao": "Compreender a Guerra Fria e a geopolítica bipolar.",
+    "disciplina": 3,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 265,
+  "fields": {
+    "codigo": "GS01H01",
+    "descricao": "Interpretar mapas, escalas e coordenadas geográficas.",
+    "disciplina": 4,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 266,
+  "fields": {
+    "codigo": "GS02H01",
+    "descricao": "Identificar domínios morfoclimáticos brasileiros (clima/relevo).",
+    "disciplina": 4,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 267,
+  "fields": {
+    "codigo": "GS02H02",
+    "descricao": "Analisar bacias hidrográficas e recursos hídricos.",
+    "disciplina": 4,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 268,
+  "fields": {
+    "codigo": "GS03H01",
+    "descricao": "Analisar o processo de urbanização e seus problemas.",
+    "disciplina": 4,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 269,
+  "fields": {
+    "codigo": "GS03H02",
+    "descricao": "Compreender a dinâmica populacional (transição demográfica).",
+    "disciplina": 4,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 270,
+  "fields": {
+    "codigo": "GS03H03",
+    "descricao": "Identificar características da agricultura e do agronegócio.",
+    "disciplina": 4,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 271,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Diferenciar mito, senso comum e conhecimento filosófico.",
+    "disciplina": 13,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 272,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Compreender a ética e a moral na convivência humana.",
+    "disciplina": 13,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 273,
+  "fields": {
+    "codigo": "S01H03",
+    "descricao": "Analisar teorias políticas (democracia, cidadania, poder).",
+    "disciplina": 13,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 274,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Compreender os processos de socialização e identidade.",
+    "disciplina": 14,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 275,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Analisar a cultura, diversidade e etnocentrismo.",
+    "disciplina": 14,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 276,
+  "fields": {
+    "codigo": "S01H03",
+    "descricao": "Identificar desigualdades sociais e estratificação.",
+    "disciplina": 14,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 277,
+  "fields": {
+    "codigo": "S01H04",
+    "descricao": "Compreender as transformações no mundo do trabalho.",
+    "disciplina": 14,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 278,
+  "fields": {
+    "codigo": "S01H01",
+    "descricao": "Desenvolver autoconhecimento e identidade pessoal.",
+    "disciplina": 15,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 279,
+  "fields": {
+    "codigo": "S01H02",
+    "descricao": "Identificar valores e interesses para o futuro.",
+    "disciplina": 15,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 280,
+  "fields": {
+    "codigo": "S01H03",
+    "descricao": "Planejar metas acadêmicas e profissionais.",
+    "disciplina": 15,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 281,
+  "fields": {
+    "codigo": "S01H04",
+    "descricao": "Desenvolver competências socioemocionais (resiliência, empatia).",
+    "disciplina": 15,
+    "tema": "Matriz de Saberes"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 282,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Reconhecer, no contexto social, diferentes significados e representações dos números.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 283,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Identificar padrões numéricos ou princípios de contagem.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 284,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Resolver situação-problema envolvendo conhecimentos numéricos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 285,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Avaliar a razoabilidade de um resultado numérico na construção de argumentos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 286,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Avaliar propostas de intervenção na realidade utilizando conhecimentos numéricos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 287,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Interpretar a localização e a movimentação de pessoas/objetos no espaço tridimensional.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 288,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Identificar características de figuras planas ou espaciais.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 289,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Resolver situação-problema que envolva conhecimentos geométricos de espaço e forma.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 290,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Utilizar conhecimentos geométricos de espaço e forma na seleção de argumentos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 291,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Identificar relações entre grandezas e unidades de medida.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 292,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Utilizar a noção de escalas na leitura de representação de situação do cotidiano.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 293,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Resolver situação-problema que envolva medidas de grandezas.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 294,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Avaliar o resultado de uma medição na construção de um argumento consistente.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 295,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Avaliar proposta de intervenção na realidade utilizando conhecimentos geométricos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 296,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Identificar a relação de dependência entre grandezas.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 297,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Resolver situação-problema envolvendo a variação de grandezas (proporcionalidade).",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 298,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Analisar informações envolvendo a variação de grandezas como recurso para argumentação.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 299,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Avaliar propostas de intervenção na realidade envolvendo variação de grandezas.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 300,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Identificar representações algébricas que expressam regularidades.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 301,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Interpretar gráfico cartesiano que represente relações entre grandezas.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 302,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Resolver situação-problema cuja modelagem envolva conhecimentos algébricos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 303,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Utilizar conhecimentos algébricos/geométricos para selecionar argumentos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 304,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Avaliar proposta de intervenção na realidade utilizando conhecimentos algébricos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 305,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Utilizar informações expressas em gráficos ou tabelas para realizar previsões.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 306,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Resolver problema com dados apresentados em tabelas ou gráficos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 307,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Analisar informações em tabelas ou gráficos como recurso para construção de argumentos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 308,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Calcular medidas de tendência central ou de dispersão (Estatística).",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 309,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Resolver situação-problema que envolva conhecimentos de estatística e probabilidade.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 310,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Utilizar conhecimentos de estatística e probabilidade para selecionar argumentos.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 311,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar proposta de intervenção na realidade utilizando estatística e probabilidade.",
+    "disciplina": 2,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 312,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Identificar as diferentes linguagens e seus recursos expressivos.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 313,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Recorrer aos conhecimentos sobre as linguagens para resolver problemas sociais.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 314,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Relacionar informações geradas nos sistemas de comunicação e informação.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 315,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Reconhecer posições críticas aos usos sociais que são feitos das linguagens.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 316,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Associar vocábulos e expressões de um texto em LEM ao seu tema.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 317,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Utilizar conhecimentos da LEM e de seus mecanismos como meio de ampliar conhecimentos.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 318,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Relacionar um texto em LEM, as estruturas linguísticas, sua função e seu uso social.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 319,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Reconhecer a importância da produção cultural em LEM como representação da diversidade.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 320,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Reconhecer as manifestações corporais de movimento como necessidades cotidianas.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 321,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a necessidade de transformação de hábitos corporais.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 322,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer a linguagem corporal como meio de interação social.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 323,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Reconhecer diferentes funções da arte e do trabalho artístico.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 324,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar as diversas produções artísticas como meio de explicar diferentes culturas.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 325,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Reconhecer o valor da diversidade artística e das inter-relações de elementos na cultura.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 326,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Estabelecer relações entre o texto literário e o momento de sua produção.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 327,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Relacionar informações sobre concepções artísticas e procedimentos de construção do texto literário.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 328,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Reconhecer a presença de valores sociais e humanos no patrimônio literário nacional.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 329,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Identificar os elementos que concorrem para a progressão temática.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 330,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Analisar a função da linguagem predominante nos textos.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 331,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Reconhecer a importância do patrimônio linguístico para a preservação da memória.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 332,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Reconhecer em textos de diferentes gêneros, recursos verbais e não-verbais.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 333,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Relacionar, em diferentes textos, opiniões, temas, assuntos e recursos linguísticos.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 334,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Inferir em um texto quais são os objetivos de seu produtor e quem é seu público alvo.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 335,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Reconhecer no texto estratégias argumentativas empregadas para o convencimento.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 336,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar, em textos de diferentes gêneros, as marcas linguísticas da fala e da escrita.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 337,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Relacionar as variedades linguísticas a situações específicas de uso social.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 338,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Reconhecer a função da língua como instrumento de comunicação e interação social.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 339,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Reconhecer a função e o impacto social das diferentes tecnologias da comunicação.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 340,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Identificar, pela análise de suas linguagens, as tecnologias da comunicação.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 341,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Relacionar as tecnologias de comunicação e informação ao desenvolvimento das sociedades.",
+    "disciplina": 1,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 342,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Identificar as diferentes linguagens e seus recursos expressivos.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 343,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Recorrer aos conhecimentos sobre as linguagens para resolver problemas sociais.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 344,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Relacionar informações geradas nos sistemas de comunicação e informação.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 345,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Reconhecer posições críticas aos usos sociais que são feitos das linguagens.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 346,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Associar vocábulos e expressões de um texto em LEM ao seu tema.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 347,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Utilizar conhecimentos da LEM e de seus mecanismos como meio de ampliar conhecimentos.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 348,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Relacionar um texto em LEM, as estruturas linguísticas, sua função e seu uso social.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 349,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Reconhecer a importância da produção cultural em LEM como representação da diversidade.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 350,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Reconhecer as manifestações corporais de movimento como necessidades cotidianas.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 351,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a necessidade de transformação de hábitos corporais.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 352,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer a linguagem corporal como meio de interação social.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 353,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Reconhecer diferentes funções da arte e do trabalho artístico.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 354,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar as diversas produções artísticas como meio de explicar diferentes culturas.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 355,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Reconhecer o valor da diversidade artística e das inter-relações de elementos na cultura.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 356,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Estabelecer relações entre o texto literário e o momento de sua produção.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 357,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Relacionar informações sobre concepções artísticas e procedimentos de construção do texto literário.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 358,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Reconhecer a presença de valores sociais e humanos no patrimônio literário nacional.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 359,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Identificar os elementos que concorrem para a progressão temática.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 360,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Analisar a função da linguagem predominante nos textos.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 361,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Reconhecer a importância do patrimônio linguístico para a preservação da memória.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 362,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Reconhecer em textos de diferentes gêneros, recursos verbais e não-verbais.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 363,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Relacionar, em diferentes textos, opiniões, temas, assuntos e recursos linguísticos.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 364,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Inferir em um texto quais são os objetivos de seu produtor e quem é seu público alvo.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 365,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Reconhecer no texto estratégias argumentativas empregadas para o convencimento.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 366,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar, em textos de diferentes gêneros, as marcas linguísticas da fala e da escrita.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 367,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Relacionar as variedades linguísticas a situações específicas de uso social.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 368,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Reconhecer a função da língua como instrumento de comunicação e interação social.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 369,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Reconhecer a função e o impacto social das diferentes tecnologias da comunicação.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 370,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Identificar, pela análise de suas linguagens, as tecnologias da comunicação.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 371,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Relacionar as tecnologias de comunicação e informação ao desenvolvimento das sociedades.",
+    "disciplina": 9,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 372,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Identificar as diferentes linguagens e seus recursos expressivos.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 373,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Recorrer aos conhecimentos sobre as linguagens para resolver problemas sociais.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 374,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Relacionar informações geradas nos sistemas de comunicação e informação.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 375,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Reconhecer posições críticas aos usos sociais que são feitos das linguagens.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 376,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Associar vocábulos e expressões de um texto em LEM ao seu tema.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 377,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Utilizar conhecimentos da LEM e de seus mecanismos como meio de ampliar conhecimentos.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 378,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Relacionar um texto em LEM, as estruturas linguísticas, sua função e seu uso social.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 379,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Reconhecer a importância da produção cultural em LEM como representação da diversidade.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 380,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Reconhecer as manifestações corporais de movimento como necessidades cotidianas.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 381,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a necessidade de transformação de hábitos corporais.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 382,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer a linguagem corporal como meio de interação social.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 383,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Reconhecer diferentes funções da arte e do trabalho artístico.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 384,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar as diversas produções artísticas como meio de explicar diferentes culturas.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 385,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Reconhecer o valor da diversidade artística e das inter-relações de elementos na cultura.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 386,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Estabelecer relações entre o texto literário e o momento de sua produção.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 387,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Relacionar informações sobre concepções artísticas e procedimentos de construção do texto literário.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 388,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Reconhecer a presença de valores sociais e humanos no patrimônio literário nacional.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 389,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Identificar os elementos que concorrem para a progressão temática.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 390,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Analisar a função da linguagem predominante nos textos.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 391,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Reconhecer a importância do patrimônio linguístico para a preservação da memória.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 392,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Reconhecer em textos de diferentes gêneros, recursos verbais e não-verbais.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 393,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Relacionar, em diferentes textos, opiniões, temas, assuntos e recursos linguísticos.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 394,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Inferir em um texto quais são os objetivos de seu produtor e quem é seu público alvo.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 395,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Reconhecer no texto estratégias argumentativas empregadas para o convencimento.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 396,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar, em textos de diferentes gêneros, as marcas linguísticas da fala e da escrita.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 397,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Relacionar as variedades linguísticas a situações específicas de uso social.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 398,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Reconhecer a função da língua como instrumento de comunicação e interação social.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 399,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Reconhecer a função e o impacto social das diferentes tecnologias da comunicação.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 400,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Identificar, pela análise de suas linguagens, as tecnologias da comunicação.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 401,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Relacionar as tecnologias de comunicação e informação ao desenvolvimento das sociedades.",
+    "disciplina": 10,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 402,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Identificar as diferentes linguagens e seus recursos expressivos.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 403,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Recorrer aos conhecimentos sobre as linguagens para resolver problemas sociais.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 404,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Relacionar informações geradas nos sistemas de comunicação e informação.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 405,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Reconhecer posições críticas aos usos sociais que são feitos das linguagens.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 406,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Associar vocábulos e expressões de um texto em LEM ao seu tema.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 407,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Utilizar conhecimentos da LEM e de seus mecanismos como meio de ampliar conhecimentos.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 408,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Relacionar um texto em LEM, as estruturas linguísticas, sua função e seu uso social.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 409,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Reconhecer a importância da produção cultural em LEM como representação da diversidade.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 410,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Reconhecer as manifestações corporais de movimento como necessidades cotidianas.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 411,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a necessidade de transformação de hábitos corporais.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 412,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer a linguagem corporal como meio de interação social.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 413,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Reconhecer diferentes funções da arte e do trabalho artístico.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 414,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar as diversas produções artísticas como meio de explicar diferentes culturas.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 415,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Reconhecer o valor da diversidade artística e das inter-relações de elementos na cultura.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 416,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Estabelecer relações entre o texto literário e o momento de sua produção.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 417,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Relacionar informações sobre concepções artísticas e procedimentos de construção do texto literário.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 418,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Reconhecer a presença de valores sociais e humanos no patrimônio literário nacional.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 419,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Identificar os elementos que concorrem para a progressão temática.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 420,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Analisar a função da linguagem predominante nos textos.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 421,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Reconhecer a importância do patrimônio linguístico para a preservação da memória.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 422,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Reconhecer em textos de diferentes gêneros, recursos verbais e não-verbais.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 423,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Relacionar, em diferentes textos, opiniões, temas, assuntos e recursos linguísticos.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 424,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Inferir em um texto quais são os objetivos de seu produtor e quem é seu público alvo.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 425,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Reconhecer no texto estratégias argumentativas empregadas para o convencimento.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 426,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar, em textos de diferentes gêneros, as marcas linguísticas da fala e da escrita.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 427,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Relacionar as variedades linguísticas a situações específicas de uso social.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 428,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Reconhecer a função da língua como instrumento de comunicação e interação social.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 429,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Reconhecer a função e o impacto social das diferentes tecnologias da comunicação.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 430,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Identificar, pela análise de suas linguagens, as tecnologias da comunicação.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 431,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Relacionar as tecnologias de comunicação e informação ao desenvolvimento das sociedades.",
+    "disciplina": 16,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 432,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Identificar as diferentes linguagens e seus recursos expressivos.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 433,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Recorrer aos conhecimentos sobre as linguagens para resolver problemas sociais.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 434,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Relacionar informações geradas nos sistemas de comunicação e informação.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 435,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Reconhecer posições críticas aos usos sociais que são feitos das linguagens.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 436,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Associar vocábulos e expressões de um texto em LEM ao seu tema.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 437,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Utilizar conhecimentos da LEM e de seus mecanismos como meio de ampliar conhecimentos.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 438,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Relacionar um texto em LEM, as estruturas linguísticas, sua função e seu uso social.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 439,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Reconhecer a importância da produção cultural em LEM como representação da diversidade.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 440,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Reconhecer as manifestações corporais de movimento como necessidades cotidianas.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 441,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a necessidade de transformação de hábitos corporais.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 442,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer a linguagem corporal como meio de interação social.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 443,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Reconhecer diferentes funções da arte e do trabalho artístico.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 444,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar as diversas produções artísticas como meio de explicar diferentes culturas.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 445,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Reconhecer o valor da diversidade artística e das inter-relações de elementos na cultura.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 446,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Estabelecer relações entre o texto literário e o momento de sua produção.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 447,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Relacionar informações sobre concepções artísticas e procedimentos de construção do texto literário.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 448,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Reconhecer a presença de valores sociais e humanos no patrimônio literário nacional.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 449,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Identificar os elementos que concorrem para a progressão temática.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 450,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Analisar a função da linguagem predominante nos textos.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 451,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Reconhecer a importância do patrimônio linguístico para a preservação da memória.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 452,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Reconhecer em textos de diferentes gêneros, recursos verbais e não-verbais.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 453,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Relacionar, em diferentes textos, opiniões, temas, assuntos e recursos linguísticos.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 454,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Inferir em um texto quais são os objetivos de seu produtor e quem é seu público alvo.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 455,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Reconhecer no texto estratégias argumentativas empregadas para o convencimento.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 456,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar, em textos de diferentes gêneros, as marcas linguísticas da fala e da escrita.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 457,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Relacionar as variedades linguísticas a situações específicas de uso social.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 458,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Reconhecer a função da língua como instrumento de comunicação e interação social.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 459,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Reconhecer a função e o impacto social das diferentes tecnologias da comunicação.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 460,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Identificar, pela análise de suas linguagens, as tecnologias da comunicação.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 461,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Relacionar as tecnologias de comunicação e informação ao desenvolvimento das sociedades.",
+    "disciplina": 11,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 462,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Reconhecer características ou propriedades de fenômenos ondulatórios ou oscilatórios.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 463,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Associar a solução de problemas de comunicação, transporte, saúde à conservação de energia.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 464,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Confrontar interpretações científicas com interpretações do senso comum.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 465,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Avaliar propostas de intervenção no ambiente, considerando a qualidade de vida.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 466,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Dimensionar circuitos ou dispositivos elétricos de uso cotidiano.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 467,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Relacionar informações para compreender manuais de instalação ou utilização de aparelhos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 468,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Selecionar testes de controle ou parâmetros para a comparação de materiais e produtos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 469,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Identificar etapas em processos de obtenção, transformação, utilização ou reciclagem de recursos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 470,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Compreender a importância dos ciclos biogeoquímicos ou do fluxo energia.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 471,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Analisar perturbações ambientais, identificando fontes, transporte e destino dos poluentes.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 472,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer benefícios, limitações e aspectos éticos da biotecnologia.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 473,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Avaliar impactos em ambientes naturais decorrentes de atividades sociais ou econômicas.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 474,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Reconhecer mecanismos de transmissão da vida, prevendo características hereditárias.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 475,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Identificar padrões em fenômenos e processos vitais dos organismos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 476,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Interpretar modelos e experimentos para explicar fenômenos biológicos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 477,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Compreender o papel da evolução na produção de padrões e processos biológicos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 478,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Relacionar informações apresentadas em diferentes formas de linguagem sobre ciências.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 479,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Relacionar propriedades físicas, químicas ou biológicas de produtos ou sistemas.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 480,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Avaliar métodos, processos ou procedimentos das ciências naturais.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 481,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Caracterizar causas ou efeitos dos movimentos de partículas ou corpos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 482,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Utilizar leis físicas e/ou químicas para interpretar processos naturais ou tecnológicos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 483,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Compreender fenômenos decorrentes da interação entre a radiação e a matéria.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 484,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Avaliar possibilidades de geração, uso ou transformação de energia.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 485,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Utilizar códigos e nomenclatura da química para caracterizar materiais.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 486,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Caracterizar materiais ou substâncias, identificando etapas e rendimentos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 487,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Avaliar implicações sociais, ambientais e/ou econômicas na produção de novos materiais.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 488,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Avaliar propostas de intervenção no meio ambiente (riscos e benefícios).",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 489,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Associar características adaptativas dos organismos com seu modo de vida.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 490,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Interpretar experimentos ou técnicas que utilizam seres vivos.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 491,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar propostas de alcance individual ou coletivo para a saúde.",
+    "disciplina": 6,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 492,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Reconhecer características ou propriedades de fenômenos ondulatórios ou oscilatórios.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 493,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Associar a solução de problemas de comunicação, transporte, saúde à conservação de energia.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 494,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Confrontar interpretações científicas com interpretações do senso comum.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 495,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Avaliar propostas de intervenção no ambiente, considerando a qualidade de vida.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 496,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Dimensionar circuitos ou dispositivos elétricos de uso cotidiano.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 497,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Relacionar informações para compreender manuais de instalação ou utilização de aparelhos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 498,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Selecionar testes de controle ou parâmetros para a comparação de materiais e produtos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 499,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Identificar etapas em processos de obtenção, transformação, utilização ou reciclagem de recursos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 500,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Compreender a importância dos ciclos biogeoquímicos ou do fluxo energia.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 501,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Analisar perturbações ambientais, identificando fontes, transporte e destino dos poluentes.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 502,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer benefícios, limitações e aspectos éticos da biotecnologia.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 503,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Avaliar impactos em ambientes naturais decorrentes de atividades sociais ou econômicas.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 504,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Reconhecer mecanismos de transmissão da vida, prevendo características hereditárias.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 505,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Identificar padrões em fenômenos e processos vitais dos organismos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 506,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Interpretar modelos e experimentos para explicar fenômenos biológicos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 507,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Compreender o papel da evolução na produção de padrões e processos biológicos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 508,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Relacionar informações apresentadas em diferentes formas de linguagem sobre ciências.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 509,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Relacionar propriedades físicas, químicas ou biológicas de produtos ou sistemas.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 510,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Avaliar métodos, processos ou procedimentos das ciências naturais.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 511,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Caracterizar causas ou efeitos dos movimentos de partículas ou corpos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 512,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Utilizar leis físicas e/ou químicas para interpretar processos naturais ou tecnológicos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 513,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Compreender fenômenos decorrentes da interação entre a radiação e a matéria.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 514,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Avaliar possibilidades de geração, uso ou transformação de energia.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 515,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Utilizar códigos e nomenclatura da química para caracterizar materiais.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 516,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Caracterizar materiais ou substâncias, identificando etapas e rendimentos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 517,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Avaliar implicações sociais, ambientais e/ou econômicas na produção de novos materiais.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 518,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Avaliar propostas de intervenção no meio ambiente (riscos e benefícios).",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 519,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Associar características adaptativas dos organismos com seu modo de vida.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 520,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Interpretar experimentos ou técnicas que utilizam seres vivos.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 521,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar propostas de alcance individual ou coletivo para a saúde.",
+    "disciplina": 7,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 522,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Reconhecer características ou propriedades de fenômenos ondulatórios ou oscilatórios.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 523,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Associar a solução de problemas de comunicação, transporte, saúde à conservação de energia.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 524,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Confrontar interpretações científicas com interpretações do senso comum.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 525,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Avaliar propostas de intervenção no ambiente, considerando a qualidade de vida.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 526,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Dimensionar circuitos ou dispositivos elétricos de uso cotidiano.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 527,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Relacionar informações para compreender manuais de instalação ou utilização de aparelhos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 528,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Selecionar testes de controle ou parâmetros para a comparação de materiais e produtos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 529,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Identificar etapas em processos de obtenção, transformação, utilização ou reciclagem de recursos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 530,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Compreender a importância dos ciclos biogeoquímicos ou do fluxo energia.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 531,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Analisar perturbações ambientais, identificando fontes, transporte e destino dos poluentes.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 532,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer benefícios, limitações e aspectos éticos da biotecnologia.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 533,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Avaliar impactos em ambientes naturais decorrentes de atividades sociais ou econômicas.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 534,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Reconhecer mecanismos de transmissão da vida, prevendo características hereditárias.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 535,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Identificar padrões em fenômenos e processos vitais dos organismos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 536,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Interpretar modelos e experimentos para explicar fenômenos biológicos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 537,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Compreender o papel da evolução na produção de padrões e processos biológicos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 538,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Relacionar informações apresentadas em diferentes formas de linguagem sobre ciências.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 539,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Relacionar propriedades físicas, químicas ou biológicas de produtos ou sistemas.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 540,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Avaliar métodos, processos ou procedimentos das ciências naturais.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 541,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Caracterizar causas ou efeitos dos movimentos de partículas ou corpos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 542,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Utilizar leis físicas e/ou químicas para interpretar processos naturais ou tecnológicos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 543,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Compreender fenômenos decorrentes da interação entre a radiação e a matéria.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 544,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Avaliar possibilidades de geração, uso ou transformação de energia.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 545,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Utilizar códigos e nomenclatura da química para caracterizar materiais.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 546,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Caracterizar materiais ou substâncias, identificando etapas e rendimentos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 547,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Avaliar implicações sociais, ambientais e/ou econômicas na produção de novos materiais.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 548,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Avaliar propostas de intervenção no meio ambiente (riscos e benefícios).",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 549,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Associar características adaptativas dos organismos com seu modo de vida.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 550,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Interpretar experimentos ou técnicas que utilizam seres vivos.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 551,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar propostas de alcance individual ou coletivo para a saúde.",
+    "disciplina": 8,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 552,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Reconhecer características ou propriedades de fenômenos ondulatórios ou oscilatórios.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 553,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Associar a solução de problemas de comunicação, transporte, saúde à conservação de energia.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 554,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Confrontar interpretações científicas com interpretações do senso comum.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 555,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Avaliar propostas de intervenção no ambiente, considerando a qualidade de vida.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 556,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Dimensionar circuitos ou dispositivos elétricos de uso cotidiano.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 557,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Relacionar informações para compreender manuais de instalação ou utilização de aparelhos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 558,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Selecionar testes de controle ou parâmetros para a comparação de materiais e produtos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 559,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Identificar etapas em processos de obtenção, transformação, utilização ou reciclagem de recursos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 560,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Compreender a importância dos ciclos biogeoquímicos ou do fluxo energia.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 561,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Analisar perturbações ambientais, identificando fontes, transporte e destino dos poluentes.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 562,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Reconhecer benefícios, limitações e aspectos éticos da biotecnologia.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 563,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Avaliar impactos em ambientes naturais decorrentes de atividades sociais ou econômicas.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 564,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Reconhecer mecanismos de transmissão da vida, prevendo características hereditárias.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 565,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Identificar padrões em fenômenos e processos vitais dos organismos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 566,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Interpretar modelos e experimentos para explicar fenômenos biológicos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 567,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Compreender o papel da evolução na produção de padrões e processos biológicos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 568,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Relacionar informações apresentadas em diferentes formas de linguagem sobre ciências.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 569,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Relacionar propriedades físicas, químicas ou biológicas de produtos ou sistemas.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 570,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Avaliar métodos, processos ou procedimentos das ciências naturais.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 571,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Caracterizar causas ou efeitos dos movimentos de partículas ou corpos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 572,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Utilizar leis físicas e/ou químicas para interpretar processos naturais ou tecnológicos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 573,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Compreender fenômenos decorrentes da interação entre a radiação e a matéria.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 574,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Avaliar possibilidades de geração, uso ou transformação de energia.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 575,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Utilizar códigos e nomenclatura da química para caracterizar materiais.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 576,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Caracterizar materiais ou substâncias, identificando etapas e rendimentos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 577,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Avaliar implicações sociais, ambientais e/ou econômicas na produção de novos materiais.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 578,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Avaliar propostas de intervenção no meio ambiente (riscos e benefícios).",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 579,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Associar características adaptativas dos organismos com seu modo de vida.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 580,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Interpretar experimentos ou técnicas que utilizam seres vivos.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 581,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar propostas de alcance individual ou coletivo para a saúde.",
+    "disciplina": 5,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 582,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Interpretar historicamente e/ou geograficamente fontes documentais sobre a cultura.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 583,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Analisar a produção da memória pelas sociedades humanas.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 584,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Associar as manifestações culturais do presente aos seus processos históricos.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 585,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Comparar pontos de vista expressos em diferentes fontes sobre aspecto da cultura.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 586,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Identificar as manifestações ou representações da diversidade do patrimônio cultural.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 587,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Interpretar diferentes representações gráficas e cartográficas dos espaços.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 588,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Identificar os significados histórico-geográficos das relações de poder entre nações.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 589,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Analisar a ação dos estados nacionais na dinâmica dos fluxos populacionais.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 590,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Comparar o significado histórico-geográfico das organizações políticas e socioeconômicas.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 591,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a dinâmica da organização dos movimentos sociais.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 592,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Identificar registros de práticas de grupos sociais no tempo e no espaço.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 593,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Analisar o papel da justiça como instituição na organização das sociedades.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 594,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar a atuação dos movimentos sociais que contribuíram para mudanças na legislação.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 595,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Comparar diferentes pontos de vista sobre situações de natureza histórico-geográfica.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 596,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Avaliar criticamente conflitos culturais, sociais, políticos, econômicos ou ambientais.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 597,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Identificar registros sobre o papel das técnicas e tecnologias na organização do trabalho.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 598,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Analisar fatores que explicam o impacto das novas tecnologias no processo de territorialização.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 599,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Analisar diferentes processos de produção ou circulação de riquezas.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 600,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Reconhecer as transformações técnicas e tecnológicas e seu impacto nos processos de produção.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 601,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Selecionar argumentos favoráveis ou contrários às modificações impostas pelas novas tecnologias.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 602,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Identificar o papel dos meios de comunicação na construção da vida social.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 603,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Analisar as lutas sociais e conquistas obtidas no que se refere às mudanças na legislação.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 604,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Analisar a importância dos valores éticos na estruturação política das sociedades.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 605,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Relacionar cidadania e democracia na organização das sociedades.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 606,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar estratégias que promovam formas de inclusão social.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 607,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Identificar em fontes diversas o processo de ocupação dos meios físicos.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 608,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Analisar de maneira crítica as interações da sociedade com o meio físico.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 609,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Relacionar o uso das tecnologias com os impactos sócio-ambientais.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 610,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Reconhecer a função dos recursos naturais na produção do espaço geográfico.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 611,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar as relações entre preservação e degradação da vida no planeta.",
+    "disciplina": 3,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 612,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Interpretar historicamente e/ou geograficamente fontes documentais sobre a cultura.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 613,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Analisar a produção da memória pelas sociedades humanas.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 614,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Associar as manifestações culturais do presente aos seus processos históricos.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 615,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Comparar pontos de vista expressos em diferentes fontes sobre aspecto da cultura.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 616,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Identificar as manifestações ou representações da diversidade do patrimônio cultural.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 617,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Interpretar diferentes representações gráficas e cartográficas dos espaços.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 618,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Identificar os significados histórico-geográficos das relações de poder entre nações.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 619,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Analisar a ação dos estados nacionais na dinâmica dos fluxos populacionais.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 620,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Comparar o significado histórico-geográfico das organizações políticas e socioeconômicas.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 621,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a dinâmica da organização dos movimentos sociais.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 622,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Identificar registros de práticas de grupos sociais no tempo e no espaço.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 623,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Analisar o papel da justiça como instituição na organização das sociedades.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 624,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar a atuação dos movimentos sociais que contribuíram para mudanças na legislação.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 625,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Comparar diferentes pontos de vista sobre situações de natureza histórico-geográfica.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 626,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Avaliar criticamente conflitos culturais, sociais, políticos, econômicos ou ambientais.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 627,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Identificar registros sobre o papel das técnicas e tecnologias na organização do trabalho.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 628,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Analisar fatores que explicam o impacto das novas tecnologias no processo de territorialização.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 629,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Analisar diferentes processos de produção ou circulação de riquezas.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 630,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Reconhecer as transformações técnicas e tecnológicas e seu impacto nos processos de produção.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 631,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Selecionar argumentos favoráveis ou contrários às modificações impostas pelas novas tecnologias.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 632,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Identificar o papel dos meios de comunicação na construção da vida social.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 633,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Analisar as lutas sociais e conquistas obtidas no que se refere às mudanças na legislação.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 634,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Analisar a importância dos valores éticos na estruturação política das sociedades.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 635,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Relacionar cidadania e democracia na organização das sociedades.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 636,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar estratégias que promovam formas de inclusão social.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 637,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Identificar em fontes diversas o processo de ocupação dos meios físicos.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 638,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Analisar de maneira crítica as interações da sociedade com o meio físico.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 639,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Relacionar o uso das tecnologias com os impactos sócio-ambientais.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 640,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Reconhecer a função dos recursos naturais na produção do espaço geográfico.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 641,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar as relações entre preservação e degradação da vida no planeta.",
+    "disciplina": 4,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 642,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Interpretar historicamente e/ou geograficamente fontes documentais sobre a cultura.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 643,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Analisar a produção da memória pelas sociedades humanas.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 644,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Associar as manifestações culturais do presente aos seus processos históricos.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 645,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Comparar pontos de vista expressos em diferentes fontes sobre aspecto da cultura.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 646,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Identificar as manifestações ou representações da diversidade do patrimônio cultural.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 647,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Interpretar diferentes representações gráficas e cartográficas dos espaços.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 648,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Identificar os significados histórico-geográficos das relações de poder entre nações.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 649,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Analisar a ação dos estados nacionais na dinâmica dos fluxos populacionais.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 650,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Comparar o significado histórico-geográfico das organizações políticas e socioeconômicas.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 651,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a dinâmica da organização dos movimentos sociais.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 652,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Identificar registros de práticas de grupos sociais no tempo e no espaço.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 653,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Analisar o papel da justiça como instituição na organização das sociedades.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 654,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar a atuação dos movimentos sociais que contribuíram para mudanças na legislação.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 655,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Comparar diferentes pontos de vista sobre situações de natureza histórico-geográfica.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 656,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Avaliar criticamente conflitos culturais, sociais, políticos, econômicos ou ambientais.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 657,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Identificar registros sobre o papel das técnicas e tecnologias na organização do trabalho.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 658,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Analisar fatores que explicam o impacto das novas tecnologias no processo de territorialização.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 659,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Analisar diferentes processos de produção ou circulação de riquezas.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 660,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Reconhecer as transformações técnicas e tecnológicas e seu impacto nos processos de produção.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 661,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Selecionar argumentos favoráveis ou contrários às modificações impostas pelas novas tecnologias.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 662,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Identificar o papel dos meios de comunicação na construção da vida social.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 663,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Analisar as lutas sociais e conquistas obtidas no que se refere às mudanças na legislação.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 664,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Analisar a importância dos valores éticos na estruturação política das sociedades.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 665,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Relacionar cidadania e democracia na organização das sociedades.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 666,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar estratégias que promovam formas de inclusão social.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 667,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Identificar em fontes diversas o processo de ocupação dos meios físicos.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 668,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Analisar de maneira crítica as interações da sociedade com o meio físico.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 669,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Relacionar o uso das tecnologias com os impactos sócio-ambientais.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 670,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Reconhecer a função dos recursos naturais na produção do espaço geográfico.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 671,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar as relações entre preservação e degradação da vida no planeta.",
+    "disciplina": 13,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 672,
+  "fields": {
+    "codigo": "H01",
+    "descricao": "Interpretar historicamente e/ou geograficamente fontes documentais sobre a cultura.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 673,
+  "fields": {
+    "codigo": "H02",
+    "descricao": "Analisar a produção da memória pelas sociedades humanas.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 674,
+  "fields": {
+    "codigo": "H03",
+    "descricao": "Associar as manifestações culturais do presente aos seus processos históricos.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 675,
+  "fields": {
+    "codigo": "H04",
+    "descricao": "Comparar pontos de vista expressos em diferentes fontes sobre aspecto da cultura.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 676,
+  "fields": {
+    "codigo": "H05",
+    "descricao": "Identificar as manifestações ou representações da diversidade do patrimônio cultural.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 677,
+  "fields": {
+    "codigo": "H06",
+    "descricao": "Interpretar diferentes representações gráficas e cartográficas dos espaços.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 678,
+  "fields": {
+    "codigo": "H07",
+    "descricao": "Identificar os significados histórico-geográficos das relações de poder entre nações.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 679,
+  "fields": {
+    "codigo": "H08",
+    "descricao": "Analisar a ação dos estados nacionais na dinâmica dos fluxos populacionais.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 680,
+  "fields": {
+    "codigo": "H09",
+    "descricao": "Comparar o significado histórico-geográfico das organizações políticas e socioeconômicas.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 681,
+  "fields": {
+    "codigo": "H10",
+    "descricao": "Reconhecer a dinâmica da organização dos movimentos sociais.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 682,
+  "fields": {
+    "codigo": "H11",
+    "descricao": "Identificar registros de práticas de grupos sociais no tempo e no espaço.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 683,
+  "fields": {
+    "codigo": "H12",
+    "descricao": "Analisar o papel da justiça como instituição na organização das sociedades.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 684,
+  "fields": {
+    "codigo": "H13",
+    "descricao": "Analisar a atuação dos movimentos sociais que contribuíram para mudanças na legislação.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 685,
+  "fields": {
+    "codigo": "H14",
+    "descricao": "Comparar diferentes pontos de vista sobre situações de natureza histórico-geográfica.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 686,
+  "fields": {
+    "codigo": "H15",
+    "descricao": "Avaliar criticamente conflitos culturais, sociais, políticos, econômicos ou ambientais.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 687,
+  "fields": {
+    "codigo": "H16",
+    "descricao": "Identificar registros sobre o papel das técnicas e tecnologias na organização do trabalho.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 688,
+  "fields": {
+    "codigo": "H17",
+    "descricao": "Analisar fatores que explicam o impacto das novas tecnologias no processo de territorialização.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 689,
+  "fields": {
+    "codigo": "H18",
+    "descricao": "Analisar diferentes processos de produção ou circulação de riquezas.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 690,
+  "fields": {
+    "codigo": "H19",
+    "descricao": "Reconhecer as transformações técnicas e tecnológicas e seu impacto nos processos de produção.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 691,
+  "fields": {
+    "codigo": "H20",
+    "descricao": "Selecionar argumentos favoráveis ou contrários às modificações impostas pelas novas tecnologias.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 692,
+  "fields": {
+    "codigo": "H21",
+    "descricao": "Identificar o papel dos meios de comunicação na construção da vida social.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 693,
+  "fields": {
+    "codigo": "H22",
+    "descricao": "Analisar as lutas sociais e conquistas obtidas no que se refere às mudanças na legislação.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 694,
+  "fields": {
+    "codigo": "H23",
+    "descricao": "Analisar a importância dos valores éticos na estruturação política das sociedades.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 695,
+  "fields": {
+    "codigo": "H24",
+    "descricao": "Relacionar cidadania e democracia na organização das sociedades.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 696,
+  "fields": {
+    "codigo": "H25",
+    "descricao": "Identificar estratégias que promovam formas de inclusão social.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 697,
+  "fields": {
+    "codigo": "H26",
+    "descricao": "Identificar em fontes diversas o processo de ocupação dos meios físicos.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 698,
+  "fields": {
+    "codigo": "H27",
+    "descricao": "Analisar de maneira crítica as interações da sociedade com o meio físico.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 699,
+  "fields": {
+    "codigo": "H28",
+    "descricao": "Relacionar o uso das tecnologias com os impactos sócio-ambientais.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 700,
+  "fields": {
+    "codigo": "H29",
+    "descricao": "Reconhecer a função dos recursos naturais na produção do espaço geográfico.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 701,
+  "fields": {
+    "codigo": "H30",
+    "descricao": "Avaliar as relações entre preservação e degradação da vida no planeta.",
+    "disciplina": 14,
+    "tema": "Matriz ENEM Oficial"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 702,
+  "fields": {
+    "codigo": "S18H01",
+    "descricao": "Compreender o sentido do texto verbal e suas partes sem a presença de marcas coesivas a partir de uma lógica sequencial.",
+    "disciplina": 1,
+    "tema": "Coesão e Coerência"
+  }
+},
+{
+  "model": "core.descritor",
+  "pk": 703,
+  "fields": {
+    "codigo": "H10 - Identificar relações entre grandezas e unidades de medida, utilizando-as na resolução de problemas.",
+    "descricao": "Criado manualmente",
+    "disciplina": 2,
+    "tema": null
+  }
+}
+]
