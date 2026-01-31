@@ -140,6 +140,7 @@ class RespostaDetalhada(models.Model):
     questao = models.ForeignKey(Questao, on_delete=models.SET_NULL, null=True, blank=True)
     item_gabarito = models.ForeignKey(ItemGabarito, on_delete=models.SET_NULL, null=True, blank=True)
     acertou = models.BooleanField(default=False)
+    resposta_aluno = models.CharField(max_length=1, blank=True, null=True)
 
 # ==============================================================================
 # 4. NDI (Boletim)

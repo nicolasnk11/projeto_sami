@@ -4,76 +4,99 @@
 {% block content %}
 <div class="container-fluid py-4">
 
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div>
-                    <h4 class="fw-bold mb-1 text-primary"><i class="bi bi-kanban me-2"></i>Gestão de Aulas</h4>
-                    <p class="text-muted small mb-0">Planejamento e acompanhamento pedagógico</p>
-                </div>
-                
-                <form method="get" class="d-flex gap-3 align-items-center">
-                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
-                        <span class="input-group-text bg-white border-0"><i class="bi bi-journal-bookmark-fill text-primary"></i></span>
-                        <select name="disciplina" class="form-select border-0 fw-bold bg-light" onchange="this.form.submit()" style="min-width: 150px;">
-                            {% for disc in disciplinas %}
-                            <option value="{{ disc }}" {% if disciplina_atual == disc %}selected{% endif %}>{{ disc }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1" style="color: var(--primary-bg);">
+                <i class="bi bi-kanban-fill me-2"></i>Plano de Ensino
+            </h4>
+            <p class="text-muted small mb-0">Gerencie os tópicos de aula e acompanhe o progresso anual.</p>
+        </div>
 
-                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
-                        <span class="input-group-text bg-white border-0"><i class="bi bi-people-fill text-primary"></i></span>
-                        <select name="turma" class="form-select border-0 fw-bold bg-light" onchange="this.form.submit()" style="min-width: 150px;">
-                            <option value="">Selecionar Turma...</option>
-                            {% for t in turmas %}
-                            <option value="{{ t.id }}" {% if turma_selecionada_id == t.id %}selected{% endif %}>{{ t.nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </form>
-            </div>
+        <div class="card border-0 shadow-sm rounded-pill px-1 py-1 bg-white">
+            <form method="get" class="d-flex align-items-center">
+                <div class="input-group border-0" style="width: 200px;">
+                    <span class="input-group-text bg-white border-0 ps-3 pe-2">
+                        <i class="bi bi-journal-bookmark-fill text-secondary"></i>
+                    </span>
+                    <select name="disciplina" class="form-select border-0 fw-bold text-dark bg-transparent shadow-none" onchange="this.form.submit()">
+                        {% for disc in disciplinas %}
+                        <option value="{{ disc }}" {% if disciplina_atual == disc %}selected{% endif %}>{{ disc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="vr my-2 text-muted"></div>
+
+                <div class="input-group border-0" style="width: 200px;">
+                    <span class="input-group-text bg-white border-0 ps-3 pe-2">
+                        <i class="bi bi-people-fill" style="color: var(--primary-bg);"></i>
+                    </span>
+                    <select name="turma" class="form-select border-0 fw-bold text-dark bg-transparent shadow-none" onchange="this.form.submit()">
+                        <option value="">Selecione a Turma...</option>
+                        {% for t in turmas %}
+                        <option value="{{ t.id }}" {% if turma_selecionada_id == t.id %}selected{% endif %}>{{ t.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
         </div>
     </div>
 
     {% if plano %}
     
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-sm rounded-4 p-3 d-flex flex-row align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                    {% if plano.arquivo %}
-                        <a href="{{ plano.arquivo.url }}" target="_blank" class="btn btn-light border d-flex align-items-center gap-2 rounded-pill px-3">
-                            <i class="bi {{ plano.icone_arquivo }}"></i> Baixar Plano Oficial
-                        </a>
-                        <button class="btn btn-sm btn-link text-muted" onclick="document.getElementById('inputArquivo').click()"><i class="bi bi-pencil"></i></button>
-                    {% else %}
-                        <button class="btn btn-outline-primary border-dashed rounded-pill" onclick="document.getElementById('inputArquivo').click()">
-                            <i class="bi bi-cloud-upload me-2"></i> Anexar Plano (PDF/Word)
-                        </button>
-                    {% endif %}
-                    
-                    <form method="post" enctype="multipart/form-data" id="formArquivo" class="d-none">
-                        {% csrf_token %}
-                        <input type="file" name="arquivo_plano" id="inputArquivo" onchange="document.getElementById('formArquivo').submit()">
-                    </form>
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden position-relative">
+        <div class="card-body p-4">
+            <div class="row align-items-center g-4">
+                
+                <div class="col-md-6 d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" 
+                         style="width: 50px; height: 50px; background-color: rgba(20, 69, 47, 0.1); color: var(--primary-bg);">
+                        <i class="bi bi-file-earmark-text fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Plano Oficial (PDF/Word)</h6>
+                        {% if plano.arquivo %}
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ plano.arquivo.url }}" target="_blank" class="text-decoration-none small fw-bold text-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Baixar Arquivo
+                                </a>
+                                <span class="text-muted small">•</span>
+                                <span class="text-muted small cursor-pointer hover-link" onclick="document.getElementById('inputArquivo').click()">
+                                    Substituir
+                                </span>
+                            </div>
+                        {% else %}
+                            <span class="text-danger small fw-bold cursor-pointer hover-link" onclick="document.getElementById('inputArquivo').click()">
+                                <i class="bi bi-cloud-upload me-1"></i> Clique para anexar o plano
+                            </span>
+                        {% endif %}
+                        
+                        <form method="post" enctype="multipart/form-data" id="formArquivo" class="d-none">
+                            {% csrf_token %}
+                            <input type="file" name="arquivo_plano" id="inputArquivo" onchange="document.getElementById('formArquivo').submit()">
+                        </form>
+                    </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-3 w-50 justify-content-end">
-                    <span class="small fw-bold text-muted">Progresso Anual</span>
-                    <div class="progress w-50" style="height: 10px; border-radius: 10px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ plano.progresso }}%"></div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-end mb-2">
+                        <span class="text-muted small fw-bold text-uppercase">Conclusão do Conteúdo</span>
+                        <span class="fw-bold fs-5" style="color: var(--accent-color);">{{ plano.progresso }}%</span>
                     </div>
-                    <span class="fw-bold text-success small">{{ plano.progresso }}%</span>
+                    <div class="progress" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                             style="width: {{ plano.progresso }}%; background-color: var(--accent-color);"></div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <ul class="nav nav-pills mb-3 gap-2" id="pills-tab" role="tablist">
+    <ul class="nav nav-pills nav-fill mb-4 p-1 bg-white rounded-pill shadow-sm border" id="pills-tab" role="tablist" style="max-width: 600px; margin: 0 auto;">
         {% for bim in "1234"|make_list %}
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold rounded-pill px-4 {% if forloop.first %}active{% endif %}" 
+            <button class="nav-link rounded-pill fw-bold {% if forloop.first %}active{% endif %}" 
                     id="pills-{{ bim }}-tab" 
                     data-bs-toggle="pill" 
                     data-bs-target="#pills-{{ bim }}" 
@@ -88,53 +111,52 @@
         {% for bim_id, colunas in dados_kanban.items %}
         <div class="tab-pane fade {% if bim_id == 1 %}show active{% endif %}" id="pills-{{ bim_id }}" role="tabpanel">
             
-            <div class="row g-3">
+            <div class="row g-4">
                 
                 <div class="col-md-4">
-                    <div class="bg-light rounded-4 p-3 h-100 border border-secondary border-opacity-10">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-secondary mb-0"><i class="bi bi-circle me-2"></i>A Planejar</h6>
-                            <span class="badge bg-white text-dark border">{{ colunas.TODO|length }}</span>
+                    <div class="kanban-column bg-light">
+                        <div class="kanban-header border-bottom border-3 border-secondary">
+                            <span class="text-secondary"><i class="bi bi-circle me-2"></i>A Planejar</span>
+                            <span class="badge bg-secondary rounded-pill">{{ colunas.TODO|length }}</span>
                         </div>
                         
-                        <div class="kanban-column gap-2 d-flex flex-column">
+                        <div class="kanban-body custom-scrollbar">
                             {% for card in colunas.TODO %}
-                                {% include 'core/includes/card_topico.html' with card=card cor="border-start border-4 border-secondary" %}
+                                {% include 'core/includes/card_topico.html' with card=card border_color="border-secondary" %}
                             {% endfor %}
                         </div>
 
-                        <button class="btn btn-white w-100 mt-3 text-secondary fw-bold border-dashed shadow-sm"
-                                onclick="abrirModalCriar('{{ bim_id }}')">
-                            <i class="bi bi-plus text-lg"></i> Novo Tópico
+                        <button class="btn btn-dashed w-100 mt-2" onclick="abrirModalCriar('{{ bim_id }}')">
+                            <i class="bi bi-plus-lg me-1"></i> Adicionar Tópico
                         </button>
                     </div>
                 </div>
 
                 <div class="col-md-4">
-                    <div class="bg-blue-light rounded-4 p-3 h-100 border border-primary border-opacity-10" style="background-color: #eff6ff;">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-primary mb-0"><i class="bi bi-hourglass-split me-2"></i>Em Aula</h6>
-                            <span class="badge bg-white text-primary border border-primary border-opacity-25">{{ colunas.DOING|length }}</span>
+                    <div class="kanban-column bg-primary-subtle">
+                        <div class="kanban-header border-bottom border-3 border-primary">
+                            <span class="text-primary"><i class="bi bi-hourglass-split me-2"></i>Em Aula</span>
+                            <span class="badge bg-primary rounded-pill">{{ colunas.DOING|length }}</span>
                         </div>
                         
-                        <div class="kanban-column gap-2 d-flex flex-column">
+                        <div class="kanban-body custom-scrollbar">
                             {% for card in colunas.DOING %}
-                                {% include 'core/includes/card_topico.html' with card=card cor="border-start border-4 border-primary" %}
+                                {% include 'core/includes/card_topico.html' with card=card border_color="border-primary" %}
                             {% endfor %}
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-4">
-                    <div class="bg-green-light rounded-4 p-3 h-100 border border-success border-opacity-10" style="background-color: #f0fdf4;">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-success mb-0"><i class="bi bi-check-circle-fill me-2"></i>Concluído</h6>
-                            <span class="badge bg-white text-success border border-success border-opacity-25">{{ colunas.DONE|length }}</span>
+                    <div class="kanban-column bg-success-subtle">
+                        <div class="kanban-header border-bottom border-3 border-success">
+                            <span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Concluído</span>
+                            <span class="badge bg-success rounded-pill">{{ colunas.DONE|length }}</span>
                         </div>
                         
-                        <div class="kanban-column gap-2 d-flex flex-column">
+                        <div class="kanban-body custom-scrollbar">
                             {% for card in colunas.DONE %}
-                                {% include 'core/includes/card_topico.html' with card=card cor="border-start border-4 border-success" opacity="opacity-75" %}
+                                {% include 'core/includes/card_topico.html' with card=card border_color="border-success" opacity="opacity-75" %}
                             {% endfor %}
                         </div>
                     </div>
@@ -146,12 +168,19 @@
     </div>
 
     {% else %}
-    <div class="text-center py-5">
-        <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-4" style="width: 120px; height: 120px;">
-            <i class="bi bi-kanban fs-1 text-primary opacity-50"></i>
+    <div class="text-center py-5 mt-5">
+        <div class="position-relative d-inline-block mb-4">
+            <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                <i class="bi bi-kanban fs-1 text-muted opacity-50"></i>
+            </div>
+            <div class="position-absolute bottom-0 end-0 bg-success rounded-circle p-2 border border-4 border-light">
+                <i class="bi bi-arrow-up text-white"></i>
+            </div>
         </div>
-        <h3 class="fw-bold text-dark">Área de Planejamento</h3>
-        <p class="text-muted">Selecione uma disciplina e uma turma para começar.</p>
+        <h3 class="fw-bold text-dark">Planejamento Anual</h3>
+        <p class="text-muted mx-auto" style="max-width: 400px;">
+            Selecione uma <strong>Disciplina</strong> e uma <strong>Turma</strong> no topo da página para visualizar e gerenciar o quadro de aulas.
+        </p>
     </div>
     {% endif %}
 
@@ -163,7 +192,7 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="modalTitle">Novo Tópico</h5>
+                    <h5 class="modal-title fw-bold" id="modalTitle" style="color: var(--primary-bg);">Novo Tópico</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -172,13 +201,15 @@
                     <input type="hidden" name="topico_id" id="inputTopicoId">
                     
                     <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Conteúdo / Atividade</label>
-                        <textarea name="conteudo" id="inputConteudo" rows="3" class="form-control bg-light border-0 fw-bold" required></textarea>
+                        <label class="form-label text-muted small fw-bold">DESCRIÇÃO DO CONTEÚDO</label>
+                        <textarea name="conteudo" id="inputConteudo" rows="4" 
+                                  class="form-control bg-light border-0 p-3 fw-medium" 
+                                  placeholder="Ex: Introdução à Álgebra Linear..." required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4 fw-bold">Salvar</button>
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background: var(--primary-bg); border:none;">Salvar Tópico</button>
                 </div>
             </form>
         </div>
@@ -189,30 +220,100 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-body text-center p-4">
-                <i class="bi bi-exclamation-circle text-danger fs-1 mb-3"></i>
-                <h6 class="fw-bold">Excluir este tópico?</h6>
-                <p class="small text-muted mb-4">Essa ação não pode ser desfeita.</p>
+                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <i class="bi bi-trash-fill text-danger fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-1">Excluir tópico?</h6>
+                <p class="small text-muted mb-4">Esta ação é irreversível.</p>
                 
-                <form method="post" class="d-flex gap-2 justify-content-center">
+                <form method="post" class="d-grid gap-2">
                     {% csrf_token %}
                     <input type="hidden" name="acao" value="excluir">
                     <input type="hidden" name="topico_id" id="inputExcluirId">
-                    <button type="button" class="btn btn-light w-50 fw-bold" data-bs-dismiss="modal">Não</button>
-                    <button type="submit" class="btn btn-danger w-50 fw-bold">Sim, Excluir</button>
+                    <button type="submit" class="btn btn-danger fw-bold rounded-pill">Sim, Excluir</button>
+                    <button type="button" class="btn btn-light fw-bold rounded-pill" data-bs-dismiss="modal">Cancelar</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    /* Estilos Locais do Kanban */
+    .kanban-column {
+        border-radius: 16px;
+        padding: 16px;
+        height: 100%;
+        min-height: 500px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kanban-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+    }
+
+    .kanban-body {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow-y: auto;
+        max-height: 600px;
+        padding-right: 4px;
+    }
+
+    /* Tabs Customizadas */
+    .nav-pills .nav-link {
+        color: #64748b;
+        transition: all 0.2s;
+    }
+    .nav-pills .nav-link:hover {
+        background-color: #f1f5f9;
+        color: var(--primary-bg);
+    }
+    .nav-pills .nav-link.active {
+        background-color: var(--primary-bg);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+
+    /* Botão Dashed */
+    .btn-dashed {
+        border: 2px dashed #cbd5e1;
+        color: #64748b;
+        font-weight: 600;
+        background: white;
+        transition: all 0.2s;
+        border-radius: 12px;
+        padding: 10px;
+    }
+    .btn-dashed:hover {
+        border-color: var(--primary-bg);
+        color: var(--primary-bg);
+        background: #f8fafc;
+    }
+
+    .hover-link:hover { text-decoration: underline; }
+    .cursor-pointer { cursor: pointer; }
+    
+    /* Cores de fundo sutis */
+    .bg-primary-subtle { background-color: #ecfdf5 !important; } /* Um verde muito claro */
+</style>
+
 <script>
+    // Scripts de Modal (Mantidos iguais)
     function abrirModalCriar(bim) {
         document.getElementById('modalTitle').innerText = 'Novo Tópico';
         document.getElementById('inputAcao').value = 'criar';
         document.getElementById('inputBimestre').value = bim;
         document.getElementById('inputTopicoId').value = '';
         document.getElementById('inputConteudo').value = '';
-        
         new bootstrap.Modal(document.getElementById('modalTopico')).show();
         setTimeout(() => document.getElementById('inputConteudo').focus(), 500);
     }
@@ -222,7 +323,6 @@
         document.getElementById('inputAcao').value = 'editar';
         document.getElementById('inputTopicoId').value = id;
         document.getElementById('inputConteudo').value = texto;
-        
         new bootstrap.Modal(document.getElementById('modalTopico')).show();
     }
 
@@ -230,23 +330,11 @@
         document.getElementById('inputExcluirId').value = id;
         new bootstrap.Modal(document.getElementById('modalExcluir')).show();
     }
-
+    
+    // Função para mover card (Feedback visual simples)
     function moverCard(id, novoStatus) {
-        // Feedback Visual Imediato (Opcional: Recarregar a página é mais seguro sem JS complexo)
-        // Aqui vamos recarregar para simplificar, mas chamando a API
-        fetch(`/api/mover-topico/${id}/${novoStatus}/`)
+         fetch(`/api/mover-topico/${id}/${novoStatus}/`)
             .then(() => window.location.reload());
     }
 </script>
-
-<style>
-    .border-dashed { border-style: dashed !important; }
-    .nav-pills .nav-link.active { background-color: var(--bs-primary); }
-    .nav-pills .nav-link { color: var(--bs-primary); background: #fff; border: 1px solid #e2e8f0; }
-    
-    /* Card Hover Effect */
-    .kanban-card { transition: transform 0.2s, box-shadow 0.2s; cursor: grab; }
-    .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }
-    .dropdown-toggle::after { display: none; }
-</style>
 {% endblock %}

@@ -15,7 +15,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill me-2"></i>Gerenciar Alunos</h3>
-            <p class="text-muted small mb-0">Total listado: {{ page_obj.paginator.count }} alunos</p>
+            <p class="text-muted small mb-0">Total listado: {{ matriculas.paginator.count }} alunos</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{% url 'importar_alunos' %}" class="btn btn-outline-success shadow-sm transition-hover">
@@ -44,7 +44,7 @@
                     <select name="turma" class="form-select" onchange="this.form.submit()">
                         <option value="">Todas as Turmas</option>
                         {% for turma in turmas %}
-                            <option value="{{ turma.id }}" {% if turma_atual == turma.id %}selected{% endif %}>
+                            <option value="{{ turma.id }}" {% if turma_selecionada|stringformat:"s" == turma.id|stringformat:"s" %}selected{% endif %}>
                                 {{ turma.nome }}
                             </option>
                         {% endfor %}
@@ -71,23 +71,23 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for aluno in page_obj %}
+                        {% for mat in matriculas %}
                         <tr>
                             <td class="ps-4 fw-bold text-dark">
                                 <div class="d-flex align-items-center">
                                     <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3 shadow-sm" 
                                          style="width: 40px; height: 40px; min-width: 40px; font-weight: bold; font-size: 1.1rem;">
-                                        {{ aluno.nome_completo|slice:":1" }}
+                                        {{ mat.aluno.nome_completo|slice:":1" }}
                                     </div>
                                     <div>
-                                        <div class="text-truncate" style="max-width: 250px;">{{ aluno.nome_completo }}</div>
+                                        <div class="text-truncate" style="max-width: 250px;">{{ mat.aluno.nome_completo }}</div>
                                         
-                                        {% if aluno.media_geral %}
+                                        {% if mat.media_geral %}
                                             <span class="badge rounded-pill 
-                                                {% if aluno.media_geral >= 80 %}bg-success
-                                                {% elif aluno.media_geral >= 60 %}bg-warning text-dark
+                                                {% if mat.media_geral >= 80 %}bg-success
+                                                {% elif mat.media_geral >= 60 %}bg-warning text-dark
                                                 {% else %}bg-danger{% endif %} border shadow-sm" style="font-size: 0.65rem;">
-                                                Média: {{ aluno.media_geral|floatformat:1 }}%
+                                                Média: {{ mat.media_geral|floatformat:1 }}%
                                             </span>
                                         {% else %}
                                             <small class="text-muted" style="font-size: 0.7rem;">Sem notas</small>
@@ -96,33 +96,29 @@
                                 </div>
                             </td>
                             <td>
-                                {% if aluno.turma %}
-                                    <span class="badge bg-info text-dark border border-info-subtle">{{ aluno.turma.nome }}</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">Sem Turma</span>
-                                {% endif %}
+                                <span class="badge bg-info text-dark border border-info-subtle">{{ mat.turma.nome }}</span>
                             </td>
                             <td class="text-center">
-                                {% if aluno.ativo %}
-                                    <i class="bi bi-check-circle-fill text-success" title="Ativo"></i>
+                                {% if mat.status == 'CURSANDO' %}
+                                    <span class="badge bg-success-subtle text-success">Cursando</span>
                                 {% else %}
-                                    <i class="bi bi-x-circle-fill text-danger" title="Inativo"></i>
+                                    <span class="badge bg-secondary">{{ mat.status }}</span>
                                 {% endif %}
                             </td>
                             <td class="text-end pe-4">
-                               <a href="{% url 'perfil_aluno' aluno.id %}" class="btn btn-sm btn-outline-info me-1" title="Ver Raio-X Completo">
+                               <a href="{% url 'perfil_aluno' mat.aluno.id %}" class="btn btn-sm btn-outline-info me-1" title="Ver Raio-X Completo">
                                   <i class="bi bi-graph-up"></i>
                                </a>
 
                                 <button class="btn btn-sm btn-outline-primary me-1" 
                                         data-bs-toggle="modal" data-bs-target="#modalEditar"
-                                        onclick="preencherEdicao('{{ aluno.id }}', '{{ aluno.nome_completo }}', '{{ aluno.turma.id }}', '{{ aluno.ativo }}')">
+                                        onclick="preencherEdicao('{{ mat.id }}', '{{ mat.aluno.nome_completo }}', '{{ mat.turma.id }}', '{{ mat.status }}')">
                                     <i class="bi bi-pencil-fill"></i>
                                 </button>
                                 
                                 <button class="btn btn-sm btn-outline-danger" 
                                         data-bs-toggle="modal" data-bs-target="#modalExcluir"
-                                        onclick="preencherExclusao('{{ aluno.id }}', '{{ aluno.nome_completo }}')">
+                                        onclick="preencherExclusao('{{ mat.id }}', '{{ mat.aluno.nome_completo }}')">
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
                             </td>
@@ -135,15 +131,15 @@
             </div>
         </div>
         
-        {% if page_obj.has_other_pages %}
+        {% if matriculas.has_other_pages %}
         <div class="card-footer bg-white py-3 border-top-0">
             <nav>
                 <ul class="pagination justify-content-center mb-0">
                     
-                    {% if page_obj.has_previous %}
+                    {% if matriculas.has_previous %}
                         <li class="page-item">
                             <a class="page-link border-0 text-secondary" 
-                               href="?page={{ page_obj.previous_page_number }}&busca={{ busca_atual|default:'' }}&turma={{ turma_atual|default:'' }}">
+                               href="?page={{ matriculas.previous_page_number }}&busca={{ busca_atual|default:'' }}&turma={{ turma_selecionada|default:'' }}">
                                 <i class="bi bi-chevron-left me-1"></i> Anterior
                             </a>
                         </li>
@@ -155,14 +151,14 @@
 
                     <li class="page-item disabled">
                         <span class="page-link border-0 fw-bold text-dark mx-2">
-                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                            Página {{ matriculas.number }} de {{ matriculas.paginator.num_pages }}
                         </span>
                     </li>
 
-                    {% if page_obj.has_next %}
+                    {% if matriculas.has_next %}
                         <li class="page-item">
                             <a class="page-link border-0 text-primary fw-bold" 
-                               href="?page={{ page_obj.next_page_number }}&busca={{ busca_atual|default:'' }}&turma={{ turma_atual|default:'' }}">
+                               href="?page={{ matriculas.next_page_number }}&busca={{ busca_atual|default:'' }}&turma={{ turma_selecionada|default:'' }}">
                                 Próxima <i class="bi bi-chevron-right ms-1"></i>
                             </a>
                         </li>
@@ -220,9 +216,7 @@
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="acao" value="editar">
-                <input type="hidden" name="aluno_id" id="edit_id">
-                
-                <div class="modal-header bg-warning text-dark">
+                <input type="hidden" name="matricula_id" id="edit_id"> <div class="modal-header bg-warning text-dark">
                     <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Aluno</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -239,10 +233,14 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-check form-switch p-3 bg-light rounded border">
-                        <input class="form-check-input ms-0 me-2" type="checkbox" name="ativo" id="edit_ativo">
-                        <label class="form-check-label fw-bold" for="edit_ativo">Matrícula Ativa</label>
-                        <div class="form-text small mt-0">Desmarque para arquivar o aluno sem excluir o histórico.</div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Status</label>
+                        <select name="status" id="edit_status" class="form-select">
+                            <option value="CURSANDO">Cursando</option>
+                            <option value="APROVADO">Aprovado</option>
+                            <option value="REPROVADO">Reprovado</option>
+                            <option value="TRANSFERIDO">Transferido</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
@@ -260,9 +258,7 @@
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="acao" value="excluir">
-                <input type="hidden" name="aluno_id" id="delete_id">
-                
-                <div class="modal-header bg-danger text-white">
+                <input type="hidden" name="matricula_id" id="delete_id"> <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title fw-bold">Confirmar Exclusão</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -285,19 +281,16 @@
 
 <script>
     // Função chamada ao clicar no botão Editar (Azul)
-    function preencherEdicao(id, nome, turmaId, ativo) {
-        document.getElementById('edit_id').value = id;
+    function preencherEdicao(id, nome, turmaId, status) {
+        document.getElementById('edit_id').value = id; // ID da Matrícula
         document.getElementById('edit_nome').value = nome;
         document.getElementById('edit_turma').value = turmaId;
-        
-        // Converte a string 'True'/'False' do Python para booleano do JS
-        let check = document.getElementById('edit_ativo');
-        check.checked = (ativo === 'True');
+        document.getElementById('edit_status').value = status;
     }
 
     // Função chamada ao clicar no botão Excluir (Vermelho)
     function preencherExclusao(id, nome) {
-        document.getElementById('delete_id').value = id;
+        document.getElementById('delete_id').value = id; // ID da Matrícula
         document.getElementById('delete_nome').innerText = nome;
     }
 </script>

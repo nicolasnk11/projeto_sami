@@ -1,168 +1,104 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="container">
+<div class="container py-4">
     
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-8">
-            <h4 class="fw-bold text-dark mb-0">
-                <i class="bi bi-key-fill text-warning me-2"></i>Gabarito: {{ avaliacao.titulo }}
-            </h4>
-            <p class="text-muted small mb-0">
-                {{ avaliacao.turma.nome }} | {{ avaliacao.disciplina.nome }}
-            </p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0"><i class="bi bi-key-fill me-2 text-warning"></i>Gabarito Oficial</h3>
+            <p class="text-muted small mb-0">{{ avaliacao.titulo }} - {{ avaliacao.turma.nome }}</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
-        </div>
+        <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-light border rounded-pill fw-bold">Voltar</a>
     </div>
 
-    {% if tem_itens %}
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-center" style="width: 80px;">#</th>
-                                    <th>Questão / Descritor</th>
-                                    <th class="text-center" style="width: 150px;">Gabarito</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in itens %}
-                                <tr>
-                                    <td class="text-center fw-bold">{{ item.numero }}</td>
-                                    <td>
-                                        {% if item.questao_banco %}
-                                            <span class="d-block text-truncate" style="max-width: 500px;" title="{{ item.questao_banco.enunciado }}">
-                                                {{ item.questao_banco.enunciado }}
-                                            </span>
-                                            <small class="text-primary fst-italic">
-                                                {{ item.descritor.codigo }} - {{ item.descritor.descricao }}
-                                            </small>
-                                        
-                                        {% else %}
-                                            <select name="descritor_{{ item.id }}" class="form-select form-select-sm border-0 bg-light">
-                                                {% for d in descritores %}
-                                                    <option value="{{ d.id }}" {% if item.descritor_id == d.id %}selected{% endif %}>
-                                                        {{ d.codigo }} - {{ d.descricao|truncatechars:60 }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <input type="text" 
-                                               name="resposta_{{ item.id }}" 
-                                               value="{{ item.resposta_correta }}" 
-                                               class="form-control text-center fw-bold text-uppercase" 
-                                               maxlength="1" 
-                                               required>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                        <button type="submit" class="btn btn-success px-4 shadow-sm">
-                            <i class="bi bi-check-lg me-2"></i>Salvar Alterações
-                        </button>
-                    </div>
-                </form>
-            </div>
+    {% if not tem_itens %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4 text-center">
+            <h5 class="fw-bold text-muted mb-3">Quantas questões tem a prova?</h5>
+            <form method="post" class="d-flex justify-content-center gap-2">
+                {% csrf_token %}
+                <input type="number" name="qtd_questoes" class="form-control form-control-lg text-center fw-bold" style="width: 100px;" value="10" min="1" max="100">
+                <button type="submit" class="btn btn-primary px-4 fw-bold">Gerar Grade</button>
+            </form>
         </div>
-
+    </div>
     {% else %}
-        <div class="card shadow-lg border-0 mt-4">
-            <div class="card-body py-5 text-center">
-                
-                <i class="bi bi-puzzle-fill text-primary" style="font-size: 3rem;"></i>
-                <h3 class="fw-bold mt-3 text-dark">Definir Estrutura da Prova</h3>
-                <p class="text-muted col-md-6 mx-auto mb-5">
-                    Esta avaliação ainda não possui questões. Como você deseja criar o gabarito?
-                </p>
 
-                <div class="row justify-content-center g-4">
-                    
-                    <div class="col-md-5 col-lg-4">
-                        <div class="card h-100 border-primary border-2 shadow-sm hover-card">
-                            <div class="card-body p-4">
-                                <h5 class="fw-bold text-primary"><i class="bi bi-stack me-2"></i>Usar Banco de Questões</h5>
-                                <p class="small text-muted mb-4">Selecione questões já cadastradas. O gabarito e os descritores são preenchidos automaticamente.</p>
-                                <a href="{% url 'montar_prova' avaliacao.id %}" class="btn btn-primary w-100 fw-bold">
-                                    Selecionar Questões
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+    <form method="post" class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        {% csrf_token %}
+        <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-primary">Mapeamento de Questões</span>
+            <span class="badge bg-light text-dark border">{{ itens.count }} Questões</span>
+        </div>
 
-                    <div class="col-md-1 d-flex align-items-center justify-content-center">
-                        <span class="fw-bold text-muted">OU</span>
-                    </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 600px;">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="bg-light sticky-top">
+                        <tr>
+                            <th class="py-3">#</th>
+                            <th>Questão / Descritor</th>
+                            <th class="text-center" style="width: 150px;">Gabarito</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in itens %}
+                        <tr>
+                            <td class="fw-bold text-muted" style="width: 60px;">{{ item.numero }}</td>
+                            
+                            <td class="text-start">
+                                {% if item.questao_banco %}
+                                    <span class="d-block text-truncate" style="max-width: 500px;" title="{{ item.questao_banco.enunciado }}">
+                                        {{ item.questao_banco.enunciado }}
+                                    </span>
+                                    <small class="text-primary fst-italic">
+                                        {{ item.descritor.codigo }} - {{ item.descritor.descricao }}
+                                    </small>
+                                {% else %}
+                                    <select name="descritor_{{ item.id }}" class="form-select border-0 text-start">
+                                        <option value="">-- Sem descritor --</option>
+                                        {% for d in descritores %}
+                                        <option value="{{ d.id }}" {% if item.descritor_id == d.id %}selected{% endif %}>
+                                            {{ d.codigo }} - {{ d.descricao|truncatechars:60 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                            </td>
 
-                    <div class="col-md-5 col-lg-4">
-                        <div class="card h-100 border-secondary border-2 shadow-sm hover-card">
-                            <div class="card-body p-4">
-                                <h5 class="fw-bold text-dark"><i class="bi bi-grid-3x3 me-2"></i>Criar Grade Manual</h5>
-                                <p class="small text-muted mb-4">Você define apenas a quantidade (ex: 10) e digita o gabarito (A, B, C). Ideal para provas de livro.</p>
-                                <button type="button" onclick="mostrarFormManual()" class="btn btn-outline-dark w-100 fw-bold">
-                                    Configurar Manualmente
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div id="areaManual" class="mt-5 d-none bg-light p-4 rounded border animate-fade">
-                    <h6 class="fw-bold text-dark mb-3">Configuração Manual</h6>
-                    <form method="post" class="row justify-content-center align-items-end g-3">
-                        {% csrf_token %}
-                        <div class="col-auto">
-                            <label class="form-label small fw-bold">QUANTIDADE DE QUESTÕES</label>
-                            <input type="number" name="qtd_questoes" class="form-control text-center" value="10" min="1" max="50" required>
-                        </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-success fw-bold">
-                                <i class="bi bi-plus-circle me-2"></i>Gerar Grade Vazia
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
+                            <td style="width: 150px;">
+                                <select name="resposta_{{ item.id }}" class="form-select text-center fw-bold bg-light border-0">
+                                    {% for op in "ABCDE"|make_list %}
+                                    <option value="{{ op }}" {% if item.resposta_correta == op %}selected{% endif %}>{{ op }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
+
+        <div class="card-footer bg-white p-4 border-top shadow-sm" style="z-index: 10;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                
+                <div class="form-check form-switch p-3 bg-warning bg-opacity-10 rounded-3 border border-warning w-100 w-md-auto">
+                    <input class="form-check-input" type="checkbox" id="checkReplicar" name="replicar_para_todos">
+                    <label class="form-check-label fw-bold text-dark" for="checkReplicar">
+                        Aplicar este gabarito para TODAS as turmas?
+                    </label>
+                    <div class="small text-muted mt-1" style="line-height: 1.2;">
+                        Isso copiará as respostas e descritores para todas as outras avaliações chamadas <strong>"{{ avaliacao.titulo }}"</strong>.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow">
+                    <i class="bi bi-check-lg me-2"></i> Salvar Gabarito
+                </button>
+            </div>
+        </div>
+    </form>
     {% endif %}
 </div>
-
-<script>
-    function mostrarFormManual() {
-        const area = document.getElementById('areaManual');
-        area.classList.remove('d-none');
-        // Rolagem suave até o form
-        area.scrollIntoView({ behavior: 'smooth' });
-    }
-</script>
-
-<style>
-    .hover-card:hover {
-        transform: translateY(-5px);
-        transition: transform 0.3s ease;
-    }
-    .animate-fade {
-        animation: fadeIn 0.5s;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-</style>
 {% endblock %}

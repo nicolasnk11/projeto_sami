@@ -99,7 +99,6 @@
                                             <i class="bi bi-gear-fill me-1"></i> Gerenciar
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2" style="z-index: 1050;">
-                                            
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Edição</h6></li>
                                             <li>
                                                 <a class="dropdown-item rounded-2" href="{% url 'editar_avaliacao' av.id %}">
@@ -111,18 +110,14 @@
                                                     <i class="bi bi-key-fill me-2 text-warning"></i> Definir Gabarito
                                                 </a>
                                             </li>
-
                                             <li><hr class="dropdown-divider"></li>
-                                            
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Análise</h6></li>
                                             <li>
                                                 <a class="dropdown-item rounded-2" href="{% url 'mapa_calor' av.id %}">
                                                     <i class="bi bi-grid-3x3-gap-fill me-2 text-danger"></i> Mapa de Calor
                                                 </a>
                                             </li>
-
                                             <li><hr class="dropdown-divider"></li>
-
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Impressão</h6></li>
                                             <li>
                                                 <a class="dropdown-item rounded-2" href="{% url 'baixar_prova_existente' av.id %}">
@@ -134,9 +129,7 @@
                                                     <i class="bi bi-ticket-perforated-fill me-2 text-success"></i> Cartões Resposta
                                                 </a>
                                             </li>
-
                                             <li><hr class="dropdown-divider"></li>
-
                                             <li>
                                                 <button class="dropdown-item rounded-2 text-danger fw-bold" type="button" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ av.id }}">
                                                     <i class="bi bi-trash-fill me-2"></i> Excluir
@@ -204,7 +197,7 @@
                     <div class="d-flex">
                         <i class="bi bi-info-circle-fill fs-4 me-3"></i>
                         <div>
-                            <strong>Como funciona:</strong> O sistema analisa automaticamente os descritores com menor desempenho da turma/aluno selecionado e monta uma prova de reforço focada nessas dificuldades.
+                            <strong>Automação:</strong> Selecione "Escola Toda" ou "Série" para criar provas para todas as turmas de uma só vez.
                         </div>
                     </div>
                 </div>
@@ -212,7 +205,7 @@
                 <div class="row g-3">
                     <div class="col-md-12">
                         <label class="form-label fw-bold small text-muted">TÍTULO DA PROVA</label>
-                        <input type="text" name="titulo" class="form-control form-control-lg" placeholder="Ex: Reforço de Matemática - D12" required>
+                        <input type="text" name="titulo" class="form-control form-control-lg" placeholder="Ex: Avaliação Diagnóstica 1" required>
                     </div>
                     
                     <div class="col-md-6">
@@ -227,19 +220,29 @@
                     <div class="col-md-6">
                         <label class="form-label fw-bold small text-muted">PÚBLICO ALVO</label>
                         <select name="tipo_foco" class="form-select" id="selectFoco" onchange="toggleFiltros()">
-                            <option value="serie">Série Geral</option>
                             <option value="turma">Turma Específica</option>
+                            <option value="serie" class="fw-bold">★ Por Série (Todos os 1º Anos...)</option>
+                            <option value="escola" class="fw-bold">★ Toda a Escola (Todas as Turmas)</option>
                             <option value="aluno">Aluno Individual (Recuperação)</option>
                         </select>
                     </div>
 
-                    <div class="col-md-12 d-none" id="divTurma">
+                    <div class="col-md-12" id="divTurma">
                         <label class="form-label fw-bold small text-muted">SELECIONE A TURMA</label>
                         <select name="turma_id" class="form-select">
                             <option value="">--- Selecione ---</option>
                             {% for t in turmas %}
                                 <option value="{{ t.id }}">{{ t.nome }}</option>
                             {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-12 d-none" id="divSerie">
+                        <label class="form-label fw-bold small text-muted">SELECIONE A SÉRIE</label>
+                        <select name="serie_alvo" class="form-select">
+                            <option value="1">1º Anos</option>
+                            <option value="2">2º Anos</option>
+                            <option value="3">3º Anos</option>
                         </select>
                     </div>
                     
@@ -292,15 +295,21 @@
         const foco = document.getElementById('selectFoco').value;
         const divTurma = document.getElementById('divTurma');
         const divAluno = document.getElementById('divAluno');
+        const divSerie = document.getElementById('divSerie');
         
+        // Esconde tudo primeiro
         divTurma.classList.add('d-none');
         divAluno.classList.add('d-none');
+        if(divSerie) divSerie.classList.add('d-none'); // Proteção se divSerie não existir
         
         if (foco === 'turma') {
             divTurma.classList.remove('d-none');
         } else if (foco === 'aluno') {
             divAluno.classList.remove('d-none');
+        } else if (foco === 'serie') {
+            if(divSerie) divSerie.classList.remove('d-none');
         }
+        // 'escola' não mostra nada extra
     }
 
     function carregarAlunos(turmaId) {
@@ -313,7 +322,7 @@
             return;
         }
 
-        fetch(`/api/filtrar_alunos/?turma_id=${turmaId}`)
+        fetch(`/api/filtrar-alunos/?turma_id=${turmaId}`) // Ajustei URL para bater com seu urls.py
             .then(response => response.json())
             .then(data => {
                 if(data.length > 0) {

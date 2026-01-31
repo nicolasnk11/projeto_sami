@@ -1,88 +1,185 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block content %}
+<style>
+    /* Estilos Locais da Página de Importação */
+    .step-card {
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        background: white;
+        overflow: hidden;
+    }
+    .step-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    
+    .step-number {
+        font-size: 3rem;
+        font-weight: 800;
+        color: rgba(var(--primary-rgb), 0.1); /* Transparência do verde */
+        position: absolute;
+        top: -10px;
+        right: 15px;
+        line-height: 1;
+        opacity: 0.1;
+    }
+
+    .upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        background-color: #f8fafc;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: var(--accent-color);
+        background-color: rgba(212, 175, 55, 0.05); /* Leve dourado */
+    }
+
+    .btn-download-model {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.2s;
+        background: white;
+        color: #334155;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    
+    .btn-download-model:hover {
+        border-color: var(--primary-bg);
+        background-color: #f1f5f9;
+        color: var(--primary-bg);
+    }
+    
+    .instruction-badge {
+        background-color: #fffbeb; /* Fundo amarelado suave */
+        color: #92400e;
+        border: 1px solid #fcd34d;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+</style>
+
 <div class="container-fluid py-4">
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5">
         <div>
-            <h2 class="text-gray-800 fw-bold mb-1">
-                <i class="bi bi-cloud-upload-fill text-primary"></i> Importação em Massa
+            <h2 class="fw-bold mb-1" style="color: var(--primary-bg);">
+                <i class="bi bi-cloud-upload-fill me-2"></i>Importação em Massa
             </h2>
-            <p class="text-muted mb-0">Cadastre centenas de questões de uma só vez usando planilhas.</p>
+            <p class="text-muted mb-0">Cadastre centenas de questões de uma só vez via Excel.</p>
         </div>
-        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Voltar
-        </a>
+        <div class="mt-3 mt-md-0">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 align-items-stretch">
         
-        <div class="col-md-5">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="m-0 fw-bold text-dark"><i class="bi bi-file-earmark-arrow-down"></i> 1º Passo: Baixe o Modelo</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small">Para evitar erros, utilize exatamente um dos nossos modelos abaixo. Não altere o nome das colunas.</p>
-                    
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'baixar_modelo' 'xlsx' %}" class="btn btn-success text-start p-3 shadow-sm position-relative overflow-hidden group">
-                            <i class="bi bi-file-earmark-excel fs-4 float-start me-3"></i>
-                            <span class="d-block fw-bold">Modelo Excel (.xlsx)</span>
-                            <span class="small opacity-75">Recomendado para Office/Excel</span>
-                        </a>
-                        
-                        <a href="{% url 'baixar_modelo' 'csv' %}" class="btn btn-dark text-start p-3 shadow-sm">
-                            <i class="bi bi-filetype-csv fs-4 float-start me-3"></i>
-                            <span class="d-block fw-bold">Modelo CSV (.csv)</span>
-                            <span class="small opacity-75">Leve e compatível com Google Sheets</span>
-                        </a>
-                    </div>
+        <div class="col-lg-4">
+            <div class="step-card shadow-sm p-4 position-relative">
+                <div class="step-number" style="color: var(--primary-bg);">1</div>
+                
+                <h5 class="fw-bold mb-4" style="color: var(--primary-bg);">Baixe o Modelo</h5>
+                <p class="text-muted small mb-4">
+                    Para garantir que o sistema leia seus dados corretamente, use nosso gabarito oficial. Não altere o cabeçalho das colunas.
+                </p>
 
-                    <div class="alert alert-warning mt-4 mb-0 py-2 small">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        <strong>Importante:</strong>
-                        <ul class="mb-0 ps-3 mt-1">
-                            <li>Coluna <strong>Série</strong>: Use apenas 1, 2 ou 3.</li>
-                            <li>Coluna <strong>Dificuldade</strong>: Use F, M ou D.</li>
-                        </ul>
-                    </div>
+                <div class="d-grid gap-3 mb-4">
+                    <a href="{% url 'baixar_modelo' 'xlsx' %}" class="btn-download-model group shadow-sm">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3 text-success">
+                            <i class="bi bi-file-earmark-excel fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="d-block fw-bold">Modelo Excel (.xlsx)</span>
+                            <span class="small text-muted">Recomendado (Office/Excel)</span>
+                        </div>
+                        <i class="bi bi-download ms-auto text-muted"></i>
+                    </a>
+                    
+                    <a href="{% url 'baixar_modelo' 'csv' %}" class="btn-download-model group shadow-sm">
+                        <div class="rounded-circle bg-dark bg-opacity-10 p-2 me-3 text-dark">
+                            <i class="bi bi-filetype-csv fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="d-block fw-bold">Modelo CSV (.csv)</span>
+                            <span class="small text-muted">Alternativo (Google Sheets)</span>
+                        </div>
+                        <i class="bi bi-download ms-auto text-muted"></i>
+                    </a>
+                </div>
+
+                <div class="instruction-badge mt-auto">
+                    <div class="fw-bold mb-1"><i class="bi bi-lightbulb-fill me-1"></i> Dicas de Preenchimento:</div>
+                    <ul class="mb-0 ps-3 small">
+                        <li><strong>Série:</strong> Use apenas números (1, 2 ou 3).</li>
+                        <li><strong>Dificuldade:</strong> Use F (Fácil), M (Médio) ou D (Difícil).</li>
+                        <li><strong>Gabarito:</strong> Apenas a letra (Ex: A, B, C...).</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-7">
-            <div class="card shadow h-100 border-0">
-                <div class="card-header bg-primary text-white py-3">
-                    <h5 class="m-0 fw-bold"><i class="bi bi-cloud-arrow-up"></i> 2º Passo: Enviar Planilha</h5>
-                </div>
-                <div class="card-body d-flex flex-column justify-content-center">
+        <div class="col-lg-8">
+            <div class="step-card shadow-sm p-4 position-relative" style="background: linear-gradient(to bottom, #ffffff, #f8f9fa);">
+                <div class="step-number" style="color: var(--accent-color);">2</div>
+                
+                <h5 class="fw-bold mb-4" style="color: var(--primary-bg);">Envie a Planilha Preenchida</h5>
+
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
                     
-                    <form method="post" enctype="multipart/form-data" class="p-3 border border-2 border-dashed rounded bg-light text-center">
-                        {% csrf_token %}
+                    <div class="upload-zone p-5 text-center d-flex flex-column justify-content-center align-items-center h-100" style="min-height: 300px;">
                         
-                        <div class="mb-4 mt-2">
-                            <i class="bi bi-folder2-open display-4 text-primary opacity-50"></i>
-                            <h5 class="mt-3">Arraste seu arquivo ou clique abaixo</h5>
-                            <small class="text-muted">Suporta arquivos .xlsx e .csv</small>
+                        <div class="mb-3">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 80px; height: 80px; background-color: rgba(var(--primary-rgb), 0.05);">
+                                <i class="bi bi-cloud-arrow-up-fill display-4" style="color: var(--primary-bg);"></i>
+                            </div>
+                        </div>
+                        
+                        <h4 class="fw-bold text-dark mb-2">Arraste seu arquivo aqui</h4>
+                        <p class="text-muted mb-4">ou clique para selecionar do computador</p>
+
+                        <div class="position-relative w-100 d-flex justify-content-center">
+                            <input type="file" name="arquivo_excel" class="position-absolute w-100 h-100 opacity-0" 
+                                   style="top:0; left:0; cursor: pointer;" 
+                                   accept=".csv, .xlsx, .xls" required 
+                                   onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name; document.getElementById('uploadIcon').classList.remove('bi-cloud-arrow-up-fill'); document.getElementById('uploadIcon').classList.add('bi-file-earmark-check-fill', 'text-success');">
+                            
+                            <button type="button" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm" style="pointer-events: none;">
+                                <i class="bi bi-folder2-open me-2"></i> Selecionar Arquivo
+                            </button>
                         </div>
 
-                        <div class="mb-4 w-75 mx-auto">
-                            {{ form.arquivo_excel.errors }}
-                            <input type="file" name="arquivo_excel" class="form-control form-control-lg" accept=".csv, .xlsx, .xls" required id="id_arquivo_excel">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm hover-scale">
-                            <i class="bi bi-rocket-takeoff me-2"></i> Iniciar Importação
-                        </button>
-                    </form>
-                    
-                    <div class="text-center mt-3">
-                        <small class="text-muted">
-                            <i class="bi bi-clock-history"></i> O processo pode levar alguns segundos dependendo do tamanho do arquivo.
-                        </small>
+                        <div class="mt-3 fw-bold text-primary" id="fileNameDisplay"></div>
                     </div>
 
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-lg text-white fw-bold shadow-sm" 
+                                style="background-color: var(--accent-color); border: none;">
+                            <i class="bi bi-rocket-takeoff-fill me-2"></i> PROCESSAR IMPORTAÇÃO
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check me-1"></i> Seus dados são validados automaticamente antes de salvar.
+                    </small>
                 </div>
             </div>
         </div>
@@ -90,10 +187,33 @@
     </div>
 </div>
 
-<style>
-    /* Estilo extra para borda tracejada */
-    .border-dashed { border-style: dashed !important; }
-    /* Efeito de hover no botão */
-    .hover-scale:hover { transform: scale(1.02); transition: 0.2s; }
-</style>
+<script>
+    // Script simples para efeito visual de Drag and Drop
+    const dropZone = document.querySelector('.upload-zone');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('dragover');
+    }
+</script>
 {% endblock %}

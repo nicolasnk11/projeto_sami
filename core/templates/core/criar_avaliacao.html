@@ -1,137 +1,157 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            
-            <div class="card border-0 shadow-lg rounded-4">
-                <div class="card-header bg-primary text-white p-4 rounded-top-4">
-                    <h4 class="mb-0 fw-bold"><i class="bi bi-file-earmark-plus me-2"></i>Nova Avaliação Manual</h4>
-                    <p class="mb-0 opacity-75 small">Configure os detalhes e escolha o método de criação.</p>
-                </div>
+<div class="container py-4" style="max-width: 800px;">
+    
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Nova Avaliação</h3>
+            <p class="text-muted small mb-0">Agendamento manual de provas no calendário.</p>
+        </div>
+        <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-light border rounded-pill px-4 fw-bold">
+            <i class="bi bi-arrow-left me-2"></i> Voltar
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom p-4">
+            <h5 class="fw-bold text-primary mb-0"><i class="bi bi-pencil-square me-2"></i>Dados da Prova</h5>
+        </div>
+        
+        <div class="card-body p-4 bg-light">
+            <form method="post" id="formCriar">
+                {% csrf_token %}
                 
-                <div class="card-body p-4">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <h6 class="text-primary fw-bold text-uppercase small mb-3">Informações da Prova</h6>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted small">TÍTULO</label>
-                            <input type="text" name="titulo" class="form-control form-control-lg" placeholder="Ex: Prova Bimestral de História" required>
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted small">TURMA</label>
-                                <select name="turma" class="form-select" required>
-                                    <option value="">Selecione...</option>
-                                    {% for t in turmas %}
-                                        <option value="{{ t.id }}">{{ t.nome }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted small">DISCIPLINA</label>
-                                <select name="disciplina" class="form-select" required>
-                                    <option value="">Selecione...</option>
-                                    {% for d in disciplinas %}
-                                        <option value="{{ d.id }}">{{ d.nome }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted small">DATA DE APLICAÇÃO</label>
-                                <input type="date" name="data_aplicacao" class="form-control" value="{% now 'Y-m-d' %}">
-                            </div>
-                        </div>
-
-                        <hr class="text-muted opacity-25">
-
-                        <h6 class="text-primary fw-bold text-uppercase small mb-3">Como você vai montar a prova?</h6>
-                        
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <input type="radio" class="btn-check" name="modo_prova" id="modo_banco" value="banco" checked>
-                                <label class="btn btn-outline-light text-dark border w-100 p-3 text-start position-relative shadow-sm h-100 card-opcao" for="modo_banco">
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
-                                            <i class="bi bi-collection-fill fs-4"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold mb-1">Usar Banco de Questões</h6>
-                                            <p class="text-muted small mb-0 lh-sm">Vou selecionar questões do sistema e gerar o PDF.</p>
-                                        </div>
-                                    </div>
-                                    <div class="position-absolute top-0 end-0 m-2 text-primary check-icon">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div class="col-md-6">
-                                <input type="radio" class="btn-check" name="modo_prova" id="modo_manual" value="manual">
-                                <label class="btn btn-outline-light text-dark border w-100 p-3 text-start position-relative shadow-sm h-100 card-opcao" for="modo_manual">
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning me-3">
-                                            <i class="bi bi-pencil-square fs-4"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold mb-1">Apenas Gabarito</h6>
-                                            <p class="text-muted small mb-0 lh-sm">Já tenho a prova. Só quero definir as respostas (1-A, 2-B...).</p>
-                                        </div>
-                                    </div>
-                                    <div class="position-absolute top-0 end-0 m-2 text-warning check-icon d-none">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-light border px-4">Cancelar</a>
-                            
-                            <button type="submit" name="acao" value="salvar_sair" class="btn btn-outline-primary px-4 fw-bold">
-                                Salvar e Sair
-                            </button>
-                            
-                            <button type="submit" name="acao" value="salvar_configurar" class="btn btn-success px-4 fw-bold shadow-sm">
-                                Continuar <i class="bi bi-arrow-right ms-2"></i>
-                            </button>
-                        </div>
-
-                    </form>
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Título da Avaliação</label>
+                    <input type="text" name="titulo" class="form-control form-control-lg fw-bold" 
+                           placeholder="Ex: Prova Mensal - 1º Bimestre" required autofocus>
                 </div>
-            </div>
 
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Disciplina</label>
+                        <select name="disciplina" class="form-select form-select-lg" required>
+                            <option value="">Selecione...</option>
+                            {% for d in disciplinas %}
+                            <option value="{{ d.id }}">{{ d.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Data de Aplicação</label>
+                        <input type="date" name="data_aplicacao" class="form-control form-control-lg" required>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Quem fará a prova?</label>
+                        <select name="tipo_foco" id="selectFoco" class="form-select" onchange="toggleFiltros()">
+                            <option value="turma">Uma Turma Específica</option>
+                            <option value="serie" class="fw-bold text-primary">★ Série Inteira (Ex: 1º Anos)</option>
+                            <option value="escola" class="fw-bold text-warning">★ Escola Toda (Todas as Turmas)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-8" id="divTurma">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Selecione a Turma</label>
+                        <select name="turma" class="form-select">
+                            {% for t in turmas %}
+                            <option value="{{ t.id }}">{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-8 d-none" id="divSerie">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Selecione a Série</label>
+                        <select name="serie_alvo" class="form-select">
+                            <option value="1">1º Anos (Todas as turmas iniciadas em 1)</option>
+                            <option value="2">2º Anos (Todas as turmas iniciadas em 2)</option>
+                            <option value="3">3º Anos (Todas as turmas iniciadas em 3)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-8 d-none" id="divEscola">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Confirmação</label>
+                        <div class="alert alert-warning py-2 mb-0 d-flex align-items-center border-0 shadow-sm">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <small class="fw-bold">Será criada uma cópia desta prova para <u>TODAS</u> as turmas ativas.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Como você vai montar a prova?</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check card-radio w-50">
+                            <input class="form-check-input d-none" type="radio" name="modo_prova" id="modoGabarito" value="gabarito" checked>
+                            <label class="form-check-label card p-3 h-100 border text-center cursor-pointer shadow-sm" for="modoGabarito">
+                                <i class="bi bi-123 fs-2 text-primary mb-2"></i>
+                                <span class="d-block fw-bold">Só Gabarito</span>
+                                <span class="small text-muted">Defino apenas as respostas (1-A, 2-B...) para correção rápida.</span>
+                            </label>
+                        </div>
+                        <div class="form-check card-radio w-50">
+                            <input class="form-check-input d-none" type="radio" name="modo_prova" id="modoBanco" value="banco">
+                            <label class="form-check-label card p-3 h-100 border text-center cursor-pointer shadow-sm" for="modoBanco">
+                                <i class="bi bi-collection fs-2 text-success mb-2"></i>
+                                <span class="d-block fw-bold">Banco de Questões</span>
+                                <span class="small text-muted">Seleciono questões cadastradas no sistema para gerar PDF.</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                    <button type="submit" name="acao" value="salvar_sair" class="btn btn-light btn-lg px-4 fw-bold border shadow-sm">
+                        Salvar e Sair
+                    </button>
+                    <button type="submit" name="acao" value="salvar_configurar" class="btn btn-primary btn-lg px-5 fw-bold shadow-lg">
+                        Continuar <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+
+            </form>
         </div>
     </div>
 </div>
 
 <style>
-    /* Estilo visual para a seleção dos cards */
-    .btn-check:checked + label {
+    /* Estilo para Radio Cards */
+    .card-radio input:checked + label {
         border-color: var(--bs-primary) !important;
-        background-color: var(--bs-primary-bg-subtle);
-        transform: translateY(-2px);
-        transition: all 0.2s;
+        background-color: rgba(13, 110, 253, 0.05);
+        box-shadow: 0 0 0 2px var(--bs-primary) !important;
     }
-    .btn-check:checked + label .check-icon {
-        display: block !important;
-    }
-    
-    /* Cor específica para o modo manual (Amarelo/Warning) */
-    #modo_manual:checked + label {
-        border-color: var(--bs-warning) !important;
-        background-color: #fff3cd; 
-    }
-    #modo_manual:checked + label .check-icon {
-        color: var(--bs-warning) !important;
-    }
-
-    .check-icon { display: none; }
-    .card-opcao { cursor: pointer; transition: transform 0.2s; }
-    .card-opcao:hover { background-color: #f8f9fa; }
+    .cursor-pointer { cursor: pointer; }
 </style>
+
+<script>
+    function toggleFiltros() {
+        const foco = document.getElementById('selectFoco').value;
+        const divTurma = document.getElementById('divTurma');
+        const divSerie = document.getElementById('divSerie');
+        const divEscola = document.getElementById('divEscola');
+        
+        // Esconde tudo
+        divTurma.classList.add('d-none');
+        divSerie.classList.add('d-none');
+        divEscola.classList.add('d-none');
+        
+        // Mostra o certo
+        if (foco === 'turma') {
+            divTurma.classList.remove('d-none');
+        } else if (foco === 'serie') {
+            divSerie.classList.remove('d-none');
+        } else if (foco === 'escola') {
+            divEscola.classList.remove('d-none');
+        }
+    }
+</script>
 {% endblock %}

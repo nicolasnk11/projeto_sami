@@ -15,6 +15,7 @@ from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Sum, Q, F, Prefetch
+from django.db import transaction
 from django.http import FileResponse, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
@@ -155,7 +156,12 @@ def scanner_dificuldade(valor):
 
 @login_required
 def dashboard(request):
-    # --- 1. FILTROS ---
+    import json
+    # import csv  <-- REMOVIDO POIS NÃO TEM MAIS EXCEL
+    from datetime import datetime
+    from django.db.models import Avg
+
+    # --- 1. CAPTURA DE FILTROS ---
     serie_id = request.GET.get('serie')
     turma_id = request.GET.get('turma')
     aluno_id = request.GET.get('aluno')
@@ -163,9 +169,8 @@ def dashboard(request):
     disciplina_id = request.GET.get('disciplina')
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
-    exportar = request.GET.get('export')
-
-    # QuerySet Base OTIMIZADA para Matrícula
+    
+    # QuerySet Base
     resultados = Resultado.objects.select_related(
         'avaliacao', 
         'matricula__aluno', 
@@ -173,53 +178,75 @@ def dashboard(request):
         'avaliacao__disciplina'
     )
 
-    # Aplicação dos Filtros
-    if disciplina_id:
-        resultados = resultados.filter(avaliacao__disciplina_id=disciplina_id)
-    if serie_id:
-        resultados = resultados.filter(avaliacao__turma__nome__startswith=serie_id)
-    if turma_id:
-        resultados = resultados.filter(avaliacao__turma_id=turma_id)
-    if aluno_id:
-        resultados = resultados.filter(matricula__aluno_id=aluno_id) # CORRIGIDO
-    if avaliacao_id:
-        resultados = resultados.filter(avaliacao_id=avaliacao_id)
-    if data_inicio:
-        resultados = resultados.filter(avaliacao__data_aplicacao__gte=data_inicio)
-    if data_fim:
-        resultados = resultados.filter(avaliacao__data_aplicacao__lte=data_fim)
+    if disciplina_id: resultados = resultados.filter(avaliacao__disciplina_id=disciplina_id)
+    if serie_id: resultados = resultados.filter(avaliacao__turma__nome__startswith=serie_id)
+    if turma_id: resultados = resultados.filter(avaliacao__turma_id=turma_id)
+    if aluno_id: resultados = resultados.filter(matricula__aluno_id=aluno_id)
+    if avaliacao_id: resultados = resultados.filter(avaliacao_id=avaliacao_id)
+    if data_inicio: resultados = resultados.filter(avaliacao__data_aplicacao__gte=data_inicio)
+    if data_fim: resultados = resultados.filter(avaliacao__data_aplicacao__lte=data_fim)
 
-    # --- 2. EXPORTAÇÃO EXCEL (CSV) ---
-    if exportar == 'csv':
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="relatorio_sami_{datetime.now().strftime("%Y%m%d")}.csv"'
-        
-        writer = csv.writer(response)
-        writer.writerow(['Data', 'Aluno', 'Turma', 'Avaliação', 'Disciplina', 'Nota (0-10)', 'Situação'])
-        
-        for res in resultados:
-            situacao = "M. Crítico"
-            if res.percentual >= 80: situacao = "Adequado"
-            elif res.percentual >= 60: situacao = "Intermediário"
-            elif res.percentual >= 21: situacao = "Crítico"
+    # (BLOCO DE EXPORTAÇÃO EXCEL FOI REMOVIDO AQUI)
 
-            writer.writerow([
-                res.avaliacao.data_aplicacao.strftime("%d/%m/%Y"),
-                res.matricula.aluno.nome_completo,
-                res.matricula.turma.nome,
-                res.avaliacao.titulo,
-                res.avaliacao.disciplina.nome if res.avaliacao.disciplina else '-',
-                str(round(res.percentual/10, 1)).replace('.', ','),
-                situacao
-            ])
-        return response
-
-    # --- 3. PROCESSAMENTO ---
+    # --- 2. PROCESSAMENTO DE DADOS ---
+    
+    # Busca Respostas Detalhadas
     respostas_qs = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related(
         'item_gabarito__descritor', 'questao__descritor', 'item_gabarito', 'questao'
     )
 
-    # A. PROFICIÊNCIA POR DESCRITOR
+    # A. PIZZA (4 CORES) & KPIs NOVOS
+    # Isso é necessário para os Cards do topo e para a Pizza colorida nova
+    dados_pizza = [0, 0, 0, 0] # Azul, Verde, Amarelo, Vermelho
+    detalhes_pizza = {'Avançado': [], 'Adequado': [], 'Intermediário': [], 'Crítico': []}
+    
+    soma_notas = 0
+    count_avaliados = 0
+
+    for res in resultados:
+        # Garante que p seja float e trata None como 0.0
+        p = float(res.percentual) if res.percentual is not None else 0.0
+        
+        soma_notas += p
+        count_avaliados += 1
+
+        aluno_info = {
+            'nome': res.matricula.aluno.nome_completo,
+            'turma': res.matricula.turma.nome,
+            'nota': round(p/10, 1)
+        }
+        
+        # CLASSIFICAÇÃO NOVA (4 NÍVEIS)
+        if p >= 90: 
+            dados_pizza[0] += 1
+            detalhes_pizza['Avançado'].append(aluno_info)
+        elif p >= 70: 
+            dados_pizza[1] += 1
+            detalhes_pizza['Adequado'].append(aluno_info)
+        elif p >= 50: 
+            dados_pizza[2] += 1
+            detalhes_pizza['Intermediário'].append(aluno_info)
+        else: 
+            dados_pizza[3] += 1
+            detalhes_pizza['Crítico'].append(aluno_info)
+
+    detalhes_pizza_json = json.dumps(detalhes_pizza)
+
+    # CÁLCULO DOS KPIs (Média e Nível Predominante)
+    media_geral = 0
+    if count_avaliados > 0:
+        media_geral = round((soma_notas / count_avaliados) / 10, 1)
+    
+    nivel_predominante = "-"
+    if count_avaliados > 0:
+        idx_max = dados_pizza.index(max(dados_pizza))
+        # Ícones opcionais para dar um charme
+        nomes_niveis = ["Avançado 🚀", "Adequado ✅", "Intermediário ⚠️", "Crítico 🚨"]
+        nivel_predominante = nomes_niveis[idx_max]
+
+    qtd_provas = resultados.values('avaliacao').distinct().count()
+
+    # B. PROFICIÊNCIA POR DESCRITOR (Mantido da sua lógica original)
     stats_descritores = {}
     for resp in respostas_qs:
         desc_obj = None
@@ -231,7 +258,7 @@ def dashboard(request):
         if desc_obj:
             codigo = desc_obj.codigo
             if codigo not in stats_descritores:
-                stats_descritores[codigo] = {'acertos': 0, 'total': 0, 'descricao': desc_obj.descricao}
+                stats_descritores[codigo] = {'acertos': 0, 'total': 0}
             
             stats_descritores[codigo]['total'] += 1
             if resp.acertou:
@@ -245,25 +272,28 @@ def dashboard(request):
         labels_proficiencia.append(cod)
         dados_proficiencia.append(round(perc, 1))
 
-    # B. RANKING DE QUESTÕES
+    # C. RANKING DE QUESTÕES (Mantido da sua lógica original)
     stats_questoes = {}
     for resp in respostas_qs:
         q_id = f"G{resp.item_gabarito.id}" if resp.item_gabarito else f"Q{resp.questao.id}"
         
         if q_id not in stats_questoes:
             texto_desc = "Sem descritor"
-            texto_enunciado = "..."
+            texto_enunciado = "Questão sem texto"
             
             if resp.item_gabarito:
                 if resp.item_gabarito.descritor: texto_desc = resp.item_gabarito.descritor.codigo
-                if resp.item_gabarito.questao_banco: texto_enunciado = resp.item_gabarito.questao_banco.enunciado
+                if resp.item_gabarito.questao_banco: 
+                    texto_enunciado = resp.item_gabarito.questao_banco.enunciado
+                else:
+                    texto_enunciado = f"Questão {resp.item_gabarito.numero} (Manual)"
             elif resp.questao:
                 if resp.questao.descritor: texto_desc = resp.questao.descritor.codigo
                 texto_enunciado = resp.questao.enunciado
             
             stats_questoes[q_id] = {
                 'desc': texto_desc, 
-                'texto': texto_enunciado[:100], 
+                'texto': texto_enunciado[:120],
                 'acertos': 0, 
                 'total': 0
             }
@@ -273,46 +303,20 @@ def dashboard(request):
 
     lista_questoes = []
     for k, v in stats_questoes.items():
-        perc_acerto = (v['acertos'] / v['total']) * 100
-        lista_questoes.append({
-            'desc': v['desc'],
-            'texto': v['texto'],
-            'percentual_acerto': round(perc_acerto, 1),
-            'percentual_erro': round(100 - perc_acerto, 1),
-            'total': v['total']
-        })
+        if v['total'] > 0:
+            perc_acerto = (v['acertos'] / v['total']) * 100
+            lista_questoes.append({
+                'desc': v['desc'],
+                'texto': v['texto'],
+                'percentual_acerto': round(perc_acerto, 1),
+                'percentual_erro': round(100 - perc_acerto, 1),
+                'total': v['total']
+            })
 
     ranking_facil = sorted(lista_questoes, key=lambda x: x['percentual_acerto'], reverse=True)
     ranking_dificil = sorted(lista_questoes, key=lambda x: x['percentual_erro'], reverse=True)
 
-    # C. PIZZA
-    dados_pizza = [0, 0, 0, 0]
-    detalhes_pizza = {'Adequado': [], 'Intermediário': [], 'Crítico': [], 'Muito Crítico': []}
-
-    for res in resultados:
-        p = float(res.percentual)
-        aluno_info = {
-            'nome': res.matricula.aluno.nome_completo, # CORRIGIDO
-            'turma': res.matricula.turma.nome, # CORRIGIDO
-            'nota': round(p/10, 1)
-        }
-        
-        if p >= 80: 
-            dados_pizza[0] += 1
-            detalhes_pizza['Adequado'].append(aluno_info)
-        elif p >= 60: 
-            dados_pizza[1] += 1
-            detalhes_pizza['Intermediário'].append(aluno_info)
-        elif p >= 21: 
-            dados_pizza[2] += 1
-            detalhes_pizza['Crítico'].append(aluno_info)
-        else: 
-            dados_pizza[3] += 1
-            detalhes_pizza['Muito Crítico'].append(aluno_info)
-
-    detalhes_pizza_json = json.dumps(detalhes_pizza)
-
-    # D. EVOLUÇÃO
+    # D. EVOLUÇÃO TEMPORAL
     labels_evolucao, dados_evolucao = [], []
     evolucao_qs = resultados.values('avaliacao__titulo', 'avaliacao__data_aplicacao') \
                             .annotate(media=Avg('percentual')) \
@@ -338,7 +342,7 @@ def dashboard(request):
             
             linha = {
                 'aluno': res.matricula.aluno, 
-                'nota': round(res.percentual/10, 1), 
+                'nota': round((res.percentual or 0)/10, 1), 
                 'questoes': []
             }
             
@@ -350,53 +354,66 @@ def dashboard(request):
 
     # --- 4. CONTEXTO ---
     turmas_filtro = Turma.objects.all()
+    if serie_id: turmas_filtro = turmas_filtro.filter(nome__startswith=serie_id)
+    
     alunos_filtro = Aluno.objects.none()
-    
-    if serie_id: 
-        turmas_filtro = turmas_filtro.filter(nome__startswith=serie_id)
-    
-    if turma_id: 
-        alunos_filtro = Aluno.objects.filter(matriculas__turma_id=turma_id).distinct() # CORRIGIDO
+    if turma_id: alunos_filtro = Aluno.objects.filter(matriculas__turma_id=turma_id, matriculas__status='CURSANDO').distinct()
 
-    nome_filtro = "Visão Geral"
-    if avaliacao_id: 
-        nome_filtro = f"Prova: {Avaliacao.objects.get(id=avaliacao_id).titulo}"
-    elif aluno_id: 
-        nome_filtro = f"Aluno: {Aluno.objects.get(id=aluno_id).nome_completo}"
-    elif turma_id: 
-        nome_filtro = f"Turma: {Turma.objects.get(id=turma_id).nome}"
+    # --- CONTEXTO SEGURO ---
+    nome_filtro = "Visão Geral da Escola"
+    
+    # 1. Tratamento seguro da Avaliação
+    if avaliacao_id:
+        try:
+            av_obj = Avaliacao.objects.get(id=avaliacao_id)
+            nome_filtro = f"Prova: {av_obj.titulo}"
+        except:
+            nome_filtro = "Prova não encontrada"
+
+    elif aluno_id:
+        try:
+            al_obj = Aluno.objects.get(id=aluno_id)
+            nome_filtro = f"Aluno: {al_obj.nome_completo}"
+        except: pass
+
+    elif turma_id:
+        try:
+            t_obj = Turma.objects.get(id=turma_id)
+            nome_filtro = f"Turma: {t_obj.nome}"
+        except: pass
+        
+    elif serie_id:
+        nome_filtro = f"Série: {serie_id}º Ano"
 
     context = {
-        'serie_selecionada': serie_id,
-        'turma_selecionada': turma_id,
-        'aluno_selecionado': aluno_id,
-        'disciplina_selecionada': disciplina_id,
-        'avaliacao_selecionada': avaliacao_id,
-        'data_inicio': data_inicio,
-        'data_fim': data_fim,
+        # ... seus dados ...
+    }
+    context = {
+        'serie_selecionada': serie_id, 'turma_selecionada': turma_id, 
+        'aluno_selecionado': aluno_id, 'disciplina_selecionada': disciplina_id, 
+        'avaliacao_selecionada': avaliacao_id, 'data_inicio': data_inicio, 'data_fim': data_fim,
         
-        'turmas_da_serie': turmas_filtro,
-        'alunos_da_turma': alunos_filtro,
-        'disciplinas': Disciplina.objects.all(),
-        'avaliacoes_todas': Avaliacao.objects.all().order_by('-data_aplicacao')[:50],
+        'turmas_da_serie': turmas_filtro, 'alunos_da_turma': alunos_filtro, 
+        'disciplinas': Disciplina.objects.all(), 
+        'avaliacoes_todas': Avaliacao.objects.all().order_by('-data_aplicacao')[:100],
         
+        # NOVOS DADOS PARA O HTML FUNCIONAR
         'nome_filtro': nome_filtro,
-        'total_avaliacoes_contagem': resultados.count(), 
+        'total_avaliacoes_contagem': count_avaliados,
+        'media_geral': media_geral,
+        'nivel_predominante': nivel_predominante,
+        'qtd_provas': qtd_provas,
         
         'dados_pizza': dados_pizza,
         'detalhes_pizza_json': detalhes_pizza_json,
-        'labels_evolucao': labels_evolucao,
-        'dados_evolucao': dados_evolucao,
-        'labels_proficiencia': labels_proficiencia,
-        'dados_proficiencia': dados_proficiencia,
-        'ranking_facil': ranking_facil,
-        'ranking_dificil': ranking_dificil,
-        'itens_heatmap': itens_heatmap,
-        'matriz_calor': matriz_calor,
-        'ultimos_resultados': resultados.order_by('-id')[:20]
+        
+        'labels_evolucao': labels_evolucao, 'dados_evolucao': dados_evolucao,
+        'labels_proficiencia': labels_proficiencia, 'dados_proficiencia': dados_proficiencia,
+        'ranking_facil': ranking_facil, 'ranking_dificil': ranking_dificil,
+        'itens_heatmap': itens_heatmap, 'matriz_calor': matriz_calor,
     }
 
-    return render(request, 'core/dashboard.html', contexto)
+    return render(request, 'core/dashboard.html', context)
 
 
 @login_required
@@ -487,78 +504,92 @@ def importar_questoes(request):
 
 @login_required
 def importar_alunos(request):
+    # 1. BAIXAR MODELO
     if request.GET.get('baixar_modelo'):
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename=modelo_importacao_sami.xlsx'
         df_modelo = pd.DataFrame({
-            'NOME COMPLETO': ['Nicolas Castro', 'Ana Souza', 'Carlos Pereira'],
-            'TURMA': ['3º Ano B', '1º Ano A', '2º Ano C']
+            'NOME COMPLETO': ['Nicolas Castro', 'Ana Souza'],
+            'TURMA': ['3º Ano B', '1º Ano A']
         })
         df_modelo.to_excel(response, index=False)
         return response
 
+    # 2. PROCESSAR UPLOAD
     if request.method == 'POST':
         form = ImportarAlunosForm(request.POST, request.FILES)
         if form.is_valid():
+            erros_log = []  # Lista para guardar os erros
             try:
                 arquivo = request.FILES['arquivo_excel']
+                
+                # Leitura flexível
                 if arquivo.name.endswith('.csv'):
-                    df = pd.read_csv(arquivo)
+                    try:
+                        df = pd.read_csv(arquivo, sep=';', encoding='utf-8')
+                        if len(df.columns) < 2:
+                            arquivo.seek(0)
+                            df = pd.read_csv(arquivo, sep=',', encoding='utf-8')
+                    except:
+                        arquivo.seek(0)
+                        df = pd.read_csv(arquivo, sep=';', encoding='latin-1')
                 else:
                     df = pd.read_excel(arquivo)
 
-                df.columns = [c.strip().upper() for c in df.columns]
+                # Limpeza de colunas
+                df.columns = [str(c).strip().upper() for c in df.columns]
                 c_nome = next((c for c in df.columns if c in ['NOME', 'ESTUDANTE', 'ALUNO', 'NOME COMPLETO']), None)
                 c_turma = next((c for c in df.columns if c in ['TURMA', 'CLASSE', 'SERIE']), None)
 
                 if not c_nome:
-                    messages.error(request, "Erro: A planilha precisa ter uma coluna chamada 'NOME'.")
+                    messages.error(request, f"Erro: Coluna NOME não encontrada. Colunas lidas: {list(df.columns)}")
                     return redirect('importar_alunos')
 
                 criados = 0
-                matriculados = 0
                 
                 for index, row in df.iterrows():
                     try:
                         raw_nome = row[c_nome]
                         if pd.isna(raw_nome) or str(raw_nome).strip() == '': continue
-                        nome_aluno = str(raw_nome).strip().upper()
                         
-                        turma_obj = None
-                        if c_turma and pd.notna(row[c_turma]):
-                            nome_turma = str(row[c_turma]).strip().upper()
-                            turma_obj, _ = Turma.objects.get_or_create(
-                                nome=nome_turma, 
-                                defaults={'ano_letivo': 2026}
-                            )
-                        else:
-                            turma_obj, _ = Turma.objects.get_or_create(nome="SEM TURMA", defaults={'ano_letivo': 2026})
-
-                        aluno_obj, created_aluno = Aluno.objects.get_or_create(
-                            nome_completo=nome_aluno
+                        # Tenta criar
+                        turma_obj, _ = Turma.objects.get_or_create(
+                            nome=str(row.get(c_turma, 'SEM TURMA')).strip().upper(),
+                            defaults={'ano_letivo': 2026}
                         )
+                        
+                        aluno_obj, created_aluno = Aluno.objects.get_or_create(
+                            nome_completo=str(raw_nome).strip().upper()
+                        )
+                        
+                        Matricula.objects.get_or_create(
+                            aluno=aluno_obj, turma=turma_obj, defaults={'status': 'CURSANDO'}
+                        )
+                        
                         if created_aluno: criados += 1
 
-                        matricula, created_mat = Matricula.objects.get_or_create(
-                            aluno=aluno_obj,
-                            turma=turma_obj,
-                            defaults={'status': 'CURSANDO'}
-                        )
-                        if created_mat: matriculados += 1
-
                     except Exception as e:
-                        print(f"Erro na linha {index}: {e}")
+                        # Guarda o erro exato para mostrar na tela
+                        erros_log.append(f"Linha {index}: {str(e)}")
 
-                messages.success(request, f'✅ Processo concluído! {criados} novos alunos cadastrados e {matriculados} novas matrículas realizadas.')
+                # FEEDBACK DETALHADO
+                if criados > 0:
+                    messages.success(request, f'✅ Sucesso! {criados} novos alunos importados.')
+                elif erros_log:
+                    # Mostra os 3 primeiros erros na tela
+                    msg_erro = " | ".join(erros_log[:3])
+                    messages.error(request, f'Falha ao salvar: {msg_erro}')
+                else:
+                    messages.warning(request, 'Nenhum aluno novo. Talvez já existam no banco?')
+
                 return redirect('dashboard')
 
             except Exception as e:
-                messages.error(request, f'Erro ao processar arquivo: {str(e)}')
+                messages.error(request, f'Erro crítico no arquivo: {str(e)}')
     else:
         form = ImportarAlunosForm()
 
     return render(request, 'core/importar_alunos.html', {'form': form})
-
 
 @login_required
 def baixar_modelo(request, formato):
@@ -590,24 +621,71 @@ def baixar_modelo(request, formato):
 def criar_avaliacao(request):
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
-        turma_id = request.POST.get('turma')
         disciplina_id = request.POST.get('disciplina')
         data_aplicacao = request.POST.get('data_aplicacao')
+        
+        # Novos campos de alcance
+        tipo_foco = request.POST.get('tipo_foco') # turma, serie, escola
+        turma_id = request.POST.get('turma')
+        serie_alvo = request.POST.get('serie_alvo')
+        
         acao = request.POST.get('acao')
         modo = request.POST.get('modo_prova')
 
-        if titulo and turma_id and disciplina_id:
-            av = Avaliacao.objects.create(
-                titulo=titulo, turma_id=turma_id, disciplina_id=disciplina_id, data_aplicacao=data_aplicacao
-            )
-            messages.success(request, f'Avaliação "{titulo}" criada com sucesso!')
-            if acao == 'salvar_sair': return redirect('gerenciar_avaliacoes')
-            elif acao == 'salvar_configurar':
-                if modo == 'banco': return redirect('montar_prova', av.id) 
-                else: return redirect('definir_gabarito', av.id)
+        if titulo and disciplina_id and data_aplicacao:
+            try:
+                turmas_alvo = []
+                
+                # 1. Define quem recebe a prova
+                if tipo_foco == 'escola':
+                    turmas_alvo = Turma.objects.all()
+                elif tipo_foco == 'serie':
+                    turmas_alvo = Turma.objects.filter(nome__startswith=serie_alvo)
+                else: # turma específica
+                    if turma_id:
+                        turmas_alvo = [get_object_or_404(Turma, id=turma_id)]
+                
+                if not turmas_alvo:
+                    messages.error(request, "Nenhuma turma selecionada.")
+                    return redirect('criar_avaliacao')
+
+                # 2. Criação em Massa
+                count = 0
+                ultimo_id = None
+                
+                with transaction.atomic():
+                    for turma in turmas_alvo:
+                        av = Avaliacao.objects.create(
+                            titulo=titulo, 
+                            turma=turma, 
+                            disciplina_id=disciplina_id, 
+                            data_aplicacao=data_aplicacao
+                        )
+                        ultimo_id = av.id
+                        count += 1
+
+                messages.success(request, f'Sucesso! {count} avaliações criadas.')
+
+                # 3. Redirecionamento Inteligente
+                # Se criou só uma e pediu para configurar, vai para a configuração
+                if count == 1 and acao == 'salvar_configurar':
+                    if modo == 'banco': 
+                        return redirect('montar_prova', ultimo_id) 
+                    else: 
+                        return redirect('definir_gabarito', ultimo_id)
+                
+                # Se criou várias ou pediu para sair, volta para a lista
+                return redirect('gerenciar_avaliacoes')
+
+            except Exception as e:
+                messages.error(request, f"Erro ao criar: {e}")
         else:
-            messages.error(request, 'Erro: Preencha todos os campos obrigatórios.')
-    context = {'turmas': Turma.objects.all(), 'disciplinas': Disciplina.objects.all()}
+            messages.error(request, 'Erro: Preencha título, disciplina e data.')
+
+    context = {
+        'turmas': Turma.objects.all().order_by('nome'), 
+        'disciplinas': Disciplina.objects.all().order_by('nome')
+    }
     return render(request, 'core/criar_avaliacao.html', context)
 
 @login_required
@@ -619,50 +697,70 @@ def gerar_prova(request):
 
 @login_required
 def gerar_prova_pdf(request):
-    """Gera PDF Híbrido e Salva vínculo com Aluno se for individual."""
+    """
+    Gerador Inteligente 2.0:
+    - Cria prova baseada em erros ou aleatória.
+    - INCLUI: Descritor logo abaixo de cada questão.
+    - INCLUI: Página final de Gabarito.
+    """
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
         disciplina_id = request.POST.get('disciplina')
-        tipo_foco = request.POST.get('tipo_foco')
+        tipo_foco = request.POST.get('tipo_foco') 
+        
+        # Parâmetros
         aluno_id = request.POST.get('aluno_id')
         turma_id = request.POST.get('turma_id')
+        serie_alvo = request.POST.get('serie_alvo')
+        
         qtd_questoes = int(request.POST.get('qtd_questoes', 10))
         salvar_sistema = request.POST.get('salvar_sistema') == 'on'
 
         disciplina_obj = get_object_or_404(Disciplina, id=disciplina_id)
         
-        # --- DIAGNÓSTICO ---
-        erros_query = RespostaDetalhada.objects.filter(acertou=False, questao__disciplina=disciplina_obj)
-        turma_obj = None
-        aluno_obj = None 
-        matricula_obj = None # NOVO: Referência à matrícula
-        
+        # --- 1. DEFINIÇÃO DO ESCOPO ---
+        turmas_alvo = []
+        matricula_alvo = None
+        filtro_erros = Q()
+
         if tipo_foco == 'aluno' and aluno_id:
             aluno_obj = Aluno.objects.get(id=aluno_id)
-            # CORREÇÃO: Busca a matrícula do aluno para identificar a turma
-            matricula_obj = Matricula.objects.filter(aluno=aluno_obj, status='CURSANDO').last()
-            if matricula_obj:
-                turma_obj = matricula_obj.turma
-                # Filtra erros usando a matrícula
-                erros_query = erros_query.filter(resultado__matricula=matricula_obj)
+            matricula_alvo = Matricula.objects.filter(aluno=aluno_obj, status='CURSANDO').last()
+            if matricula_alvo:
+                turmas_alvo = [matricula_alvo.turma]
+                filtro_erros = Q(resultado__matricula=matricula_alvo)
             else:
-                # Fallback se não achar matrícula (evita crash)
-                turma_obj = Turma.objects.first() 
+                messages.error(request, "Aluno sem matrícula ativa.")
+                return redirect('gerenciar_avaliacoes')
 
         elif tipo_foco == 'turma' and turma_id:
-            turma_obj = Turma.objects.get(id=turma_id)
-            # CORREÇÃO: Filtra erros pela turma da matrícula
-            erros_query = erros_query.filter(resultado__matricula__turma_id=turma_id)
+            t_obj = get_object_or_404(Turma, id=turma_id)
+            turmas_alvo = [t_obj]
+            filtro_erros = Q(resultado__matricula__turma=t_obj)
 
-        if not turma_obj and salvar_sistema:
-            turma_obj = Turma.objects.first() 
+        elif tipo_foco == 'serie' and serie_alvo:
+            turmas_alvo = Turma.objects.filter(nome__startswith=serie_alvo)
+            filtro_erros = Q(resultado__matricula__turma__nome__startswith=serie_alvo)
 
-        # Seleção de descritores (Mantido)
+        elif tipo_foco == 'escola':
+            turmas_alvo = Turma.objects.all()
+            filtro_erros = Q() 
+
+        if not turmas_alvo:
+            messages.error(request, "Nenhuma turma encontrada.")
+            return redirect('gerenciar_avaliacoes')
+
+        # --- 2. SELEÇÃO DE QUESTÕES ---
+        erros_query = RespostaDetalhada.objects.filter(
+            acertou=False, 
+            questao__disciplina=disciplina_obj
+        ).filter(filtro_erros)
+
         descritores_criticos = erros_query.values('questao__descritor').annotate(total_erros=Count('id')).order_by('-total_erros')[:5]
         ids_descritores = [item['questao__descritor'] for item in descritores_criticos if item['questao__descritor']]
 
-        # --- SELEÇÃO DE QUESTÕES ---
         questoes_finais = []
+        
         if ids_descritores:
             pool_focado = list(Questao.objects.filter(disciplina=disciplina_obj, descritor__in=ids_descritores))
             shuffle(pool_focado)
@@ -676,116 +774,147 @@ def gerar_prova_pdf(request):
             questoes_finais += pool_geral[:falta]
 
         shuffle(questoes_finais)
-        questoes_selecionadas = questoes_finais
+        
+        if not questoes_finais:
+            messages.error(request, "Não há questões suficientes no banco.")
+            return redirect('gerenciar_avaliacoes')
 
-        # --- SALVAR NO BANCO ---
-        if salvar_sistema and questoes_selecionadas:
-            # CORREÇÃO: Vincula a matrícula se for prova individual
-            nova_avaliacao = Avaliacao.objects.create(
-                titulo=f"Reforço: {titulo}", 
-                turma=turma_obj, 
-                disciplina=disciplina_obj, 
-                matricula=matricula_obj, # <--- PULO DO GATO: Vincula à matricula do aluno
-                data_aplicacao=datetime.now().date()
-            )
-            for i, questao in enumerate(questoes_selecionadas, 1):
-                ItemGabarito.objects.create(
-                    avaliacao=nova_avaliacao, numero=i, questao_banco=questao,
-                    resposta_correta=questao.gabarito, descritor=questao.descritor
-                )
-            messages.success(request, f"Prova gerada para {aluno_obj.nome_completo if aluno_obj else turma_obj.nome}!")
+        # --- 3. SALVAR (OPCIONAL) ---
+        if salvar_sistema:
+            try:
+                with transaction.atomic():
+                    count = 0
+                    for turma in turmas_alvo:
+                        titulo_final = f"RECUPERAÇÃO: {titulo}" if matricula_alvo else titulo
+                        
+                        nova_av = Avaliacao.objects.create(
+                            titulo=titulo_final,
+                            disciplina=disciplina_obj,
+                            turma=turma,
+                            matricula=matricula_alvo,
+                            data_aplicacao=datetime.now().date()
+                        )
+                        nova_av.questoes.set(questoes_finais)
+                        
+                        for i, q in enumerate(questoes_finais, 1):
+                            ItemGabarito.objects.create(
+                                avaliacao=nova_av, numero=i, questao_banco=q,
+                                resposta_correta=q.gabarito, descritor=q.descritor
+                            )
+                        count += 1
+                    
+                    messages.success(request, f"Avaliação criada para {count} turmas/alunos.")
 
-        # --- PDF DA PROVA (Layout mantido) ---
+            except Exception as e:
+                messages.error(request, f"Erro ao salvar: {e}")
+                return redirect('gerenciar_avaliacoes')
+
+        # --- 4. GERAÇÃO DO PDF ---
+        if len(turmas_alvo) > 1:
+            return redirect('gerenciar_avaliacoes')
+        
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer, pagesize=A4)
         
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(40, 800, f"Avaliação: {titulo}")
-        p.setFont("Helvetica", 10)
+        desenhar_cabecalho_prova(p, titulo, turmas_alvo[0].nome, disciplina_obj.nome)
         
-        if aluno_obj:
-            p.drawString(40, 785, f"Aluno: {aluno_obj.nome_completo} | Turma: {turma_obj.nome}")
-        else:
-            p.drawString(40, 785, f"Turma: {turma_obj.nome if turma_obj else '___'} | Disciplina: {disciplina_obj.nome}")
-            
-        p.line(40, 775, 550, 775)
-        
-        y = 750
-        for i, q in enumerate(questoes_selecionadas, 1):
+        y = 730
+        for i, q in enumerate(questoes_finais, 1):
+            # Enunciado
             p.setFont("Helvetica-Bold", 11)
             texto_completo = f"{i}. {q.enunciado}"
             linhas_enunciado = simpleSplit(texto_completo, "Helvetica-Bold", 11, 480)
             
-            espaco_necessario = (len(linhas_enunciado) * 15) + 120 
-            if q.imagem: espaco_necessario += 150 
-
-            if y - espaco_necessario < 50:
-                p.showPage()
-                p.setFont("Helvetica-Bold", 10)
-                p.drawString(40, 800, f"Continuação - {titulo}")
-                y = 750
+            # Espaço base (Texto + Alternativas)
+            espaco = (len(linhas_enunciado) * 15) + 120
+            if q.imagem: espaco += 150
             
+            # + Espaço para o Descritor no final
+            espaco += 20 
+
+            # Verifica quebra de página
+            if y - espaco < 50:
+                p.showPage()
+                desenhar_cabecalho_prova(p, titulo, turmas_alvo[0].nome, disciplina_obj.nome)
+                y = 730
+            
+            # Desenha texto
             for linha in linhas_enunciado:
                 p.drawString(40, y, linha)
-                y -= 15 
+                y -= 15
 
+            # Desenha Imagem
             if q.imagem:
                 try:
-                    img_path = q.imagem.path
-                    img_reader = ImageReader(img_path)
+                    img_reader = ImageReader(q.imagem.path)
                     iw, ih = img_reader.getSize()
                     aspect = ih / float(iw)
-                    display_width = 200
-                    display_height = display_width * aspect
-                    if y - display_height < 50:
-                        p.showPage()
-                        y = 750
-                    y -= display_height
-                    p.drawImage(img_path, 50, y, width=display_width, height=display_height)
-                    y -= 10
+                    h_img = 200 * aspect
+                    p.drawImage(img_reader, 50, y - h_img, width=200, height=h_img)
+                    y -= (h_img + 10)
                 except: pass
 
-            p.setFont("Helvetica-Oblique", 8)
-            p.setFillColorRGB(0.4, 0.4, 0.4)
-            desc_texto = f"Habilidade: {q.descritor.codigo} - {q.descritor.descricao[:60]}..." if q.descritor else "Habilidade: Geral"
-            p.drawString(45, y, desc_texto)
-            p.setFillColorRGB(0, 0, 0)
-            y -= 15
-
+            # Desenha Alternativas
             p.setFont("Helvetica", 10)
-            opts = [('a', q.alternativa_a), ('b', q.alternativa_b), ('c', q.alternativa_c), ('d', q.alternativa_d)]
-            if q.alternativa_e: opts.append(('e', q.alternativa_e))
-            for letra, texto in opts:
-                linhas_opt = simpleSplit(f"{letra}) {texto}", "Helvetica", 10, 450)
-                for l in linhas_opt:
-                    p.drawString(50, y, l)
-                    y -= 12
-            y -= 15 
+            opts = [('A', q.alternativa_a), ('B', q.alternativa_b), ('C', q.alternativa_c), ('D', q.alternativa_d)]
+            if q.alternativa_e: opts.append(('E', q.alternativa_e))
+            
+            for l, txt in opts:
+                if txt:
+                    p.drawString(50, y, f"{l}) {txt}")
+                    y -= 15
+            
+            # --- DESCRITOR (AQUI ESTÁ O QUE VOCÊ PEDIU) ---
+            if q.descritor:
+                p.setFont("Helvetica-Oblique", 8) # Fonte itálica menor
+                p.setFillColorRGB(0.4, 0.4, 0.4)  # Cor cinza escuro
+                
+                txt_desc = f"Habilidade: {q.descritor.codigo} - {q.descritor.descricao[:90]}"
+                if len(q.descritor.descricao) > 90: txt_desc += "..."
+                
+                p.drawString(50, y, txt_desc)
+                
+                p.setFillColorRGB(0, 0, 0) # Volta para preto
+                y -= 15 # Espaço extra
+            
+            y -= 20 # Margem para próxima questão
 
-        # Gabarito
-        p.showPage() 
+        # --- PÁGINA FINAL: GABARITO ---
+        p.showPage()
+        
         p.setFont("Helvetica-Bold", 16)
         p.drawCentredString(300, 800, "GABARITO DO PROFESSOR")
         p.setFont("Helvetica", 10)
-        p.drawCentredString(300, 780, f"Prova: {titulo} | Data: {datetime.now().strftime('%d/%m/%Y')}")
+        p.drawCentredString(300, 780, f"Prova: {titulo} | Disciplina: {disciplina_obj.nome}")
+        
         y = 740
         p.setFont("Helvetica-Bold", 10)
         p.drawString(50, y, "Questão")
-        p.drawString(120, y, "Gabarito")
-        p.drawString(200, y, "Habilidade")
+        p.drawString(120, y, "Resp.")
+        p.drawString(200, y, "Descritor / Habilidade")
+        p.setLineWidth(1)
         p.line(40, y-5, 550, y-5)
         y -= 20
+        
         p.setFont("Helvetica", 10)
-        for i, q in enumerate(questoes_selecionadas, 1):
+        for i, q in enumerate(questoes_finais, 1):
             p.drawString(65, y, str(i).zfill(2))
-            p.circle(140, y+3, 8, stroke=1, fill=0) 
-            p.drawCentredString(140, y, q.gabarito)
-            desc_cod = q.descritor.codigo if q.descritor else "Geral"
-            p.drawString(200, y, f"{desc_cod}")
+            
+            p.circle(135, y+3, 8, stroke=1, fill=0) 
+            p.drawCentredString(135, y, q.gabarito)
+            
+            desc_texto = "Geral"
+            if q.descritor:
+                desc_texto = f"{q.descritor.codigo} - {q.descritor.descricao}"
+            
+            p.drawString(200, y, desc_texto[:65])
+            
             y -= 20
             if y < 50:
                 p.showPage()
-                y = 800
+                p.setFont("Helvetica-Bold", 10)
+                p.drawString(40, 800, "Continuação do Gabarito")
+                y = 760
 
         p.save()
         buffer.seek(0)
@@ -964,6 +1093,7 @@ def definir_gabarito(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     itens_salvos = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
     
+    # Auto-preencher se vier do banco de questões (Primeiro acesso)
     if not itens_salvos.exists() and avaliacao.questoes.exists():
         for i, q in enumerate(avaliacao.questoes.all(), 1):
             ItemGabarito.objects.create(
@@ -974,28 +1104,75 @@ def definir_gabarito(request, avaliacao_id):
         return redirect('definir_gabarito', avaliacao_id=avaliacao.id)
 
     if request.method == 'POST':
+        # CASO 1: Definir quantidade inicial (Grade Vazia)
         if 'qtd_questoes' in request.POST:
             qtd = int(request.POST.get('qtd_questoes'))
             ItemGabarito.objects.filter(avaliacao=avaliacao).delete()
+            # Tenta pegar um descritor padrão só pra não ir vazio
             desc_padrao = Descritor.objects.filter(disciplina=avaliacao.disciplina).first()
+            
             for i in range(1, qtd + 1):
                 ItemGabarito.objects.create(
                     avaliacao=avaliacao, numero=i, resposta_correta='A', descritor=desc_padrao
                 )
             return redirect('definir_gabarito', avaliacao_id=avaliacao.id)
+        
+        # CASO 2: Salvar Alterações e Replicar
         else:
-            for item in itens_salvos:
-                nova_resposta = request.POST.get(f'resposta_{item.id}')
-                novo_descritor_id = request.POST.get(f'descritor_{item.id}')
-                if nova_resposta: item.resposta_correta = nova_resposta
-                if novo_descritor_id: item.descritor_id = novo_descritor_id
-                item.save()
-            messages.success(request, "Mapeamento salvo!")
+            try:
+                with transaction.atomic():
+                    # 1. Salva a prova ATUAL
+                    for item in itens_salvos:
+                        nova_resposta = request.POST.get(f'resposta_{item.id}')
+                        novo_descritor_id = request.POST.get(f'descritor_{item.id}')
+                        
+                        if nova_resposta: item.resposta_correta = nova_resposta
+                        if novo_descritor_id: item.descritor_id = novo_descritor_id
+                        item.save()
+
+                    # 2. Verifica se deve REPLICAR para as outras turmas
+                    if request.POST.get('replicar_para_todos') == 'on':
+                        # Busca provas "irmãs" (Mesmo título e disciplina, mas turmas diferentes)
+                        provas_irmas = Avaliacao.objects.filter(
+                            titulo=avaliacao.titulo, 
+                            disciplina=avaliacao.disciplina
+                        ).exclude(id=avaliacao.id)
+
+                        count_replicas = 0
+                        
+                        for irma in provas_irmas:
+                            # Limpa gabarito antigo da irmã
+                            ItemGabarito.objects.filter(avaliacao=irma).delete()
+                            
+                            # Cria cópias exatas dos itens da atual
+                            novos_itens = []
+                            for gabarito_oficial in itens_salvos:
+                                novos_itens.append(ItemGabarito(
+                                    avaliacao=irma,
+                                    numero=gabarito_oficial.numero,
+                                    resposta_correta=gabarito_oficial.resposta_correta,
+                                    descritor=gabarito_oficial.descritor,
+                                    questao_banco=gabarito_oficial.questao_banco
+                                ))
+                            ItemGabarito.objects.bulk_create(novos_itens)
+                            count_replicas += 1
+                        
+                        messages.success(request, f"Gabarito salvo e replicado para outras {count_replicas} turmas com sucesso!")
+                    else:
+                        messages.success(request, "Gabarito salvo apenas para esta turma.")
+
+            except Exception as e:
+                messages.error(request, f"Erro ao salvar: {e}")
+
             return redirect('gerenciar_avaliacoes')
 
+    # Busca descritores para o Select
+    descritores = Descritor.objects.filter(disciplina=avaliacao.disciplina).order_by('codigo')
+
     context = {
-        'avaliacao': avaliacao, 'itens': itens_salvos,
-        'descritores': Descritor.objects.filter(disciplina=avaliacao.disciplina), 
+        'avaliacao': avaliacao, 
+        'itens': itens_salvos,
+        'descritores': descritores, 
         'tem_itens': itens_salvos.exists()
     }
     return render(request, 'core/definir_gabarito.html', context)
@@ -1178,22 +1355,32 @@ def gerenciar_alunos(request):
 
 @login_required
 def gerenciar_avaliacoes(request):
+    """
+    Apenas exibe a lista e os filtros. Não precisa de grandes mudanças.
+    """
+    # Lógica de Exclusão (se houver POST na mesma tela)
     if request.method == 'POST' and 'delete_id' in request.POST:
         av = get_object_or_404(Avaliacao, id=request.POST.get('delete_id'))
         av.delete()
-        messages.success(request, 'Avaliação removida!')
+        messages.success(request, 'Avaliação removida com sucesso!')
         return redirect('gerenciar_avaliacoes')
 
+    # Filtros
     turma_id = request.GET.get('turma')
     disciplina_id = request.GET.get('disciplina')
+    
     avaliacoes = Avaliacao.objects.select_related('turma', 'disciplina').all().order_by('-data_aplicacao')
     
-    if turma_id: avaliacoes = avaliacoes.filter(turma_id=turma_id)
-    if disciplina_id: avaliacoes = avaliacoes.filter(disciplina_id=disciplina_id)
+    if turma_id:
+        avaliacoes = avaliacoes.filter(turma_id=turma_id)
+    if disciplina_id:
+        avaliacoes = avaliacoes.filter(disciplina_id=disciplina_id)
 
     return render(request, 'core/avaliacoes.html', {
-        'avaliacoes': avaliacoes, 'turmas': Turma.objects.all(),
-        'disciplinas': Disciplina.objects.all(), 'total_avaliacoes': avaliacoes.count()
+        'avaliacoes': avaliacoes,
+        'turmas': Turma.objects.all().order_by('nome'),
+        'disciplinas': Disciplina.objects.all().order_by('nome'),
+        'total_avaliacoes': avaliacoes.count()
     })
 
 @login_required
@@ -1340,42 +1527,75 @@ def editar_avaliacao(request, avaliacao_id):
 
 @login_required
 def gerar_relatorio_proficiencia(request):
-    # 1. Recupera Filtros (Mantido igual)
+    import io
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from datetime import datetime
+
+    # 1. Recupera Filtros
     serie_id = request.GET.get('serie')
     turma_id = request.GET.get('turma')
-    aluno_id = request.GET.get('aluno')
+    aluno_id = request.GET.get('aluno')  # <--- AGORA VAI RECEBER O ID
     avaliacao_id = request.GET.get('avaliacao')
     disciplina_id = request.GET.get('disciplina')
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
 
-    # Config da Escola
+    # Configs Gerais
     config = ConfiguracaoSistema.objects.first()
     nome_escola = config.nome_escola if config else "SAMI EDUCACIONAL"
     cor_pri = colors.HexColor(config.cor_primaria) if config else colors.HexColor("#1e293b")
     
     # 2. Filtra Dados
-    resultados = Resultado.objects.all()
+    resultados = Resultado.objects.select_related('avaliacao', 'matricula__aluno', 'matricula__turma')
     filtros_texto = []
+    titulo_relatorio = "RELATÓRIO PEDAGÓGICO DE PROFICIÊNCIA"
 
     if disciplina_id:
-        resultados = resultados.filter(avaliacao__disciplina_id=disciplina_id)
-        filtros_texto.append(f"Disciplina: {Disciplina.objects.get(id=disciplina_id).nome}")
-    if turma_id:
-        resultados = resultados.filter(avaliacao__turma_id=turma_id)
-        filtros_texto.append(f"Turma: {Turma.objects.get(id=turma_id).nome}")
-    if avaliacao_id:
-        resultados = resultados.filter(avaliacao_id=avaliacao_id)
-        filtros_texto.append(f"Prova: {Avaliacao.objects.get(id=avaliacao_id).titulo}")
-    
-    if not filtros_texto: filtros_texto.append("Visão Geral")
+        try:
+            disc = Disciplina.objects.get(id=disciplina_id)
+            resultados = resultados.filter(avaliacao__disciplina=disc)
+            filtros_texto.append(f"Disciplina: {disc.nome}")
+        except: pass
 
-    # 3. Processa Dados (Agregação)
+    if turma_id:
+        try:
+            turma = Turma.objects.get(id=turma_id)
+            resultados = resultados.filter(avaliacao__turma=turma)
+            filtros_texto.append(f"Turma: {turma.nome}")
+        except: pass
+
+    # LÓGICA DO ALUNO (O pulo do gato)
+    if aluno_id:
+        try:
+            aluno = Aluno.objects.get(id=aluno_id)
+            resultados = resultados.filter(matricula__aluno=aluno)
+            filtros_texto.append(f"ALUNO: {aluno.nome_completo}")
+            titulo_relatorio = "RELATÓRIO INDIVIDUAL DE DESEMPENHO"
+        except: pass
+
+    if avaliacao_id:
+        try:
+            av = Avaliacao.objects.get(id=avaliacao_id)
+            resultados = resultados.filter(avaliacao=av)
+            filtros_texto.append(f"Prova: {av.titulo}")
+        except: pass
+    
+    if data_inicio: resultados = resultados.filter(avaliacao__data_aplicacao__gte=data_inicio)
+    if data_fim: resultados = resultados.filter(avaliacao__data_aplicacao__lte=data_fim)
+
+    if not filtros_texto: filtros_texto.append("Visão Geral da Escola")
+
+    # 3. Processa Dados (Agrega descritores)
     respostas_qs = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related(
         'item_gabarito__descritor', 'questao__descritor'
     )
 
     stats = {}
+    total_itens_respondidos = 0
+
     for resp in respostas_qs:
         desc = None
         if resp.item_gabarito and resp.item_gabarito.descritor: desc = resp.item_gabarito.descritor
@@ -1386,87 +1606,105 @@ def gerar_relatorio_proficiencia(request):
             if cod not in stats: stats[cod] = {'desc': desc.descricao, 'total': 0, 'acertos': 0}
             stats[cod]['total'] += 1
             if resp.acertou: stats[cod]['acertos'] += 1
+            total_itens_respondidos += 1
 
     dados_ordenados = sorted(stats.items())
 
-    # --- 4. GERA O PDF PREMIUM ---
+    # --- 4. GERA O PDF ---
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
     elements = []
     styles = getSampleStyleSheet()
 
-    # Título Principal
+    # Cabeçalho
     header_style = ParagraphStyle('Header', parent=styles['Normal'], fontSize=16, textColor=cor_pri, spaceAfter=2, fontName='Helvetica-Bold')
     sub_style = ParagraphStyle('Sub', parent=styles['Normal'], fontSize=10, textColor=colors.grey, spaceAfter=12)
     
     elements.append(Paragraph(f"{nome_escola.upper()}", header_style))
-    elements.append(Paragraph("RELATÓRIO PEDAGÓGICO DE PROFICIÊNCIA", sub_style))
+    elements.append(Paragraph(titulo_relatorio, sub_style))
     elements.append(Spacer(1, 10))
     
     # Caixa de Contexto
     contexto_texto = " | ".join(filtros_texto)
     data_geracao = datetime.now().strftime('%d/%m/%Y às %H:%M')
     
-    t_ctx = Table([[f"CONTEXTO: {contexto_texto}", f"EMISSÃO: {data_geracao}"]], colWidths=[380, 150])
+    # Calcula Média Geral dos resultados filtrados para exibir no topo
+    media_filtrada = resultados.aggregate(Avg('percentual'))['percentual__avg'] or 0
+    media_formatada = str(round(media_filtrada/10, 1)).replace('.', ',')
+
+    t_ctx = Table([
+        [f"CONTEXTO: {contexto_texto}"],
+        [f"NOTA MÉDIA NO PERÍODO: {media_formatada} | ITENS ANALISADOS: {total_itens_respondidos}"]
+    ], colWidths=[540])
+    
     t_ctx.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f1f5f9")),
         ('TEXTCOLOR', (0,0), (-1,-1), colors.black),
         ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,-1), 8),
-        ('PADDING', (0,0), (-1,-1), 8),
+        ('FONTSIZE', (0,0), (-1,-1), 9),
+        ('PADDING', (0,0), (-1,-1), 10),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#cbd5e1")),
     ]))
     elements.append(t_ctx)
     elements.append(Spacer(1, 20))
 
-    # --- TABELA DE DADOS ---
-    data_table = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'QTD', '% ACERTO', 'NÍVEL']]
+    # Tabela de Dados
+    if not dados_ordenados:
+        elements.append(Paragraph("Nenhum dado encontrado para os filtros selecionados.", styles['Normal']))
+    else:
+        # Cabeçalho da Tabela
+        data_table = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'QTD', '% ACERTO', 'NÍVEL']]
 
-    for cod, d in dados_ordenados:
-        perc = (d['acertos'] / d['total']) * 100 if d['total'] > 0 else 0
-        
-        # Cores de Nível
-        cor_nivel = colors.red
-        nivel_txt = "CRÍTICO"
-        if perc >= 80: 
-            cor_nivel = colors.green; nivel_txt = "ADEQUADO"
-        elif perc >= 60: 
-            cor_nivel = colors.orange; nivel_txt = "INTERMED."
-        
-        desc_para = Paragraph(d['desc'], ParagraphStyle('d', fontSize=8, leading=9))
-        nivel_para = Paragraph(f"<font color='{cor_nivel.hexval()}'><b>{nivel_txt}</b></font>", ParagraphStyle('n', alignment=1))
+        for cod, d in dados_ordenados:
+            perc = (d['acertos'] / d['total']) * 100 if d['total'] > 0 else 0
+            
+            # Cores de Nível
+            cor_nivel = colors.red
+            nivel_txt = "CRÍTICO"
+            if perc >= 80: 
+                cor_nivel = colors.green; nivel_txt = "ADEQUADO"
+            elif perc >= 60: 
+                cor_nivel = colors.orange; nivel_txt = "INTERMED."
+            
+            desc_para = Paragraph(d['desc'], ParagraphStyle('d', fontSize=8, leading=9))
+            nivel_para = Paragraph(f"<font color='{cor_nivel.hexval()}'><b>{nivel_txt}</b></font>", ParagraphStyle('n', alignment=1))
 
-        row = [
-            Paragraph(f"<b>{cod}</b>", styles['Normal']),
-            desc_para,
-            str(d['total']),
-            f"{perc:.1f}%",
-            nivel_para
-        ]
-        data_table.append(row)
+            row = [
+                Paragraph(f"<b>{cod}</b>", styles['Normal']),
+                desc_para,
+                str(d['total']),
+                f"{perc:.1f}%",
+                nivel_para
+            ]
+            data_table.append(row)
 
-    t = Table(data_table, colWidths=[50, 330, 40, 60, 70])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), cor_pri), 
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 9),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")), 
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]), 
-    ]))
-    
-    elements.append(t)
+        t = Table(data_table, colWidths=[50, 330, 40, 60, 70])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), cor_pri), 
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")), 
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]), 
+        ]))
+        elements.append(t)
     
     elements.append(Spacer(1, 30))
-    elements.append(Paragraph(f"<i>Sistema de Avaliação {nome_escola}</i>", ParagraphStyle('footer', fontSize=8, textColor=colors.grey, alignment=1)))
+    elements.append(Paragraph(f"<i>Gerado em {data_geracao}</i>", ParagraphStyle('footer', fontSize=8, textColor=colors.grey, alignment=1)))
 
     doc.build(elements)
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f"Proficiencia_{datetime.now().strftime('%Y%m%d')}.pdf")
+    
+    filename = "Relatorio_Geral.pdf"
+    if aluno_id and resultados.exists():
+        filename = f"Relatorio_{resultados.first().matricula.aluno.nome_completo.split()[0]}.pdf"
+        
+    return FileResponse(buffer, as_attachment=True, filename=filename)
 
 @login_required
 def api_filtrar_alunos(request):
@@ -1939,14 +2177,24 @@ def gerar_boletim_pdf(request, aluno_id):
 # ==========================================
 @login_required
 def gerar_cartoes_pdf(request, avaliacao_id):
+    """
+    Gera cartões resposta com QR Code baseado na MATRÍCULA (M).
+    Formato QR: A{avaliacao_id}-M{matricula_id}
+    """
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     
-    # CORREÇÃO: Busca as MATRÍCULAS ativas da turma
-    if avaliacao.matricula: # Se for prova individual (recuperação)
+    # Define quais matrículas vão receber o cartão
+    if avaliacao.matricula: 
+        # Caso seja prova de recuperação (apenas 1 aluno)
         matriculas = [avaliacao.matricula]
     else:
-        matriculas = Matricula.objects.filter(turma=avaliacao.turma, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
+        # Caso seja prova da turma toda (apenas ativos)
+        matriculas = Matricula.objects.filter(
+            turma=avaliacao.turma, 
+            status='CURSANDO'
+        ).select_related('aluno').order_by('aluno__nome_completo')
     
+    # Configuração do PDF
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -1975,22 +2223,25 @@ def gerar_cartoes_pdf(request, avaliacao_id):
             mat = matriculas[aluno_idx]
             aluno = mat.aluno
             
+            # Desenha Borda Pontilhada (Corte)
             c.setStrokeColor(colors.black)
             c.setLineWidth(1)
             c.setDash([2, 4])
             c.rect(pos_x, pos_y, card_w, card_h, stroke=1, fill=0)
             c.setDash([])
 
-            # Marcadores Fiduciais
+            # Marcadores Fiduciais (Para a IA ler)
             c.setFillColor(colors.black)
             marker_size = 15
+            # Top-Left, Top-Right, Bottom-Left, Bottom-Right
             c.rect(pos_x + 10, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
             c.rect(pos_x + card_w - 10 - marker_size, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
             c.rect(pos_x + 10, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
             c.rect(pos_x + card_w - 10 - marker_size, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
 
-            # QR Code (A=Avaliação, U=Aluno)
-            qr_data = f"A{avaliacao.id}-U{aluno.id}"
+            # --- GERAÇÃO DO QR CODE (ATUALIZADO PARA MATRÍCULA 'M') ---
+            qr_data = f"A{avaliacao.id}-M{mat.id}"  # Ex: A15-M203
+            
             qr = qrcode.QRCode(box_size=2, border=0)
             qr.add_data(qr_data)
             qr.make(fit=True)
@@ -1998,16 +2249,21 @@ def gerar_cartoes_pdf(request, avaliacao_id):
             qr_img_reader = ImageReader(img_qr._img)
             
             c.drawImage(qr_img_reader, pos_x + card_w - 70, pos_y + 20, width=50, height=50)
+            # ---------------------------------------------------------
             
+            # Dados do Aluno (Texto)
             c.setFillColor(colors.black)
             c.setFont("Helvetica-Bold", 11)
             c.drawString(pos_x + 35, pos_y + card_h - 25, "CARTÃO RESPOSTA")
+            
             c.setFont("Helvetica", 9)
             c.drawString(pos_x + 35, pos_y + card_h - 45, f"Aluno: {aluno.nome_completo[:25]}")
             c.drawString(pos_x + 35, pos_y + card_h - 58, f"Prova: {avaliacao.titulo[:25]}")
-            c.setFont("Helvetica", 8)
-            c.drawString(pos_x + 35, pos_y + card_h - 70, f"Turma: {mat.turma.nome} | Matr.: {aluno.id}")
             
+            c.setFont("Helvetica", 8)
+            c.drawString(pos_x + 35, pos_y + card_h - 70, f"Turma: {mat.turma.nome} | Matrícula: {mat.id}")
+            
+            # Bolinhas (Questões)
             y_start = pos_y + card_h - 95
             x_col1 = pos_x + 30
             x_col2 = pos_x + card_w/2 + 10 
@@ -2054,51 +2310,69 @@ def gerenciar_ndi(request):
     alunos_data = []
     turma_selecionada = None
 
-    def tratar_nota(valor_str):
+    # Função auxiliar para limpar e converter a nota
+    def processar_nota(valor_str):
         if not valor_str or valor_str.strip() == '':
-            return 0.0
+            return None # Retorna None se estiver vazio
         try:
-            valor = float(valor_str.replace(',', '.'))
-            if valor < 0: return 0.0
-            if valor > 10: return 10.0
-            return valor
+            val = float(valor_str.replace(',', '.'))
+            # Garante limites no Backend também
+            return max(0.0, min(10.0, val))
         except ValueError:
-            return 0.0
+            return None
 
     if turma_id:
         turma_selecionada = get_object_or_404(Turma, id=turma_id)
-        # CORREÇÃO: Busca matrículas ativas
         matriculas = Matricula.objects.filter(turma_id=turma_id, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
         
         if request.method == 'POST':
             salvos = 0
+            ignorados = 0
+            
             for mat in matriculas:
-                freq = tratar_nota(request.POST.get(f'freq_{mat.id}')) # ID da matrícula no form
-                atv = tratar_nota(request.POST.get(f'atv_{mat.id}'))
-                comp = tratar_nota(request.POST.get(f'comp_{mat.id}'))
-                pp = tratar_nota(request.POST.get(f'pp_{mat.id}'))
-                pb = tratar_nota(request.POST.get(f'pb_{mat.id}'))
+                # Captura os 5 campos
+                raw_freq = request.POST.get(f'freq_{mat.id}')
+                raw_atv = request.POST.get(f'atv_{mat.id}')
+                raw_comp = request.POST.get(f'comp_{mat.id}')
+                raw_pp = request.POST.get(f'pp_{mat.id}')
+                raw_pb = request.POST.get(f'pb_{mat.id}')
                 
-                NDI.objects.update_or_create(
-                    matricula=mat, bimestre=bimestre, # Vincula à matrícula
-                    defaults={
-                        'nota_frequencia': freq, 
-                        'nota_atividade': atv,
-                        'nota_comportamento': comp,
-                        'nota_prova_parcial': pp, 
-                        'nota_prova_bimestral': pb
-                    }
-                )
-                salvos += 1
-            messages.success(request, f"NDI salva para {salvos} alunos no {bimestre}º Bimestre!")
+                notas = [
+                    processar_nota(raw_freq), processar_nota(raw_atv), 
+                    processar_nota(raw_comp), processar_nota(raw_pp), 
+                    processar_nota(raw_pb)
+                ]
+
+                # REGRA DE OURO: Verifica se TODOS os campos têm valor (não são None)
+                if all(n is not None for n in notas):
+                    NDI.objects.update_or_create(
+                        matricula=mat, bimestre=bimestre,
+                        defaults={
+                            'nota_frequencia': notas[0],
+                            'nota_atividade': notas[1],
+                            'nota_comportamento': notas[2],
+                            'nota_prova_parcial': notas[3],
+                            'nota_prova_bimestral': notas[4]
+                        }
+                    )
+                    salvos += 1
+                else:
+                    # Se algum campo tiver valor mas não todos, contamos como ignorado/incompleto
+                    # (A validação JS deve impedir isso, mas o backend protege)
+                    if any(n is not None for n in notas):
+                        ignorados += 1
+
+            msg = f"Sucesso! Notas de {salvos} alunos atualizadas."
+            if ignorados > 0:
+                messages.warning(request, f"{msg} Atenção: {ignorados} alunos tinham dados incompletos e não foram salvos.")
+            else:
+                messages.success(request, msg)
+                
             return redirect(f"{request.path}?turma={turma_id}&bimestre={bimestre}")
 
         for mat in matriculas:
             ndi = NDI.objects.filter(matricula=mat, bimestre=bimestre).first()
-            alunos_data.append({
-                'obj': mat, # Passamos o objeto matrícula para ter acesso ao ID e ao Aluno
-                'ndi': ndi
-            })
+            alunos_data.append({'obj': mat, 'ndi': ndi})
 
     return render(request, 'core/gerenciar_ndi.html', {
         'turmas': turmas,
@@ -2111,20 +2385,35 @@ def gerenciar_ndi(request):
 @login_required
 def plano_anual(request):
     turma_id = request.GET.get('turma')
-    disciplina_selecionada = request.GET.get('disciplina', 'Matemática') 
     
-    turmas = Turma.objects.all()
-    disciplinas = ['Matemática', 'Português', 'História', 'Geografia', 'Ciências']
+    # --- CORREÇÃO AQUI ---
+    # Busca os nomes de todas as disciplinas cadastradas no banco
+    disciplinas_qs = Disciplina.objects.values_list('nome', flat=True).order_by('nome')
+    
+    # Define qual disciplina exibir:
+    # 1. Tenta pegar da URL (GET)
+    # 2. Se não tiver, pega a primeira do banco
+    # 3. Se o banco estiver vazio, usa um fallback
+    disciplina_selecionada = request.GET.get('disciplina')
+    
+    if not disciplina_selecionada:
+        if disciplinas_qs.exists():
+            disciplina_selecionada = disciplinas_qs.first()
+        else:
+            disciplina_selecionada = 'Matemática' # Fallback de segurança
 
+    turmas = Turma.objects.all().order_by('nome')
+    
+    # Inicializa variáveis
     plano = None
     dados_kanban = {} 
-
     for b in range(1, 5):
         dados_kanban[b] = {'TODO': [], 'DOING': [], 'DONE': []}
 
     if turma_id:
         turma = get_object_or_404(Turma, id=turma_id)
         
+        # Cria ou Pega o plano para aquela Turma + Disciplina
         plano, created = PlanoEnsino.objects.get_or_create(
             turma=turma, 
             disciplina_nome=disciplina_selecionada, 
@@ -2137,7 +2426,7 @@ def plano_anual(request):
             if 'arquivo_plano' in request.FILES:
                 plano.arquivo = request.FILES['arquivo_plano']
                 plano.save()
-                messages.success(request, "Arquivo anexado!")
+                messages.success(request, "Arquivo anexado com sucesso!")
             
             elif acao == 'criar':
                 conteudo = request.POST.get('conteudo')
@@ -2160,13 +2449,14 @@ def plano_anual(request):
             
             return redirect(f"{request.path}?turma={turma_id}&disciplina={disciplina_selecionada}")
 
+        # Carrega os tópicos para o Kanban
         topicos = plano.topicos.all().order_by('id')
         for t in topicos:
             dados_kanban[t.bimestre][t.status].append(t)
 
     return render(request, 'core/plano_anual.html', {
         'turmas': turmas,
-        'disciplinas': disciplinas,
+        'disciplinas': disciplinas_qs, # Passa a lista real do banco
         'turma_selecionada_id': int(turma_id) if turma_id else None,
         'disciplina_atual': disciplina_selecionada,
         'plano': plano,
@@ -2291,40 +2581,58 @@ def upload_correcao_cartao(request, avaliacao_id):
 # ==========================================
 @csrf_exempt 
 def api_ler_cartao(request):
+    """
+    Recebe a foto do cartão, lê o QR Code (Axx-Mxx) e as bolinhas.
+    Retorna o ID do ALUNO correspondente à matrícula lida.
+    """
     if request.method == 'POST' and request.FILES.get('foto'):
         path = ""
         try:
             foto = request.FILES['foto']
             avaliacao_id = request.POST.get('avaliacao_id')
             
+            # Salva temporariamente
             path = f"media/temp/{foto.name}"
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, 'wb+') as destination:
                 for chunk in foto.chunks():
                     destination.write(chunk)
 
+            # Define qtd de questões baseada na avaliação (se houver)
             qtd_questoes = 10
             if avaliacao_id:
                 qtd = ItemGabarito.objects.filter(avaliacao_id=avaliacao_id).count()
                 if qtd > 0: qtd_questoes = qtd
 
+            # Processa OMR (Bolinhas)
             scanner = OMRScanner()
             resultado = scanner.processar_cartao(path, qtd_questoes=qtd_questoes)
             
-            # Lógica QR Code -> Identifica Aluno
+            # --- LÓGICA DO QR CODE (AQUI MUDOU) ---
             if resultado.get('qr_code'):
                 try:
-                    codigo = resultado['qr_code'] # Ex: "A15-U102"
+                    codigo = resultado['qr_code'] # Esperado: "A15-M203" ou legado "A15-U50"
                     partes = codigo.split('-') 
                     
                     for p in partes:
-                        if p.startswith('U'):
-                            aluno_id = int(p[1:])
-                            resultado['aluno_detectado_id'] = aluno_id
+                        # SUPORTE NOVO: M = Matrícula
+                        if p.startswith('M'):
+                            matricula_id = int(p[1:])
+                            # Busca a matrícula para descobrir o aluno real
+                            try:
+                                mat = Matricula.objects.get(id=matricula_id)
+                                resultado['aluno_detectado_id'] = mat.aluno.id
+                            except Matricula.DoesNotExist:
+                                print(f"Matrícula {matricula_id} não encontrada.")
+
+                        # SUPORTE LEGADO: U = Usuário/Aluno (para cartões antigos não pararem de funcionar)
+                        elif p.startswith('U'):
+                            resultado['aluno_detectado_id'] = int(p[1:])
                             
                 except Exception as e:
-                    print(f"Erro ao parsear QR Code: {e}")
+                    print(f"Erro ao interpretar QR Code '{codigo}': {e}")
 
+            # Limpeza
             if os.path.exists(path):
                 os.remove(path)
 
@@ -2432,17 +2740,18 @@ def dashboard_redirect(request):
     
 
 def consultar_acesso(request):
-    resultado = None
-    if request.method == 'POST':
-        termo = request.POST.get('nome_busca')
-        # CORREÇÃO: Apenas alunos com MATRÍCULA ATIVA aparecem
-        if termo:
-            resultado = Aluno.objects.filter(
-                nome_completo__icontains=termo, 
-                matriculas__status='CURSANDO'
-            ).distinct()
+    matriculas = None
+    termo = request.GET.get('nome_busca') or request.POST.get('nome_busca')
     
-    return render(request, 'core/consultar_acesso.html', {'resultado': resultado})
+    if termo:
+        # Busca nas matrículas ATIVAS. 
+        # O select_related puxa os dados do Aluno, do Usuário e da Turma em uma tacada só (muito mais rápido)
+        matriculas = Matricula.objects.filter(
+            aluno__nome_completo__icontains=termo, 
+            status='CURSANDO'
+        ).select_related('aluno', 'aluno__usuario', 'turma')
+    
+    return render(request, 'core/consultar_acesso.html', {'matriculas': matriculas, 'termo_busca': termo})
 
 def logout_view(request):
     logout(request) 
@@ -2531,3 +2840,176 @@ def gerar_acessos_em_massa(request):
         messages.warning(request, 'Todos os alunos já possuem acesso.')
         
     return redirect('dashboard')
+
+
+# core/views.py (Adicione no final)
+
+@login_required
+def relatorio_ndi_print(request, turma_id, bimestre):
+    turma = get_object_or_404(Turma, id=turma_id)
+    matriculas = Matricula.objects.filter(turma=turma, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
+    
+    dados = []
+    
+    for mat in matriculas:
+        ndi = NDI.objects.filter(matricula=mat, bimestre=bimestre).first()
+        
+        # Valores padrão 0.0 se não existir nota
+        freq = ndi.nota_frequencia if ndi else 0.0
+        atv = ndi.nota_atividade if ndi else 0.0
+        comp = ndi.nota_comportamento if ndi else 0.0
+        pp = ndi.nota_prova_parcial if ndi else 0.0
+        pb = ndi.nota_prova_bimestral if ndi else 0.0
+        
+        # Cálculos (Mesma lógica do Javascript)
+        parcial = (freq + atv + comp) / 3
+        final = (parcial + pp + pb) / 3
+        
+        status = 'APROVADO' if final >= 6 else 'RECUPERAÇÃO' if final >= 4 else 'REPROVADO'
+        
+        dados.append({
+            'aluno': mat.aluno.nome_completo,
+            'notas': {
+                'freq': freq, 'atv': atv, 'comp': comp,
+                'parcial': parcial,
+                'pp': pp, 'pb': pb,
+                'final': final
+            },
+            'status': status
+        })
+
+    return render(request, 'core/relatorio_ndi_print.html', {
+        'turma': turma,
+        'bimestre': bimestre,
+        'dados': dados,
+        'data_geracao': timezone.now()
+    })
+
+
+
+@login_required
+def api_lancar_nota_ajax(request):
+    import json
+    
+    # 1. RECUPERAR DADOS (GET)
+    if request.method == 'GET':
+        aluno_id = request.GET.get('aluno_id')
+        avaliacao_id = request.GET.get('avaliacao_id')
+        
+        try:
+            resultado = Resultado.objects.filter(
+                matricula__aluno_id=aluno_id, 
+                matricula__turma__avaliacao__id=avaliacao_id,
+                avaliacao_id=avaliacao_id
+            ).first()
+            
+            dados = {'respostas': {}, 'nota': 0, 'ausente': False}
+            
+            if resultado:
+                # Se acertos for None, considera 0 para não quebrar a tela
+                acertos = resultado.acertos if resultado.acertos is not None else 0
+                dados['nota'] = acertos
+
+                tem_respostas = RespostaDetalhada.objects.filter(resultado=resultado).exists()
+                if acertos == 0 and not tem_respostas:
+                    dados['ausente'] = True
+                
+                detalhes = RespostaDetalhada.objects.filter(resultado=resultado)
+                for r in detalhes:
+                    letra = r.resposta_aluno if r.resposta_aluno else ''
+                    if not letra and r.acertou:
+                        letra = r.item_gabarito.resposta_correta
+                    dados['respostas'][r.item_gabarito.numero] = letra
+
+            return JsonResponse({'sucesso': True, 'dados': dados})
+        except Exception as e:
+            return JsonResponse({'sucesso': False, 'erro': str(e)})
+
+    # 2. SALVAR DADOS (POST)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            aluno_id = data.get('aluno_id')
+            avaliacao_id = data.get('avaliacao_id')
+            respostas_aluno = data.get('respostas')
+            is_ausente = data.get('ausente', False)
+
+            avaliacao = Avaliacao.objects.get(id=avaliacao_id)
+            matricula = Matricula.objects.get(aluno_id=aluno_id, turma=avaliacao.turma, status='CURSANDO')
+            
+            gabarito = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
+            qtd_questoes = gabarito.count()
+
+            if qtd_questoes == 0:
+                 return JsonResponse({'sucesso': False, 'erro': 'Defina o gabarito antes de lançar notas.'})
+
+            # --- AQUI ESTÁ A CORREÇÃO MÁGICA ---
+            # O get_or_create primeiro busca. Se não achar, cria.
+            # Mas aqui vamos usar uma lógica manual para garantir que NUNCA seja None.
+            
+            resultado = Resultado.objects.filter(avaliacao=avaliacao, matricula=matricula).first()
+
+            if not resultado:
+                # SE NÃO EXISTE, CRIA JÁ COM ZEROS
+                # Isso impede que o 'save()' automático do seu model quebre a conta
+                resultado = Resultado(
+                    avaliacao=avaliacao,
+                    matricula=matricula,
+                    total_questoes=qtd_questoes,
+                    acertos=0,         # Força 0 em vez de None
+                    percentual=0.0     # Força 0.0 em vez de None
+                )
+                resultado.save() # Salva seguro
+            else:
+                # Se já existe, atualiza o total de questões para garantir
+                resultado.total_questoes = qtd_questoes
+                # Se estiver None por algum motivo antigo, corrige agora
+                if resultado.acertos is None: resultado.acertos = 0
+                if resultado.percentual is None: resultado.percentual = 0.0
+                resultado.save()
+
+            # Limpa respostas antigas
+            RespostaDetalhada.objects.filter(resultado=resultado).delete()
+
+            # LÓGICA DE AUSENTE
+            if is_ausente:
+                resultado.acertos = 0
+                resultado.percentual = 0.0
+                resultado.save()
+                return JsonResponse({'sucesso': True, 'msg': 'Aluno marcado como ausente.'})
+
+            # LÓGICA DE PRESENTE (Correção)
+            acertos = 0
+            objs_resposta = []
+
+            for item in gabarito:
+                num_str = str(item.numero)
+                letra_aluno = respostas_aluno.get(num_str, '').upper()
+                
+                acertou = False
+                if letra_aluno:
+                    if letra_aluno == item.resposta_correta:
+                        acertou = True
+                        acertos += 1
+                    
+                    objs_resposta.append(RespostaDetalhada(
+                        resultado=resultado,
+                        item_gabarito=item,
+                        questao=item.questao_banco,
+                        acertou=acertou,
+                        resposta_aluno=letra_aluno 
+                    ))
+            
+            RespostaDetalhada.objects.bulk_create(objs_resposta)
+            
+            # ATUALIZA A NOTA FINAL
+            resultado.acertos = acertos
+            resultado.percentual = (acertos / qtd_questoes) * 100
+            resultado.save()
+
+            return JsonResponse({'sucesso': True, 'msg': f'Nota salva: {acertos} acertos.'})
+
+        except Exception as e:
+            print(f"ERRO CRÍTICO: {e}") # Isso vai mostrar o erro real no seu terminal preto
+            return JsonResponse({'sucesso': False, 'erro': f"Erro interno: {str(e)}"})
+        
