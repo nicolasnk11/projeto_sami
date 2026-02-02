@@ -40,6 +40,19 @@ class Aluno(models.Model):
     
     def __str__(self): return self.nome_completo
 
+
+class Professor(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professor_perfil')
+    nome_completo = models.CharField(max_length=150)
+    
+    # Aqui está a mágica: O professor pode ter várias disciplinas e várias turmas
+    disciplinas = models.ManyToManyField(Disciplina, related_name='professores')
+    turmas = models.ManyToManyField(Turma, related_name='professores')
+
+    def __str__(self):
+        return f"Prof. {self.nome_completo}"
+
+
 class Matricula(models.Model):
     """
     TABELA NOVA: Liga o Aluno à Turma em um Ano específico.
@@ -98,13 +111,22 @@ class Questao(models.Model):
 # 3. AVALIAÇÃO E RESULTADOS
 # ==============================================================================
 
+# ... seus outros imports ...
+
 class Avaliacao(models.Model):
     titulo = models.CharField(max_length=100)
     data_aplicacao = models.DateField()
     disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
     turma = models.ForeignKey(Turma, on_delete=models.PROTECT)
     questoes = models.ManyToManyField(Questao, related_name='avaliacoes', blank=True)
-    def __str__(self): return f"{self.titulo} - {self.turma}"
+    
+    # --- NOVO CAMPO (O Jeito Certo) ---
+    # Vincula a prova a um aluno específico (para recuperações).
+    # Se for prova geral da turma, fica vazio.
+    matricula = models.ForeignKey('Matricula', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.titulo} - {self.turma}"
 
 class ItemGabarito(models.Model):
     avaliacao = models.ForeignKey(Avaliacao, on_delete=models.CASCADE, related_name='itens_gabarito')

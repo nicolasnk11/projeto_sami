@@ -3,7 +3,7 @@ from .models import (
     Turma, Aluno, Disciplina, Avaliacao, Resultado, Questao, 
     RespostaDetalhada, ConfiguracaoSistema, ItemGabarito, 
     Descritor, NDI, PlanoEnsino, TopicoPlano, CategoriaAjuda, Tutorial,
-    Matricula  # <--- Importante: Adicionei Matrícula
+    Matricula, Professor # <--- Importante: Adicionei Matrícula
 )
 
 # --- CLASSES PERSONALIZADAS ---
@@ -13,6 +13,11 @@ class TurmaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'ano_letivo')
     list_filter = ('ano_letivo',)
     search_fields = ('nome',)
+    
+@admin.register(Professor)
+class ProfessorAdmin(admin.ModelAdmin):
+    list_display = ('nome_completo', 'usuario')
+    filter_horizontal = ('disciplinas', 'turmas') # Cria uma caixinha fácil de selecionar
 
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):

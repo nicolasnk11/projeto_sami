@@ -638,19 +638,12 @@ def criar_avaliacao(request):
     return render(request, 'core/criar_avaliacao.html', context)
 
 @login_required
-def gerar_prova(request):
-    if request.method == 'POST':
-        return gerar_prova_pdf(request)
-    form = GerarProvaForm()
-    return render(request, 'core/configurar_prova.html', {'form': form})
-
-@login_required
 def gerar_prova_pdf(request):
     """
-    Gerador Inteligente 2.0:
+    Gerador Inteligente 2.0 (Versão Completa & Definitiva):
     - Cria prova baseada em erros ou aleatória.
-    - INCLUI: Descritor logo abaixo de cada questão.
-    - INCLUI: Página final de Gabarito.
+    - Salva no banco vinculando ao Aluno (Recuperação) ou Turma.
+    - Gera PDF com descritores e gabarito.
     """
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
@@ -674,9 +667,12 @@ def gerar_prova_pdf(request):
 
         if tipo_foco == 'aluno' and aluno_id:
             aluno_obj = Aluno.objects.get(id=aluno_id)
+            # Pega a matrícula ativa do aluno
             matricula_alvo = Matricula.objects.filter(aluno=aluno_obj, status='CURSANDO').last()
+            
             if matricula_alvo:
                 turmas_alvo = [matricula_alvo.turma]
+                # Filtra erros apenas deste aluno específico
                 filtro_erros = Q(resultado__matricula=matricula_alvo)
             else:
                 messages.error(request, "Aluno sem matrícula ativa.")
@@ -700,21 +696,25 @@ def gerar_prova_pdf(request):
             return redirect('gerenciar_avaliacoes')
 
         # --- 2. SELEÇÃO DE QUESTÕES ---
+        # Busca questões onde houve erro (acertou=False)
         erros_query = RespostaDetalhada.objects.filter(
             acertou=False, 
             questao__disciplina=disciplina_obj
         ).filter(filtro_erros)
 
+        # Identifica os 5 descritores com mais erros
         descritores_criticos = erros_query.values('questao__descritor').annotate(total_erros=Count('id')).order_by('-total_erros')[:5]
         ids_descritores = [item['questao__descritor'] for item in descritores_criticos if item['questao__descritor']]
 
         questoes_finais = []
         
+        # A. Tenta preencher com questões dos descritores críticos
         if ids_descritores:
             pool_focado = list(Questao.objects.filter(disciplina=disciplina_obj, descritor__in=ids_descritores))
             shuffle(pool_focado)
             questoes_finais = pool_focado[:qtd_questoes]
         
+        # B. Se faltar questão, completa com aleatórias da disciplina (Fallback)
         falta = qtd_questoes - len(questoes_finais)
         if falta > 0:
             ids_ja_usados = [q.id for q in questoes_finais]
@@ -725,26 +725,29 @@ def gerar_prova_pdf(request):
         shuffle(questoes_finais)
         
         if not questoes_finais:
-            messages.error(request, "Não há questões suficientes no banco.")
+            messages.error(request, "Não há questões suficientes no banco para esta disciplina.")
             return redirect('gerenciar_avaliacoes')
 
-        # --- 3. SALVAR (OPCIONAL) ---
+        # --- 3. SALVAR NO BANCO (AGORA DO JEITO CERTO) ---
         if salvar_sistema:
             try:
                 with transaction.atomic():
                     count = 0
                     for turma in turmas_alvo:
+                        # Define título
                         titulo_final = f"RECUPERAÇÃO: {titulo}" if matricula_alvo else titulo
                         
+                        # Cria a Avaliação com todos os campos corretos
                         nova_av = Avaliacao.objects.create(
                             titulo=titulo_final,
                             disciplina=disciplina_obj,
                             turma=turma,
-                            matricula=matricula_alvo,
+                            matricula=matricula_alvo,  # <--- AGORA O BANCO ACEITA ISSO!
                             data_aplicacao=datetime.now().date()
                         )
                         nova_av.questoes.set(questoes_finais)
                         
+                        # Gera o gabarito oficial
                         for i, q in enumerate(questoes_finais, 1):
                             ItemGabarito.objects.create(
                                 avaliacao=nova_av, numero=i, questao_banco=q,
@@ -752,47 +755,59 @@ def gerar_prova_pdf(request):
                             )
                         count += 1
                     
-                    messages.success(request, f"Avaliação criada para {count} turmas/alunos.")
+                    messages.success(request, f"Avaliação salva com sucesso!")
 
             except Exception as e:
-                messages.error(request, f"Erro ao salvar: {e}")
+                messages.error(request, f"Erro técnico ao salvar: {e}")
                 return redirect('gerenciar_avaliacoes')
 
         # --- 4. GERAÇÃO DO PDF ---
+        # Se for para várias turmas, não gera PDF direto, redireciona.
         if len(turmas_alvo) > 1:
             return redirect('gerenciar_avaliacoes')
         
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer, pagesize=A4)
         
+        # Cabeçalho Personalizado
+        nome_aluno_pdf = matricula_alvo.aluno.nome_completo if matricula_alvo else "___________________________________"
+        
+        # Função auxiliar de desenho (já existente no seu código)
+        # Adaptamos o cabeçalho para mostrar o nome se for recuperação
         desenhar_cabecalho_prova(p, titulo, turmas_alvo[0].nome, disciplina_obj.nome)
         
+        # Se for recuperação, escreve o nome do aluno já impresso
+        if matricula_alvo:
+            p.setFont("Helvetica-Bold", 10)
+            p.setFillColor(colors.black)
+            p.drawString(95, 775, nome_aluno_pdf) # Preenche a linha do nome
+
         y = 730
         for i, q in enumerate(questoes_finais, 1):
             # Enunciado
             p.setFont("Helvetica-Bold", 11)
+            p.setFillColor(colors.black)
             texto_completo = f"{i}. {q.enunciado}"
             linhas_enunciado = simpleSplit(texto_completo, "Helvetica-Bold", 11, 480)
             
-            # Espaço base (Texto + Alternativas)
+            # Cálculo de espaço
             espaco = (len(linhas_enunciado) * 15) + 120
             if q.imagem: espaco += 150
-            
-            # + Espaço para o Descritor no final
-            espaco += 20 
+            espaco += 20 # Espaço descritor
 
-            # Verifica quebra de página
+            # Quebra de página
             if y - espaco < 50:
                 p.showPage()
                 desenhar_cabecalho_prova(p, titulo, turmas_alvo[0].nome, disciplina_obj.nome)
+                if matricula_alvo: p.drawString(95, 775, nome_aluno_pdf)
                 y = 730
             
-            # Desenha texto
+            # Imprime texto
             for linha in linhas_enunciado:
                 p.drawString(40, y, linha)
                 y -= 15
 
-            # Desenha Imagem
+            # Imprime Imagem
             if q.imagem:
                 try:
                     img_reader = ImageReader(q.imagem.path)
@@ -803,7 +818,7 @@ def gerar_prova_pdf(request):
                     y -= (h_img + 10)
                 except: pass
 
-            # Desenha Alternativas
+            # Imprime Alternativas
             p.setFont("Helvetica", 10)
             opts = [('A', q.alternativa_a), ('B', q.alternativa_b), ('C', q.alternativa_c), ('D', q.alternativa_d)]
             if q.alternativa_e: opts.append(('E', q.alternativa_e))
@@ -813,20 +828,18 @@ def gerar_prova_pdf(request):
                     p.drawString(50, y, f"{l}) {txt}")
                     y -= 15
             
-            # --- DESCRITOR (AQUI ESTÁ O QUE VOCÊ PEDIU) ---
+            # Imprime Descritor (Rodapé da questão)
             if q.descritor:
-                p.setFont("Helvetica-Oblique", 8) # Fonte itálica menor
-                p.setFillColorRGB(0.4, 0.4, 0.4)  # Cor cinza escuro
+                p.setFont("Helvetica-Oblique", 8) 
+                p.setFillColorRGB(0.4, 0.4, 0.4) 
                 
                 txt_desc = f"Habilidade: {q.descritor.codigo} - {q.descritor.descricao[:90]}"
                 if len(q.descritor.descricao) > 90: txt_desc += "..."
-                
                 p.drawString(50, y, txt_desc)
-                
-                p.setFillColorRGB(0, 0, 0) # Volta para preto
-                y -= 15 # Espaço extra
+                p.setFillColorRGB(0, 0, 0) 
+                y -= 15 
             
-            y -= 20 # Margem para próxima questão
+            y -= 20 
 
         # --- PÁGINA FINAL: GABARITO ---
         p.showPage()
@@ -835,6 +848,8 @@ def gerar_prova_pdf(request):
         p.drawCentredString(300, 800, "GABARITO DO PROFESSOR")
         p.setFont("Helvetica", 10)
         p.drawCentredString(300, 780, f"Prova: {titulo} | Disciplina: {disciplina_obj.nome}")
+        if matricula_alvo:
+            p.drawCentredString(300, 765, f"Aluno(a): {matricula_alvo.aluno.nome_completo}")
         
         y = 740
         p.setFont("Helvetica-Bold", 10)
@@ -870,6 +885,7 @@ def gerar_prova_pdf(request):
         return FileResponse(buffer, as_attachment=True, filename=f'Prova_{titulo}.pdf')
 
     return redirect('gerenciar_avaliacoes')
+
 
 @login_required
 def baixar_prova_existente(request, avaliacao_id):
@@ -1136,51 +1152,102 @@ def lancar_nota(request):
     if avaliacao_id:
         avaliacao_obj = get_object_or_404(Avaliacao, id=avaliacao_id)
         itens = ItemGabarito.objects.filter(avaliacao=avaliacao_obj).order_by('numero')
-        # CORREÇÃO: Busca MATRÍCULAS (não alunos soltos)
-        matriculas_turma = Matricula.objects.filter(
-            turma=avaliacao_obj.turma, 
-            status='CURSANDO'
-        ).select_related('aluno').order_by('aluno__nome_completo')
+        
+        # --- AQUI ESTÁ A CORREÇÃO INTELIGENTE ---
+        if avaliacao_obj.matricula:
+            # CASO 1: Prova Individual (Recuperação)
+            # Traz APENAS a matrícula do aluno dono da prova
+            matriculas_turma = Matricula.objects.filter(id=avaliacao_obj.matricula.id)
+        else:
+            # CASO 2: Prova da Turma (Geral)
+            # Traz todos os alunos ativos daquela turma
+            matriculas_turma = Matricula.objects.filter(
+                turma=avaliacao_obj.turma, 
+                status='CURSANDO'
+            ).select_related('aluno').order_by('aluno__nome_completo')
+        # ----------------------------------------
 
     if request.method == 'POST' and avaliacao_obj:
-        matricula_id = request.POST.get('aluno') # O name no HTML manda o ID da matricula (idealmente)
+        matricula_id = request.POST.get('aluno') # ID da matrícula
         
         if not matricula_id:
             messages.error(request, "Selecione um aluno.")
             return redirect(f'/lancar_nota/?avaliacao_id={avaliacao_id}')
 
-        # Busca a matrícula
+        # Busca a matrícula (Garante que existe e pertence à turma ou é o dono)
         matricula_obj = get_object_or_404(Matricula, id=matricula_id)
         
-        resultado, _ = Resultado.objects.update_or_create(
-            avaliacao=avaliacao_obj, matricula=matricula_obj,
-            defaults={'total_questoes': itens.count(), 'acertos': 0}
-        )
+        # Cria ou pega o resultado (garantindo valores iniciais para não dar erro de conta)
+        resultado = Resultado.objects.filter(avaliacao=avaliacao_obj, matricula=matricula_obj).first()
 
+        if not resultado:
+            resultado = Resultado(
+                avaliacao=avaliacao_obj,
+                matricula=matricula_obj,
+                total_questoes=itens.count(),
+                acertos=0,
+                percentual=0.0
+            )
+            resultado.save()
+        else:
+            resultado.total_questoes = itens.count()
+            if resultado.acertos is None: resultado.acertos = 0
+            if resultado.percentual is None: resultado.percentual = 0.0
+            resultado.save()
+
+        # Limpa respostas antigas para regravar
         RespostaDetalhada.objects.filter(resultado=resultado).delete()
+        
         acertos_contagem = 0
+        objs_resposta = []
         
         for item in itens:
-            resposta_aluno = request.POST.get(f'resposta_{item.id}')
+            # Pega resposta do formulário (Suporta name="resposta_15" ou name="resposta_q1")
+            resp_via_id = request.POST.get(f'resposta_{item.id}')
+            resp_via_num = request.POST.get(f'resposta_q{item.numero}')
+            resposta_aluno = resp_via_id if resp_via_id else resp_via_num
+            
             acertou = False
-            if resposta_aluno and resposta_aluno.strip().upper() == item.resposta_correta.upper():
-                acertou = True
-                acertos_contagem += 1
+            letra_final = ''
 
-            RespostaDetalhada.objects.create(
-                resultado=resultado, item_gabarito=item,
-                questao=item.questao_banco, acertou=acertou
-            )
+            if resposta_aluno:
+                letra_final = resposta_aluno.strip().upper()
+                if letra_final == item.resposta_correta.upper():
+                    acertou = True
+                    acertos_contagem += 1
+                
+                objs_resposta.append(RespostaDetalhada(
+                    resultado=resultado, item_gabarito=item,
+                    questao=item.questao_banco, acertou=acertou,
+                    resposta_aluno=letra_final
+                ))
 
-        resultado.acertos = acertos_contagem
+        if objs_resposta:
+            RespostaDetalhada.objects.bulk_create(objs_resposta)
+
+        # Lógica de Ausente (Opcional, vindo do JS)
+        if request.POST.get('ausente') == 'true':
+            resultado.acertos = 0
+            resultado.percentual = 0.0
+        else:
+            resultado.acertos = acertos_contagem
+            qtd = resultado.total_questoes if resultado.total_questoes > 0 else 1
+            resultado.percentual = (acertos_contagem / qtd) * 100
+        
         resultado.save()
+        
+        # Se for Ajax (Scanner), retorna JSON
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
+             from django.http import JsonResponse
+             return JsonResponse({'sucesso': True, 'msg': f'Nota salva: {acertos_contagem}'})
+
         messages.success(request, f'Nota salva: {acertos_contagem}')
         return redirect(f'/lancar_nota/?avaliacao_id={avaliacao_id}')
 
     return render(request, 'core/lancar_nota.html', {
         'avaliacao_selecionada': avaliacao_obj,
         'itens': itens, 
-        'matriculas': matriculas_turma, # Passa as matrículas para o template
+        'matriculas': matriculas_turma, # Agora filtrado corretamente!
         'avaliacoes_todas': Avaliacao.objects.all().order_by('-data_aplicacao')
     })
 
@@ -1304,33 +1371,44 @@ def gerenciar_alunos(request):
 
 @login_required
 def gerenciar_avaliacoes(request):
-    """
-    Apenas exibe a lista e os filtros. Não precisa de grandes mudanças.
-    """
-    # Lógica de Exclusão (se houver POST na mesma tela)
+    # Lógica de Exclusão (Mantida igual)
     if request.method == 'POST' and 'delete_id' in request.POST:
         av = get_object_or_404(Avaliacao, id=request.POST.get('delete_id'))
         av.delete()
         messages.success(request, 'Avaliação removida com sucesso!')
         return redirect('gerenciar_avaliacoes')
 
-    # Filtros
+    # --- FILTROS COMPLETOS ---
     turma_id = request.GET.get('turma')
     disciplina_id = request.GET.get('disciplina')
-    
-    avaliacoes = Avaliacao.objects.select_related('turma', 'disciplina').all().order_by('-data_aplicacao')
+    data_filtro = request.GET.get('data') # Novo campo data
+
+    # Base da busca (Ordenado por data decrescente)
+    avaliacoes = Avaliacao.objects.select_related('turma', 'disciplina').order_by('-data_aplicacao')
     
     if turma_id:
         avaliacoes = avaliacoes.filter(turma_id=turma_id)
+    
     if disciplina_id:
         avaliacoes = avaliacoes.filter(disciplina_id=disciplina_id)
+        
+    if data_filtro:
+        avaliacoes = avaliacoes.filter(data_aplicacao=data_filtro)
 
-    return render(request, 'core/avaliacoes.html', {
+    context = {
         'avaliacoes': avaliacoes,
         'turmas': Turma.objects.all().order_by('nome'),
         'disciplinas': Disciplina.objects.all().order_by('nome'),
-        'total_avaliacoes': avaliacoes.count()
-    })
+        'total_avaliacoes': avaliacoes.count(),
+        
+        # Devolvemos o valor selecionado para o HTML manter o filtro ativo
+        'filtro_turma': int(turma_id) if turma_id else None,
+        'filtro_disciplina': int(disciplina_id) if disciplina_id else None,
+        'filtro_data': data_filtro
+    }
+    
+    return render(request, 'core/avaliacoes.html', context)
+
 
 @login_required
 def gerenciar_turmas(request):
@@ -2618,26 +2696,31 @@ def api_ler_cartao(request):
             scanner = OMRScanner()
             resultado = scanner.processar_cartao(path, qtd_questoes=qtd_questoes)
             
-            # --- LÓGICA DO QR CODE (AQUI MUDOU) ---
+          # --- LÓGICA DO QR CODE (CORRIGIDA) ---
             if resultado.get('qr_code'):
                 try:
-                    codigo = resultado['qr_code'] # Esperado: "A15-M203" ou legado "A15-U50"
+                    codigo = resultado['qr_code'] # Ex: "A34-M559"
                     partes = codigo.split('-') 
                     
                     for p in partes:
-                        # SUPORTE NOVO: M = Matrícula
+                        # SUPORTE NOVO: M = Matrícula (O que estamos usando)
                         if p.startswith('M'):
                             matricula_id = int(p[1:])
-                            # Busca a matrícula para descobrir o aluno real
                             try:
                                 mat = Matricula.objects.get(id=matricula_id)
-                                resultado['aluno_detectado_id'] = mat.aluno.id
+                                # AQUI ESTÁ A CORREÇÃO:
+                                # Devolvemos a matrícula ID para o select funcionar
+                                resultado['matricula_detected_id'] = mat.id 
+                                resultado['aluno_nome'] = mat.aluno.nome_completo
                             except Matricula.DoesNotExist:
                                 print(f"Matrícula {matricula_id} não encontrada.")
 
-                        # SUPORTE LEGADO: U = Usuário/Aluno (para cartões antigos não pararem de funcionar)
+                        # SUPORTE LEGADO: U = Usuário (Caso antigo)
                         elif p.startswith('U'):
-                            resultado['aluno_detectado_id'] = int(p[1:])
+                            aluno_id = int(p[1:])
+                            # Tenta achar a matrícula desse aluno na turma da prova (se possível)
+                            # Se não, manda só o aluno_id
+                            resultado['aluno_detectado_id'] = aluno_id
                             
                 except Exception as e:
                     print(f"Erro ao interpretar QR Code '{codigo}': {e}")
@@ -3023,3 +3106,103 @@ def api_lancar_nota_ajax(request):
             print(f"ERRO CRÍTICO: {e}") # Isso vai mostrar o erro real no seu terminal preto
             return JsonResponse({'sucesso': False, 'erro': f"Erro interno: {str(e)}"})
         
+
+@login_required
+def area_professor(request):
+    from django.db.models import Count, Q
+    
+    nome_exibicao = "Professor(a)" # Valor padrão de segurança
+
+    try:
+        # Tenta pegar o perfil de professor
+        perfil = request.user.professor_perfil
+        
+        # LÓGICA DE NOME INTELIGENTE:
+        # 1. Tenta o Nome Completo do cadastro de Professor
+        # 2. Se não tiver, tenta o Primeiro Nome do Usuário de Login
+        # 3. Se não tiver, usa o Login (username)
+        if perfil.nome_completo:
+            nome_exibicao = perfil.nome_completo.split()[0] # Pega só o primeiro nome
+        elif request.user.first_name:
+            nome_exibicao = request.user.first_name
+        else:
+            nome_exibicao = request.user.username
+
+        # Filtros (mantendo a correção do alunos_matriculados)
+        turmas = perfil.turmas.annotate(
+            qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'))
+        ).order_by('nome')
+        
+        provas_recentes = Avaliacao.objects.filter(
+            turma__in=perfil.turmas.all(),
+            disciplina__in=perfil.disciplinas.all()
+        ).order_by('-data_aplicacao')[:5]
+
+    except AttributeError:
+        # FALLBACK PARA ADMIN (Se você logar com admin)
+        turmas = Turma.objects.annotate(
+            qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'))
+        ).order_by('nome')
+        provas_recentes = Avaliacao.objects.all().order_by('-data_aplicacao')[:5]
+        
+        # Pega nome do Admin ou usa "Administrador"
+        nome_exibicao = request.user.first_name or request.user.username or "Administrador"
+
+    total_alunos = Matricula.objects.filter(status='CURSANDO').count()
+    provas_pendentes = provas_recentes.count()
+
+    context = {
+        'turmas': turmas,
+        'provas_recentes': provas_recentes,
+        'kpi_alunos': total_alunos,
+        'kpi_pendencias': provas_pendentes,
+        'hoje': datetime.now(),
+        'nome_professor': nome_exibicao # <--- Agora vai chegar certinho!
+    }
+    return render(request, 'core/area_professor.html', context)
+
+
+# Em core/views.py
+
+def login_sucesso_redirect(request):
+    """
+    Função auxiliar para redirecionar após login.
+    Você pode configurar o LOGIN_REDIRECT_URL no settings.py para apontar para cá.
+    """
+    user = request.user
+    # Se for superusuário ou staff -> Painel Gestor
+    if user.is_superuser or user.is_staff:
+        return redirect('dashboard')
+    
+    # Se pertencer ao grupo 'Professores' -> Área do Professor
+    if user.groups.filter(name='Professores').exists():
+        return redirect('area_professor')
+        
+    # Padrão -> Dashboard Aluno ou outro
+    return redirect('dashboard_aluno')
+
+# Em core/views.py
+
+@login_required
+def redirecionar_apos_login(request):
+    """
+    Função 'Semáforo': Decide para onde o usuário vai após logar.
+    """
+    user = request.user
+    
+    # 1. Se for Superusuário ou Staff (Diretoria) -> Dashboard Geral
+    if user.is_superuser or user.is_staff:
+        return redirect('dashboard')
+    
+    # 2. Se for Professor (tem o perfil vinculado) -> Área do Professor
+    if hasattr(user, 'professor_perfil'):
+        return redirect('area_professor')
+
+    # 3. Se for Aluno (tem o perfil vinculado) -> Dashboard do Aluno
+    # O 'aluno' é o related_name padrão do OneToOneField no model Aluno
+    if hasattr(user, 'aluno'):
+        return redirect('dashboard_aluno')
+        
+    # 4. Se não se encaixar em nada, manda para o Dashboard padrão ou Login
+    messages.error(request, "Perfil não identificado. Contate a secretaria.")
+    return redirect('dashboard')

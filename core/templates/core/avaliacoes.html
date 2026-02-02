@@ -60,6 +60,52 @@
         </div>
     </div>
 
+    <div class="card border-0 shadow-sm mb-4 bg-light rounded-4">
+        <div class="card-body py-3">
+            <form method="get" class="row g-3 align-items-center">
+                
+                <div class="col-md-auto text-muted fw-bold">
+                    <i class="bi bi-funnel-fill me-2"></i>Filtrar:
+                </div>
+
+                <div class="col-md-3">
+                    <select name="turma" class="form-select border-0 shadow-sm" onchange="this.form.submit()">
+                        <option value="">Todas as Turmas</option>
+                        {% for t in turmas %}
+                            <option value="{{ t.id }}" {% if filtro_turma == t.id %}selected{% endif %}>
+                                {{ t.nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="disciplina" class="form-select border-0 shadow-sm" onchange="this.form.submit()">
+                        <option value="">Todas as Disciplinas</option>
+                        {% for d in disciplinas %}
+                            <option value="{{ d.id }}" {% if filtro_disciplina == d.id %}selected{% endif %}>
+                                {{ d.nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-auto">
+                    <input type="date" name="data" class="form-control border-0 shadow-sm" value="{{ filtro_data|default:'' }}" onchange="this.form.submit()">
+                </div>
+
+                {% if filtro_turma or filtro_disciplina or filtro_data %}
+                <div class="col-md-auto ms-auto">
+                    <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
+                        <i class="bi bi-x-circle me-1"></i> Limpar
+                    </a>
+                </div>
+                {% endif %}
+
+            </form>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-lg rounded-4">
         <div class="card-body p-0">
             <div class="table-responsive" style="min-height: 400px; overflow-y: visible; overflow-x: auto;"> 
@@ -322,7 +368,7 @@
             return;
         }
 
-        fetch(`/api/filtrar-alunos/?turma_id=${turmaId}`) // Ajustei URL para bater com seu urls.py
+        fetch(`/api/filtrar-alunos/?turma_id=${turmaId}`)
             .then(response => response.json())
             .then(data => {
                 if(data.length > 0) {

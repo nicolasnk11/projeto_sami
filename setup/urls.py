@@ -11,12 +11,14 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('', views.dashboard_redirect, name='home'),
+    path('redirecionar/', views.redirecionar_apos_login, name='redirecionar_login'),
 
     # --- DASHBOARDS ---
     path('dashboard/', views.dashboard, name='dashboard'),
     path('aluno/', views.dashboard_aluno, name='dashboard_aluno'),
     path('painel-gestao/', views.painel_gestao, name='painel_gestao'),
     path('ajuda/', views.central_ajuda, name='central_ajuda'),
+    path('professor/', views.area_professor, name='area_professor'),
 
     # --- AVALIAÇÕES ---
     path('avaliacoes/', views.gerenciar_avaliacoes, name='gerenciar_avaliacoes'),

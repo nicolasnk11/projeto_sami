@@ -122,7 +122,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # --- CONFIGURAÇÕES DE LOGIN (SAMI) ---
 LOGIN_URL = 'login'              # Se tentar acessar sem senha, joga pra cá
-LOGIN_REDIRECT_URL = 'home' # Se acertar a senha, vai pra cá
+LOGIN_REDIRECT_URL = 'redirecionar_login' # Se acertar a senha, vai pra cá
 LOGOUT_REDIRECT_URL = 'login'    # Se sair, volta pra tela de login
 STATIC_URL = 'static/'
 

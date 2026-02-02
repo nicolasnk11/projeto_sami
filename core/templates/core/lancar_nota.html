@@ -5,6 +5,7 @@
     
     <div class="card shadow-sm border-0 mb-4 rounded-4">
         <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            
             <div class="flex-grow-1">
                 <h6 class="text-uppercase text-muted fw-bold mb-2 small">
                     <i class="bi bi-collection-fill me-1"></i> Selecione a Avaliação
@@ -23,11 +24,19 @@
 
             {% if avaliacao_selecionada %}
             <div class="d-flex align-items-center gap-3">
-                <div class="text-end border-end pe-3 d-none d-md-block">
+                <div class="">
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" class="d-none" onchange="lerCartao(this)">
+                    <button class="btn btn-primary btn-lg fw-bold shadow-sm rounded-pill px-4" onclick="document.getElementById('cameraInput').click()">
+                        <i class="bi bi-qr-code-scan me-2"></i> LER CARTÃO
+                    </button>
+                </div>
+
+                <div class="text-end border-start ps-3 d-none d-md-block">
                     <div class="small text-muted fw-bold">DISCIPLINA</div>
                     <div class="fw-bold text-primary">{{ avaliacao_selecionada.disciplina.nome }}</div>
                 </div>
-                <div class="text-center bg-primary bg-opacity-10 p-2 rounded-3 px-4">
+                
+                <div class="text-center bg-primary bg-opacity-10 p-2 rounded-3 px-4 ms-2">
                     <div class="h4 fw-bold text-primary mb-0">{{ itens.count }}</div>
                     <div class="small fw-bold text-primary opacity-75" style="font-size: 0.65rem;">QUESTÕES</div>
                 </div>
@@ -50,13 +59,14 @@
                         {% for mat in matriculas %}
                             <a href="#" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex align-items-center justify-content-between aluno-item transition-hover" 
                                data-id="{{ mat.aluno.id }}" 
+                               data-matricula-id="{{ mat.id }}"
                                id="aluno-row-{{ mat.aluno.id }}"
                                onclick="selecionarAluno(this, '{{ mat.aluno.id }}', '{{ mat.aluno.nome_completo }}'); return false;">
                                 
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="avatar-circle bg-light text-muted fw-bold d-flex align-items-center justify-content-center" 
                                          style="width: 35px; height: 35px; border-radius: 50%;">
-                                        {{ mat.aluno.nome_completo|slice:":1" }}
+                                    {{ mat.aluno.nome_completo|slice:":1" }}
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark nome-aluno lh-1">{{ mat.aluno.nome_completo }}</div>
@@ -81,24 +91,22 @@
                         <h5 class="mb-0 fw-bold text-primary" id="nomeAlunoDisplay">---</h5>
                     </div>
                     
-                    <div class="d-flex gap-2">
-                        <label class="btn btn-outline-primary fw-bold rounded-pill px-3 cursor-pointer shadow-sm">
-                            <i class="bi bi-camera-fill me-2"></i> Scanner
-                            <input type="file" accept="image/*" capture="environment" id="inputFoto" class="d-none" onchange="processarFoto(this)">
-                        </label>
-
-                        <div class="form-check form-switch bg-danger bg-opacity-10 p-2 ps-5 rounded-pill border border-danger border-opacity-25">
-                            <input class="form-check-input cursor-pointer" type="checkbox" id="checkAusente" onchange="toggleAusencia()">
-                            <label class="form-check-label fw-bold text-danger cursor-pointer" for="checkAusente">Ausente</label>
-                        </div>
+                    <div class="form-check form-switch bg-danger bg-opacity-10 p-2 ps-5 rounded-pill border border-danger border-opacity-25">
+                        <input class="form-check-input cursor-pointer" type="checkbox" id="checkAusente" onchange="toggleAusencia()">
+                        <label class="form-check-label fw-bold text-danger cursor-pointer" for="checkAusente">Aluno Ausente</label>
                     </div>
                 </div>
 
                 <div class="card-body p-4 bg-light position-relative">
                     
-                    <div id="loader" class="position-absolute top-50 start-50 translate-middle d-none text-center" style="z-index: 20;">
+                    <div id="loader" class="position-absolute top-50 start-50 translate-middle d-none text-center bg-white p-4 rounded-4 shadow" style="z-index: 20;">
                         <div class="spinner-border text-primary mb-2" role="status" style="width: 3rem; height: 3rem;"></div>
-                        <div class="fw-bold text-dark bg-white px-3 py-1 rounded shadow-sm" id="msgLoader">Carregando...</div>
+                        <h6 class="fw-bold text-dark mb-0" id="loaderTexto">Carregando...</h6>
+                    </div>
+
+                    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center py-2 mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <small><strong>Dica:</strong> Verde = Correto | Vermelho = Errado. Digite ou use a câmera.</small>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 justify-content-start" id="gradeQuestoes">
@@ -110,13 +118,12 @@
                             <div class="card-body p-1">
                                 <input type="text" 
                                        data-numero="{{ item.numero }}"
+                                       data-index="{{ forloop.counter0 }}"
                                        data-gabarito="{{ item.resposta_correta }}" 
-                                       data-index="{{ forloop.counter0 }}" 
                                        class="form-control form-control-lg text-center fw-bold border-0 bg-light input-resposta p-0" 
                                        style="height: 40px; font-size: 1.2rem; border-radius: 8px;"
                                        maxlength="1" 
-                                       autocomplete="off"
-                                       oninput="validarInput(this)">
+                                       autocomplete="off">
                             </div>
                             <div class="card-footer bg-white py-1 px-0 border-top-0">
                                 <small class="text-success fw-bold opacity-50" style="font-size: 0.6rem;">{{ item.resposta_correta }}</small>
@@ -142,37 +149,95 @@
     const AVALIACAO_ID = "{{ avaliacao_selecionada.id|default:'' }}";
     let ALUNO_ATUAL_ID = null;
 
+    // --- FUNÇÃO VISUAL: VALIDA COR (VERDE/VERMELHO) ---
+    function validarCor(input) {
+        const valor = input.value.trim().toUpperCase();
+        const gabarito = input.dataset.gabarito.trim().toUpperCase();
+
+        // Reseta classes
+        input.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-light');
+        input.style.backgroundColor = ''; // Remove cor inline se houver
+
+        if (valor === "") {
+            input.classList.add('bg-light'); // Volta ao padrão
+            return;
+        }
+
+        if (valor === gabarito) {
+            input.classList.add('bg-success-subtle', 'text-success'); // Verde Suave
+        } else {
+            input.classList.add('bg-danger-subtle', 'text-danger'); // Vermelho Suave
+        }
+    }
+
     // --- 1. SELEÇÃO DE ALUNO ---
-    function selecionarAluno(elemento, id, nome) {
-        // Visual
+    function selecionarAluno(elemento, id, nome, dadosScaneados = null) {
+        // Visual Seleção
         document.querySelectorAll('.aluno-item').forEach(el => el.classList.remove('active', 'bg-primary-subtle'));
-        elemento.classList.add('active', 'bg-primary-subtle'); 
+        if (!elemento) elemento = document.querySelector(`.aluno-item[data-id="${id}"]`);
+        if (elemento) {
+            elemento.classList.add('active', 'bg-primary-subtle');
+            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         
-        // Setup
         ALUNO_ATUAL_ID = id;
         document.getElementById('nomeAlunoDisplay').innerText = nome;
         document.getElementById('cardLancamento').style.opacity = '1';
         document.getElementById('cardLancamento').style.pointerEvents = 'auto';
         
         limparCampos();
-        mostrarLoader(true, "Carregando dados...");
+        mostrarLoader(true, "Carregando aluno...");
 
-        // Fetch Dados
         fetch(`/api/lancar-notas-ajax/?aluno_id=${id}&avaliacao_id=${AVALIACAO_ID}`)
             .then(res => res.json())
             .then(data => {
                 mostrarLoader(false);
-                if(data.sucesso && data.dados) {
+                if (dadosScaneados) {
+                    preencherCampos({ respostas: dadosScaneados, ausente: false });
+                    mostrarToast("Scanner", "Respostas aplicadas!", "success");
+                } 
+                else if(data.sucesso && data.dados) {
                     preencherCampos(data.dados);
                 }
             })
             .catch(err => {
                 mostrarLoader(false);
-                alert("Erro de conexão ao carregar aluno.");
+                mostrarToast("Erro", "Erro ao carregar dados.", "danger");
             });
     }
 
-    // --- 2. PREENCHIMENTO DE CAMPOS ---
+    // --- 2. SCANNER ---
+    function lerCartao(input) {
+        if (input.files && input.files[0]) {
+            const formData = new FormData();
+            formData.append('foto', input.files[0]);
+            formData.append('avaliacao_id', AVALIACAO_ID);
+
+            mostrarLoader(true, "Lendo imagem...");
+
+            fetch('/api/ler-cartao/', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                mostrarLoader(false);
+                if (data.erro) { mostrarToast("Erro", data.erro, "danger"); return; }
+
+                if (data.matricula_detected_id) {
+                    const item = document.querySelector(`.aluno-item[data-matricula-id="${data.matricula_detected_id}"]`);
+                    if (item) {
+                        selecionarAluno(item, item.dataset.id, item.querySelector('.nome-aluno').innerText, data.respostas);
+                    } else {
+                        mostrarToast("Aviso", "Aluno não pertence a esta turma.", "warning");
+                    }
+                } else {
+                    mostrarToast("Aviso", "Aluno não identificado no cartão.", "warning");
+                }
+            })
+            .catch(() => { mostrarLoader(false); mostrarToast("Erro", "Falha no scanner.", "danger"); });
+            input.value = '';
+        }
+    }
+
+    // --- 3. PREENCHIMENTO ---
     function preencherCampos(dados) {
         document.getElementById('checkAusente').checked = dados.ausente;
         toggleAusencia();
@@ -181,61 +246,29 @@
             for (const [num, letra] of Object.entries(dados.respostas)) {
                 const input = document.querySelector(`.input-resposta[data-numero="${num}"]`);
                 if(input) {
-                    input.value = (letra === 'X') ? '' : letra; 
-                    validarInput(input); // Aplica a cor Verde/Vermelho
+                    input.value = (letra === 'X') ? '' : letra;
+                    validarCor(input); // <--- APLICA A COR AQUI
                 }
             }
         }
     }
 
-    // --- 3. LÓGICA VISUAL (VERDE/VERMELHO) ---
-    function validarInput(input) {
-        input.value = input.value.toUpperCase();
-        const letra = input.value;
-        const gabarito = input.dataset.gabarito;
-
-        // Remove classes antigas
-        input.classList.remove('bg-success', 'text-white', 'bg-danger', 'bg-light');
-
-        if (!letra) {
-            input.classList.add('bg-light'); // Vazio = Cinza
-            return;
-        }
-
-        if (letra === gabarito) {
-            input.classList.add('bg-success', 'text-white'); // Acertou = Verde
-        } else {
-            input.classList.add('bg-danger', 'text-white'); // Errou = Vermelho
-        }
-
-        // Pulo automático para o próximo
-        if (letra.length === 1) {
-            const nextIdx = parseInt(input.dataset.index) + 1;
-            const nextInput = document.querySelectorAll('.input-resposta')[nextIdx];
-            if (nextInput) nextInput.focus();
-        }
-    }
-
-    // --- 4. SALVAR (AJAX) ---
+    // --- 4. SALVAR ---
     function salvarNotas() {
         if (!ALUNO_ATUAL_ID) return;
-
         const btn = document.querySelector('.btn-success');
-        const txtOriginal = btn.innerHTML;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
+        const txt = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
         btn.disabled = true;
 
-        const inputs = document.querySelectorAll('.input-resposta');
         const respostas = {};
-        inputs.forEach(inp => {
+        document.querySelectorAll('.input-resposta').forEach(inp => {
             if(inp.value.trim()) respostas[inp.dataset.numero] = inp.value.trim().toUpperCase();
         });
 
         const payload = {
-            aluno_id: ALUNO_ATUAL_ID,
-            avaliacao_id: AVALIACAO_ID,
-            respostas: respostas,
-            ausente: document.getElementById('checkAusente').checked
+            aluno_id: ALUNO_ATUAL_ID, avaliacao_id: AVALIACAO_ID,
+            respostas: respostas, ausente: document.getElementById('checkAusente').checked
         };
 
         fetch('/api/lancar-notas-ajax/', {
@@ -245,81 +278,23 @@
         })
         .then(res => res.json())
         .then(data => {
-            btn.innerHTML = txtOriginal;
-            btn.disabled = false;
-
+            btn.innerHTML = txt; btn.disabled = false;
             if (data.sucesso) {
                 mostrarToast("Salvo!", data.msg, "success");
-                
-                // Marca Check na lista
-                const icone = document.querySelector(`#aluno-row-${ALUNO_ATUAL_ID} .status-icon`);
-                if(icone) {
-                    icone.className = 'bi bi-check-circle-fill text-success fs-5 status-icon';
-                }
+                const icon = document.querySelector(`#aluno-row-${ALUNO_ATUAL_ID} .status-icon`);
+                if(icon) icon.className = 'bi bi-check-circle-fill text-success fs-5 status-icon';
             } else {
                 mostrarToast("Erro", data.erro, "danger");
             }
         })
-        .catch(err => {
-            btn.innerHTML = txtOriginal;
-            btn.disabled = false;
-            mostrarToast("Erro", "Falha de conexão.", "danger");
-        });
+        .catch(() => { btn.innerHTML = txt; btn.disabled = false; });
     }
 
-    // --- 5. PROCESSAMENTO DE FOTO (SCANNER) ---
-    function processarFoto(input) {
-        if (input.files && input.files[0]) {
-            if(!ALUNO_ATUAL_ID) {
-                alert("Selecione um aluno na lista antes de escanear.");
-                input.value = ''; // Limpa
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('foto', input.files[0]);
-            formData.append('avaliacao_id', AVALIACAO_ID);
-
-            mostrarLoader(true, "Lendo Gabarito com IA...");
-
-            fetch('/api/ler-cartao/', { // SUA ROTA DE SCANNER
-                method: 'POST',
-                body: formData,
-                headers: {'X-CSRFToken': '{{ csrf_token }}'}
-            })
-            .then(response => response.json())
-            .then(data => {
-                mostrarLoader(false);
-                if (data.sucesso && data.respostas) {
-                    // Preenche os inputs com o que a IA leu
-                    for (const [num, letra] of Object.entries(data.respostas)) {
-                        const campo = document.querySelector(`.input-resposta[data-numero="${num}"]`);
-                        if (campo) {
-                            campo.value = letra;
-                            validarInput(campo); // Aplica as cores
-                        }
-                    }
-                    mostrarToast("Sucesso", "Leitura concluída! Verifique e salve.", "success");
-                } else {
-                    mostrarToast("Erro na Leitura", data.erro || "Não foi possível ler o cartão.", "danger");
-                }
-            })
-            .catch(error => {
-                mostrarLoader(false);
-                mostrarToast("Erro", "Falha ao enviar imagem.", "danger");
-                console.error(error);
-            });
-            
-            input.value = ''; // Limpa para permitir nova foto
-        }
-    }
-
-    // --- FUNÇÕES DE INTERFACE ---
-
+    // --- INTERFACE GERAL ---
     function limparCampos() {
         document.querySelectorAll('.input-resposta').forEach(i => {
             i.value = '';
-            i.className = 'form-control form-control-lg text-center fw-bold border-0 bg-light input-resposta p-0'; // Reseta classes
+            validarCor(i); // Reseta cor
         });
         document.getElementById('checkAusente').checked = false;
         toggleAusencia();
@@ -329,63 +304,51 @@
         const isAusente = document.getElementById('checkAusente').checked;
         document.querySelectorAll('.input-resposta').forEach(inp => {
             inp.disabled = isAusente;
-            if(isAusente) {
-                inp.value = '';
-                inp.classList.remove('bg-success', 'bg-danger', 'text-white');
-                inp.classList.add('bg-light');
-            }
+            if(isAusente) { inp.value = ''; validarCor(inp); }
         });
     }
 
-    function mostrarLoader(show, msg="Carregando...") {
-        const loader = document.getElementById('loader');
-        const grade = document.getElementById('gradeQuestoes');
-        const txt = document.getElementById('msgLoader');
-        
-        if(show) { 
-            txt.innerText = msg;
-            loader.classList.remove('d-none'); 
-            grade.style.opacity = '0.3'; 
-        } else { 
-            loader.classList.add('d-none'); 
-            grade.style.opacity = '1'; 
-        }
+    function mostrarLoader(show, texto="Carregando...") {
+        const l = document.getElementById('loader');
+        const g = document.getElementById('gradeQuestoes');
+        document.getElementById('loaderTexto').innerText = texto;
+        if(show) { l.classList.remove('d-none'); g.style.opacity = '0.3'; }
+        else { l.classList.add('d-none'); g.style.opacity = '1'; }
     }
 
     function mostrarToast(titulo, msg, tipo) {
-        let container = document.getElementById('toast-container');
-        if(!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'position-fixed bottom-0 end-0 p-3';
-            container.style.zIndex = '9999';
-            document.body.appendChild(container);
+        let box = document.getElementById('toast-container');
+        if(!box) {
+            box = document.createElement('div'); box.id='toast-container';
+            box.className='position-fixed bottom-0 end-0 p-3'; box.style.zIndex='9999';
+            document.body.appendChild(box);
         }
-        const html = `
-            <div class="toast show align-items-center text-bg-${tipo} border-0 shadow mb-2" role="alert">
-                <div class="d-flex">
-                    <div class="toast-body fw-bold">
-                        <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i> ${msg}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            </div>`;
         const el = document.createElement('div');
-        el.innerHTML = html;
-        container.appendChild(el.firstElementChild);
-        setTimeout(() => { if(container.firstChild) container.firstChild.remove(); }, 3000);
+        el.innerHTML = `<div class="toast show align-items-center text-bg-${tipo} border-0 shadow mb-2"><div class="d-flex"><div class="toast-body fw-bold"><i class="bi bi-${tipo==='success'?'check-circle':'exclamation-triangle'} me-2"></i>${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+        box.appendChild(el.firstChild);
+        setTimeout(() => { if(box.firstChild) box.firstChild.remove(); }, 3000);
     }
 
-    // --- COLAR INTELIGENTE (EXCEL) ---
     document.addEventListener('DOMContentLoaded', function() {
         const inputs = document.querySelectorAll('.input-resposta');
         
         inputs.forEach(input => {
+            // Evento: Digitar (Input)
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+                validarCor(this); // <--- VALIDA COR AO DIGITAR
+
+                // Pulo Automático
+                let idx = parseInt(this.dataset.index);
+                if(this.value.length === 1 && idx < inputs.length - 1) inputs[idx+1].focus();
+            });
+
+            // Evento: Colar (Paste)
             input.addEventListener('paste', function(e) {
                 if(this.disabled) return;
                 e.preventDefault();
                 let text = (e.clipboardData || window.clipboardData).getData('text');
-                text = text.replace(/[\s\n\r]/g, '').toUpperCase(); 
+                text = text.replace(/[\s\n\r]/g, '').toUpperCase();
                 if(!text) return;
 
                 let startIdx = parseInt(this.dataset.index);
@@ -393,7 +356,7 @@
                     let targetIdx = startIdx + i;
                     if(targetIdx < inputs.length) {
                         inputs[targetIdx].value = text[i];
-                        validarInput(inputs[targetIdx]); // Aplica cor
+                        validarCor(inputs[targetIdx]); // <--- VALIDA COR AO COLAR
                     }
                 }
                 document.querySelector('.btn-success').focus();
@@ -402,13 +365,12 @@
             input.addEventListener('focus', function() { this.select(); });
         });
 
-        // Filtro de Busca
+        // Filtro Busca
         document.getElementById('buscaAluno').addEventListener('keyup', function() {
             const termo = this.value.toLowerCase();
             document.querySelectorAll('.aluno-item').forEach(item => {
                 const nome = item.querySelector('.nome-aluno').innerText.toLowerCase();
                 item.style.display = nome.includes(termo) ? 'flex' : 'none';
-                if(!nome.includes(termo)) item.classList.remove('d-flex');
             });
         });
     });
@@ -417,18 +379,15 @@
 <style>
     .cursor-pointer { cursor: pointer; }
     .input-resposta:focus { 
-        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25); 
+        border-color: #ffc107; 
+        color: #000; 
+        transform: scale(1.15); 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
         z-index: 10; 
-        transform: scale(1.1);
     }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #dee2e6; border-radius: 4px; }
     .transition-hover:hover { transform: translateY(-3px); }
     .aluno-item.active { border-left: 5px solid var(--accent-color, #0d6efd) !important; background-color: #e9ecef; }
-    
-    /* Cores Fortes para Inputs */
-    .bg-success { background-color: #198754 !important; }
-    .bg-danger { background-color: #dc3545 !important; }
-    .text-white { color: white !important; }
 </style>
 {% endblock %}
