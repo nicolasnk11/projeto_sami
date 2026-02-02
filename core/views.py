@@ -5,6 +5,7 @@ import csv
 import qrcode
 import unicodedata
 import pandas as pd
+from xhtml2pdf import pisa
 from random import shuffle
 from datetime import datetime
 from io import StringIO, BytesIO
@@ -16,7 +17,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Sum, Q, F, Prefetch
 from django.db import transaction
+from django.db.models.functions import Coalesce
 from django.http import FileResponse, JsonResponse, HttpResponse
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
@@ -157,11 +160,10 @@ def scanner_dificuldade(valor):
 @login_required
 def dashboard(request):
     import json
-    # import csv  <-- REMOVIDO POIS NÃO TEM MAIS EXCEL
-    from datetime import datetime
-    from django.db.models import Avg
+    from django.db.models import Avg, Count, Q
+    from django.db.models.functions import Coalesce
 
-    # --- 1. CAPTURA DE FILTROS ---
+    # --- 1. FILTROS ---
     serie_id = request.GET.get('serie')
     turma_id = request.GET.get('turma')
     aluno_id = request.GET.get('aluno')
@@ -170,13 +172,8 @@ def dashboard(request):
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
     
-    # QuerySet Base
-    resultados = Resultado.objects.select_related(
-        'avaliacao', 
-        'matricula__aluno', 
-        'matricula__turma', 
-        'avaliacao__disciplina'
-    )
+    # Base: Resultados
+    resultados = Resultado.objects.all()
 
     if disciplina_id: resultados = resultados.filter(avaliacao__disciplina_id=disciplina_id)
     if serie_id: resultados = resultados.filter(avaliacao__turma__nome__startswith=serie_id)
@@ -186,227 +183,150 @@ def dashboard(request):
     if data_inicio: resultados = resultados.filter(avaliacao__data_aplicacao__gte=data_inicio)
     if data_fim: resultados = resultados.filter(avaliacao__data_aplicacao__lte=data_fim)
 
-    # (BLOCO DE EXPORTAÇÃO EXCEL FOI REMOVIDO AQUI)
+    # --- 2. PROCESSAMENTO OTIMIZADO ---
 
-    # --- 2. PROCESSAMENTO DE DADOS ---
-    
-    # Busca Respostas Detalhadas
-    respostas_qs = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related(
-        'item_gabarito__descritor', 'questao__descritor', 'item_gabarito', 'questao'
+    # A. KPI & PIZZA
+    kpis = resultados.aggregate(
+        total=Count('id'),
+        media=Avg('percentual'),
+        avancado=Count('id', filter=Q(percentual__gte=90)),
+        adequado=Count('id', filter=Q(percentual__gte=70, percentual__lt=90)),
+        intermediario=Count('id', filter=Q(percentual__gte=50, percentual__lt=70)),
+        critico=Count('id', filter=Q(percentual__lt=50))
     )
 
-    # A. PIZZA (4 CORES) & KPIs NOVOS
-    # Isso é necessário para os Cards do topo e para a Pizza colorida nova
-    dados_pizza = [0, 0, 0, 0] # Azul, Verde, Amarelo, Vermelho
-    detalhes_pizza = {'Avançado': [], 'Adequado': [], 'Intermediário': [], 'Crítico': []}
+    count_avaliados = kpis['total']
+    media_geral = round((kpis['media'] or 0) / 10, 1)
     
-    soma_notas = 0
-    count_avaliados = 0
+    dados_pizza = [kpis['avancado'], kpis['adequado'], kpis['intermediario'], kpis['critico']]
 
-    for res in resultados:
-        # Garante que p seja float e trata None como 0.0
-        p = float(res.percentual) if res.percentual is not None else 0.0
-        
-        soma_notas += p
-        count_avaliados += 1
-
-        aluno_info = {
-            'nome': res.matricula.aluno.nome_completo,
-            'turma': res.matricula.turma.nome,
-            'nota': round(p/10, 1)
-        }
-        
-        # CLASSIFICAÇÃO NOVA (4 NÍVEIS)
-        if p >= 90: 
-            dados_pizza[0] += 1
-            detalhes_pizza['Avançado'].append(aluno_info)
-        elif p >= 70: 
-            dados_pizza[1] += 1
-            detalhes_pizza['Adequado'].append(aluno_info)
-        elif p >= 50: 
-            dados_pizza[2] += 1
-            detalhes_pizza['Intermediário'].append(aluno_info)
-        else: 
-            dados_pizza[3] += 1
-            detalhes_pizza['Crítico'].append(aluno_info)
-
-    detalhes_pizza_json = json.dumps(detalhes_pizza)
-
-    # CÁLCULO DOS KPIs (Média e Nível Predominante)
-    media_geral = 0
-    if count_avaliados > 0:
-        media_geral = round((soma_notas / count_avaliados) / 10, 1)
-    
     nivel_predominante = "-"
     if count_avaliados > 0:
         idx_max = dados_pizza.index(max(dados_pizza))
-        # Ícones opcionais para dar um charme
-        nomes_niveis = ["Avançado 🚀", "Adequado ✅", "Intermediário ⚠️", "Crítico 🚨"]
-        nivel_predominante = nomes_niveis[idx_max]
+        nomes = ["Avançado 🚀", "Adequado ✅", "Intermediário ⚠️", "Crítico 🚨"]
+        nivel_predominante = nomes[idx_max]
 
     qtd_provas = resultados.values('avaliacao').distinct().count()
 
-    # B. PROFICIÊNCIA POR DESCRITOR (Mantido da sua lógica original)
-    stats_descritores = {}
-    for resp in respostas_qs:
-        desc_obj = None
-        if resp.item_gabarito and resp.item_gabarito.descritor:
-            desc_obj = resp.item_gabarito.descritor
-        elif resp.questao and resp.questao.descritor:
-            desc_obj = resp.questao.descritor
-            
-        if desc_obj:
-            codigo = desc_obj.codigo
-            if codigo not in stats_descritores:
-                stats_descritores[codigo] = {'acertos': 0, 'total': 0}
-            
-            stats_descritores[codigo]['total'] += 1
-            if resp.acertou:
-                stats_descritores[codigo]['acertos'] += 1
+    # Detalhes Pizza (Limitado a 500 para não travar)
+    detalhes_qs = resultados.select_related('matricula__aluno', 'matricula__turma').only(
+        'percentual', 'matricula__aluno__nome_completo', 'matricula__turma__nome'
+    )[:500]
+
+    detalhes_pizza = {'Avançado': [], 'Adequado': [], 'Intermediário': [], 'Crítico': []}
+    for res in detalhes_qs:
+        p = float(res.percentual or 0)
+        info = {'nome': res.matricula.aluno.nome_completo, 'turma': res.matricula.turma.nome, 'nota': round(p/10, 1)}
+        if p >= 90: detalhes_pizza['Avançado'].append(info)
+        elif p >= 70: detalhes_pizza['Adequado'].append(info)
+        elif p >= 50: detalhes_pizza['Intermediário'].append(info)
+        else: detalhes_pizza['Crítico'].append(info)
+    
+    detalhes_pizza_json = json.dumps(detalhes_pizza)
+
+    # B. PROFICIÊNCIA POR DESCRITOR (A CORREÇÃO ESTÁ AQUI)
+    respostas_base = RespostaDetalhada.objects.filter(resultado__in=resultados)
+    
+    # Coalesce: Pega do ItemGabarito. Se for nulo, pega da Questao.
+    stats_desc = respostas_base.annotate(
+        cod_final=Coalesce('item_gabarito__descritor__codigo', 'questao__descritor__codigo')
+    ).values('cod_final').annotate(
+        total=Count('id'),
+        acertos=Count('id', filter=Q(acertou=True))
+    ).order_by('cod_final')
 
     labels_proficiencia = []
     dados_proficiencia = []
-    for cod in sorted(stats_descritores.keys()):
-        d = stats_descritores[cod]
-        perc = (d['acertos'] / d['total']) * 100
-        labels_proficiencia.append(cod)
-        dados_proficiencia.append(round(perc, 1))
+    
+    for item in stats_desc:
+        cod = item['cod_final']
+        if cod: 
+            perc = (item['acertos'] / item['total']) * 100 if item['total'] > 0 else 0
+            labels_proficiencia.append(cod)
+            dados_proficiencia.append(round(perc, 1))
 
-    # C. RANKING DE QUESTÕES (Mantido da sua lógica original)
-    stats_questoes = {}
-    for resp in respostas_qs:
-        q_id = f"G{resp.item_gabarito.id}" if resp.item_gabarito else f"Q{resp.questao.id}"
-        
-        if q_id not in stats_questoes:
-            texto_desc = "Sem descritor"
-            texto_enunciado = "Questão sem texto"
-            
-            if resp.item_gabarito:
-                if resp.item_gabarito.descritor: texto_desc = resp.item_gabarito.descritor.codigo
-                if resp.item_gabarito.questao_banco: 
-                    texto_enunciado = resp.item_gabarito.questao_banco.enunciado
-                else:
-                    texto_enunciado = f"Questão {resp.item_gabarito.numero} (Manual)"
-            elif resp.questao:
-                if resp.questao.descritor: texto_desc = resp.questao.descritor.codigo
-                texto_enunciado = resp.questao.enunciado
-            
-            stats_questoes[q_id] = {
-                'desc': texto_desc, 
-                'texto': texto_enunciado[:120],
-                'acertos': 0, 
-                'total': 0
-            }
-        
-        stats_questoes[q_id]['total'] += 1
-        if resp.acertou: stats_questoes[q_id]['acertos'] += 1
+    # C. RANKING DE QUESTÕES (CORRIGIDO TAMBÉM)
+    ranking_q = respostas_base.annotate(
+        desc_final=Coalesce('item_gabarito__descritor__codigo', 'questao__descritor__codigo')
+    ).values(
+        'desc_final',
+        'questao__enunciado',
+        'item_gabarito__questao_banco__enunciado',
+        'item_gabarito__numero'
+    ).annotate(
+        total=Count('id'),
+        acertos=Count('id', filter=Q(acertou=True))
+    )
 
     lista_questoes = []
-    for k, v in stats_questoes.items():
-        if v['total'] > 0:
-            perc_acerto = (v['acertos'] / v['total']) * 100
+    for r in ranking_q:
+        if r['total'] > 0:
+            texto = r['questao__enunciado'] or r['item_gabarito__questao_banco__enunciado'] or f"Questão {r.get('item_gabarito__numero')}"
+            desc = r['desc_final'] or "Geral"
+            perc = (r['acertos'] / r['total']) * 100
             lista_questoes.append({
-                'desc': v['desc'],
-                'texto': v['texto'],
-                'percentual_acerto': round(perc_acerto, 1),
-                'percentual_erro': round(100 - perc_acerto, 1),
-                'total': v['total']
+                'desc': desc, 'texto': texto[:100],
+                'percentual_acerto': round(perc, 1),
+                'percentual_erro': round(100 - perc, 1)
             })
 
-    ranking_facil = sorted(lista_questoes, key=lambda x: x['percentual_acerto'], reverse=True)
-    ranking_dificil = sorted(lista_questoes, key=lambda x: x['percentual_erro'], reverse=True)
+    ranking_facil = sorted(lista_questoes, key=lambda x: x['percentual_acerto'], reverse=True)[:5]
+    ranking_dificil = sorted(lista_questoes, key=lambda x: x['percentual_erro'], reverse=True)[:5]
 
-    # D. EVOLUÇÃO TEMPORAL
-    labels_evolucao, dados_evolucao = [], []
+    # D. EVOLUÇÃO
     evolucao_qs = resultados.values('avaliacao__titulo', 'avaliacao__data_aplicacao') \
                             .annotate(media=Avg('percentual')) \
                             .order_by('avaliacao__data_aplicacao')
     
-    for evo in evolucao_qs:
-        labels_evolucao.append(evo['avaliacao__titulo'])
-        dados_evolucao.append(round(evo['media'], 1))
+    labels_evolucao = [e['avaliacao__data_aplicacao'].strftime('%d/%m') for e in evolucao_qs if e['avaliacao__data_aplicacao']]
+    dados_evolucao = [round(e['media'], 1) for e in evolucao_qs if e['avaliacao__data_aplicacao']]
 
-    # E. HEATMAP
+    # E. HEATMAP (Só carrega se filtrar prova)
     itens_heatmap = []
     matriz_calor = []
-
+    
     if avaliacao_id:
-        obj_avaliacao = Avaliacao.objects.get(id=avaliacao_id)
-        itens_heatmap = ItemGabarito.objects.filter(avaliacao=obj_avaliacao).select_related('descritor').order_by('numero')
-        
-        resultados_heat = resultados.order_by('matricula__aluno__nome_completo')
-        
-        for res in resultados_heat:
-            resps = RespostaDetalhada.objects.filter(resultado=res)
-            mapa_res = {r.item_gabarito_id: r.acertou for r in resps}
+        try:
+            av = Avaliacao.objects.get(id=avaliacao_id)
+            itens_heatmap = ItemGabarito.objects.filter(avaliacao=av).select_related('descritor').order_by('numero')
+            res_heat = resultados.select_related('matricula__aluno').order_by('matricula__aluno__nome_completo')
             
-            linha = {
-                'aluno': res.matricula.aluno, 
-                'nota': round((res.percentual or 0)/10, 1), 
-                'questoes': []
-            }
-            
-            for item in itens_heatmap:
-                status = mapa_res.get(item.id)
-                linha['questoes'].append({'acertou': status, 'item': item})
-            
-            matriz_calor.append(linha)
+            # Otimização extrema para Heatmap
+            respostas_all = RespostaDetalhada.objects.filter(resultado__in=res_heat).values('resultado_id', 'item_gabarito_id', 'acertou')
+            mapa_geral = {}
+            for r in respostas_all:
+                if r['resultado_id'] not in mapa_geral: mapa_geral[r['resultado_id']] = {}
+                mapa_geral[r['resultado_id']][r['item_gabarito_id']] = r['acertou']
 
-    # --- 4. CONTEXTO ---
-    turmas_filtro = Turma.objects.all()
+            for r in res_heat:
+                mapa_aluno = mapa_geral.get(r.id, {})
+                linha = {'aluno': r.matricula.aluno, 'nota': round((r.percentual or 0)/10, 1), 'questoes': []}
+                for item in itens_heatmap:
+                    linha['questoes'].append({'acertou': mapa_aluno.get(item.id), 'item': item})
+                matriz_calor.append(linha)
+        except: pass
+
+    # Contexto
+    turmas_filtro = Turma.objects.all().order_by('nome')
     if serie_id: turmas_filtro = turmas_filtro.filter(nome__startswith=serie_id)
-    
     alunos_filtro = Aluno.objects.none()
-    if turma_id: alunos_filtro = Aluno.objects.filter(matriculas__turma_id=turma_id, matriculas__status='CURSANDO').distinct()
+    if turma_id: alunos_filtro = Aluno.objects.filter(matriculas__turma_id=turma_id, matriculas__status='CURSANDO')
 
-    # --- CONTEXTO SEGURO ---
-    nome_filtro = "Visão Geral da Escola"
-    
-    # 1. Tratamento seguro da Avaliação
-    if avaliacao_id:
-        try:
-            av_obj = Avaliacao.objects.get(id=avaliacao_id)
-            nome_filtro = f"Prova: {av_obj.titulo}"
-        except:
-            nome_filtro = "Prova não encontrada"
+    nome_filtro = "Visão Geral"
+    if avaliacao_id: nome_filtro = "Prova Específica"
+    elif turma_id: nome_filtro = "Turma Específica"
 
-    elif aluno_id:
-        try:
-            al_obj = Aluno.objects.get(id=aluno_id)
-            nome_filtro = f"Aluno: {al_obj.nome_completo}"
-        except: pass
-
-    elif turma_id:
-        try:
-            t_obj = Turma.objects.get(id=turma_id)
-            nome_filtro = f"Turma: {t_obj.nome}"
-        except: pass
-        
-    elif serie_id:
-        nome_filtro = f"Série: {serie_id}º Ano"
-
-    context = {
-        # ... seus dados ...
-    }
     context = {
         'serie_selecionada': serie_id, 'turma_selecionada': turma_id, 
         'aluno_selecionado': aluno_id, 'disciplina_selecionada': disciplina_id, 
         'avaliacao_selecionada': avaliacao_id, 'data_inicio': data_inicio, 'data_fim': data_fim,
-        
         'turmas_da_serie': turmas_filtro, 'alunos_da_turma': alunos_filtro, 
-        'disciplinas': Disciplina.objects.all(), 
-        'avaliacoes_todas': Avaliacao.objects.all().order_by('-data_aplicacao')[:100],
-        
-        # NOVOS DADOS PARA O HTML FUNCIONAR
+        'disciplinas': Disciplina.objects.all().order_by('nome'), 
+        'avaliacoes_todas': Avaliacao.objects.all().order_by('-data_aplicacao')[:50],
         'nome_filtro': nome_filtro,
         'total_avaliacoes_contagem': count_avaliados,
-        'media_geral': media_geral,
-        'nivel_predominante': nivel_predominante,
-        'qtd_provas': qtd_provas,
-        
-        'dados_pizza': dados_pizza,
-        'detalhes_pizza_json': detalhes_pizza_json,
-        
+        'media_geral': media_geral, 'nivel_predominante': nivel_predominante, 'qtd_provas': qtd_provas,
+        'dados_pizza': dados_pizza, 'detalhes_pizza_json': detalhes_pizza_json,
         'labels_evolucao': labels_evolucao, 'dados_evolucao': dados_evolucao,
         'labels_proficiencia': labels_proficiencia, 'dados_proficiencia': dados_proficiencia,
         'ranking_facil': ranking_facil, 'ranking_dificil': ranking_dificil,
@@ -414,6 +334,35 @@ def dashboard(request):
     }
 
     return render(request, 'core/dashboard.html', context)
+
+@login_required
+def api_raio_x(request):
+    descritor_cod = request.GET.get('descritor')
+    
+    # Filtros base
+    filtros = Q(acertou=False) 
+    
+    # CORREÇÃO: Procura o descritor no Item OU na Questão
+    if descritor_cod: 
+        filtros &= (Q(item_gabarito__descritor__codigo=descritor_cod) | Q(questao__descritor__codigo=descritor_cod))
+    
+    # Filtros de contexto
+    if request.GET.get('avaliacao'): filtros &= Q(resultado__avaliacao_id=request.GET.get('avaliacao'))
+    if request.GET.get('turma'): filtros &= Q(resultado__avaliacao__turma_id=request.GET.get('turma'))
+    if request.GET.get('serie'): filtros &= Q(resultado__avaliacao__turma__nome__startswith=request.GET.get('serie'))
+    if request.GET.get('disciplina'): filtros &= Q(resultado__avaliacao__disciplina_id=request.GET.get('disciplina'))
+
+    erros = RespostaDetalhada.objects.filter(filtros).values(
+        'resultado__matricula__aluno__nome_completo',
+        'resultado__matricula__turma__nome'
+    ).distinct()[:200]
+
+    lista_alunos = [
+        f"{e['resultado__matricula__aluno__nome_completo']} <small class='text-muted'>({e['resultado__matricula__turma__nome']})</small>"
+        for e in erros
+    ]
+    
+    return JsonResponse({'alunos': lista_alunos})
 
 
 @login_required
@@ -2386,62 +2335,95 @@ def gerenciar_ndi(request):
 def plano_anual(request):
     turma_id = request.GET.get('turma')
     
-    # --- CORREÇÃO AQUI ---
-    # Busca os nomes de todas as disciplinas cadastradas no banco
+    # Busca disciplinas
     disciplinas_qs = Disciplina.objects.values_list('nome', flat=True).order_by('nome')
-    
-    # Define qual disciplina exibir:
-    # 1. Tenta pegar da URL (GET)
-    # 2. Se não tiver, pega a primeira do banco
-    # 3. Se o banco estiver vazio, usa um fallback
     disciplina_selecionada = request.GET.get('disciplina')
     
     if not disciplina_selecionada:
         if disciplinas_qs.exists():
             disciplina_selecionada = disciplinas_qs.first()
         else:
-            disciplina_selecionada = 'Matemática' # Fallback de segurança
+            disciplina_selecionada = 'Língua Portuguesa'
 
     turmas = Turma.objects.all().order_by('nome')
     
-    # Inicializa variáveis
     plano = None
-    dados_kanban = {} 
+    dados_kanban = {}
+    planos_para_importar = [] # Lista de planos disponíveis para copiar
+
     for b in range(1, 5):
         dados_kanban[b] = {'TODO': [], 'DOING': [], 'DONE': []}
 
     if turma_id:
         turma = get_object_or_404(Turma, id=turma_id)
         
-        # Cria ou Pega o plano para aquela Turma + Disciplina
+        # Cria ou Pega o plano atual
         plano, created = PlanoEnsino.objects.get_or_create(
             turma=turma, 
             disciplina_nome=disciplina_selecionada, 
             defaults={'ano_letivo': 2026}
         )
 
+        # Busca outros planos da MESMA disciplina mas OUTRAS turmas (para importar)
+        planos_para_importar = PlanoEnsino.objects.filter(
+            disciplina_nome=disciplina_selecionada,
+            ano_letivo=2026
+        ).exclude(id=plano.id)
+
         if request.method == 'POST':
             acao = request.POST.get('acao')
 
+            # --- AÇÃO: UPLOAD ARQUIVO ---
             if 'arquivo_plano' in request.FILES:
                 plano.arquivo = request.FILES['arquivo_plano']
                 plano.save()
                 messages.success(request, "Arquivo anexado com sucesso!")
             
+            # --- AÇÃO: IMPORTAR PLANO ---
+            elif acao == 'importar':
+                plano_origem_id = request.POST.get('plano_origem_id')
+                if plano_origem_id:
+                    plano_origem = PlanoEnsino.objects.get(id=plano_origem_id)
+                    # Copia os tópicos
+                    for topico in plano_origem.topicos.all():
+                        TopicoPlano.objects.create(
+                            plano=plano,
+                            bimestre=topico.bimestre,
+                            conteudo=topico.conteudo,
+                            status='TODO', # Começa como A Fazer
+                            data_prevista=None # Data reseta pois é nova turma
+                        )
+                    messages.success(request, f"Tópicos importados da turma {plano_origem.turma.nome}!")
+
+            # --- AÇÃO: CRIAR TÓPICO ---
             elif acao == 'criar':
                 conteudo = request.POST.get('conteudo')
                 bimestre = int(request.POST.get('bimestre'))
+                data_str = request.POST.get('data_prevista') # Nova data
+                
                 if conteudo:
-                    TopicoPlano.objects.create(plano=plano, bimestre=bimestre, conteudo=conteudo, status='TODO')
+                    TopicoPlano.objects.create(
+                        plano=plano, 
+                        bimestre=bimestre, 
+                        conteudo=conteudo, 
+                        status='TODO',
+                        data_prevista=data_str if data_str else None
+                    )
                     messages.success(request, "Tópico criado!")
 
+            # --- AÇÃO: EDITAR TÓPICO ---
             elif acao == 'editar':
                 topico_id = request.POST.get('topico_id')
                 topico = get_object_or_404(TopicoPlano, id=topico_id)
                 topico.conteudo = request.POST.get('conteudo')
+                
+                data_str = request.POST.get('data_prevista') # Nova data
+                topico.data_prevista = data_str if data_str else None
+                
                 topico.save()
                 messages.success(request, "Tópico atualizado!")
 
+            # --- AÇÃO: EXCLUIR TÓPICO ---
             elif acao == 'excluir':
                 topico_id = request.POST.get('topico_id')
                 TopicoPlano.objects.filter(id=topico_id).delete()
@@ -2449,19 +2431,47 @@ def plano_anual(request):
             
             return redirect(f"{request.path}?turma={turma_id}&disciplina={disciplina_selecionada}")
 
-        # Carrega os tópicos para o Kanban
-        topicos = plano.topicos.all().order_by('id')
+        # Carrega tópicos para o Kanban
+        topicos = plano.topicos.all().order_by('data_prevista', 'id') # Ordena por data
         for t in topicos:
             dados_kanban[t.bimestre][t.status].append(t)
 
     return render(request, 'core/plano_anual.html', {
         'turmas': turmas,
-        'disciplinas': disciplinas_qs, # Passa a lista real do banco
+        'disciplinas': disciplinas_qs,
         'turma_selecionada_id': int(turma_id) if turma_id else None,
         'disciplina_atual': disciplina_selecionada,
         'plano': plano,
-        'dados_kanban': dados_kanban
+        'dados_kanban': dados_kanban,
+        'planos_para_importar': planos_para_importar # Passa para o template
     })
+
+@login_required
+def imprimir_plano_pdf(request, plano_id):
+    plano = get_object_or_404(PlanoEnsino, id=plano_id)
+    
+    # Organiza tópicos
+    topicos_por_bimestre = {1: [], 2: [], 3: [], 4: []}
+    for t in plano.topicos.all().order_by('bimestre', 'id'):
+        topicos_por_bimestre[t.bimestre].append(t)
+
+    html_string = render_to_string('core/relatorios/plano_pdf.html', {
+        'plano': plano,
+        'topicos_por_bimestre': topicos_por_bimestre,
+        'data_geracao': timezone.now()
+    })
+
+    result = BytesIO()
+    
+    # Gera o PDF usando xhtml2pdf
+    pdf = pisa.pisaDocument(BytesIO(html_string.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Plano_{plano.disciplina_nome}.pdf"'
+        return response
+    
+    return HttpResponse("Erro ao gerar PDF", status=500)
 
 # API para Mover Card (Drag & Drop lógico)
 @login_required

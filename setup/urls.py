@@ -23,7 +23,7 @@ urlpatterns = [
     path('avaliacoes/nova/', views.criar_avaliacao, name='criar_avaliacao'),
     path('avaliacoes/editar/<int:avaliacao_id>/', views.editar_avaliacao, name='editar_avaliacao'),
     
-    # AQUI: Ambas rotas usam 'gerar_prova_pdf' porque você quer a lógica inteligente nela
+    # GERAÇÃO DE PROVAS
     path('gerar_prova/', views.gerar_prova_pdf, name='gerar_prova_pdf'),
     path('gerar-prova-inteligente/', views.gerar_prova_pdf, name='gerar_prova_inteligente'),
 
@@ -33,7 +33,13 @@ urlpatterns = [
     path('gerar_cartoes/<int:avaliacao_id>/', views.gerar_cartoes_pdf, name='gerar_cartoes_pdf'),
     
     # --- RELATÓRIOS & ANÁLISE ---
+    # Rota geral (sem ID)
     path('relatorio_proficiencia/', views.gerar_relatorio_proficiencia, name='gerar_relatorio_proficiencia'),
+    
+    # Rota Específica da Avaliação (AQUI ESTAVA O ERRO)
+    # Corrigido de views.relatorio_proficiencia para views.gerar_relatorio_proficiencia
+    path('relatorio-proficiencia/<int:avaliacao_id>/', views.gerar_relatorio_proficiencia, name='relatorio_proficiencia'),
+    
     path('avaliacao/<int:avaliacao_id>/mapa/', views.mapa_calor, name='mapa_calor'),
     path('relatorio-ndi/<int:turma_id>/<int:bimestre>/', views.relatorio_ndi_print, name='relatorio_ndi_print'),
 
@@ -41,6 +47,7 @@ urlpatterns = [
     path('lancar_nota/', views.lancar_nota, name='lancar_nota'),
     path('ndi/', views.gerenciar_ndi, name='gerenciar_ndi'),
     path('plano-aula/', views.plano_anual, name='plano_anual'),
+    path('plano/imprimir/<int:plano_id>/', views.imprimir_plano_pdf, name='imprimir_plano_pdf'),
 
     # --- CADASTROS ---
     path('alunos/', views.gerenciar_alunos, name='gerenciar_alunos'),
@@ -59,12 +66,14 @@ urlpatterns = [
     path('aluno/trocar-senha/', views.trocar_senha_aluno, name='trocar_senha_aluno'),
 
     # --- APIs ---
-    path('api/filtrar-alunos/', views.api_filtrar_alunos, name='api_filtrar_alunos'), # Corrigi hifen
-    path('api/filtrar_alunos/', views.api_filtrar_alunos, name='api_filtrar_alunos_alt'), # Alias
+    path('api/filtrar-alunos/', views.api_filtrar_alunos, name='api_filtrar_alunos'),
+    path('api/filtrar_alunos/', views.api_filtrar_alunos, name='api_filtrar_alunos_alt'),
     path('api/gerar-questao/', views.api_gerar_questao, name='api_gerar_questao'),
     path('api/ler-cartao/', views.api_ler_cartao, name='api_ler_cartao'),
     path('api/mover-topico/<int:id>/<str:novo_status>/', views.mover_topico, name='mover_topico'),
     path('api/toggle-topico/<int:id>/', views.toggle_topico, name='toggle_topico'),
     path('api/lancar-notas-ajax/', views.api_lancar_nota_ajax, name='api_lancar_nota_ajax'),
+    path('api/raio-x/', views.api_raio_x, name='api_raio_x'),
+    
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

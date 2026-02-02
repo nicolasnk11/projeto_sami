@@ -1,4 +1,4 @@
-<div class="card border-0 shadow-sm p-3 bg-white rounded-3 kanban-card {{ cor }} {{ opacity }}">
+<div class="card shadow-sm p-3 bg-white rounded-3 mb-2 border-0 border-start border-4 {{ border_color }} {{ opacity }}">
     <div class="d-flex justify-content-between align-items-start">
         <span class="fw-bold text-dark lh-sm" style="font-size: 0.95rem;">{{ card.conteudo }}</span>
         
@@ -20,13 +20,28 @@
                 {% endif %}
                 
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item small" href="#" onclick="abrirModalEditar('{{ card.id }}', '{{ card.conteudo }}')"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                
+                <li>
+                    <a class="dropdown-item small" href="#" 
+                       onclick="abrirModalEditar('{{ card.id }}', '{{ card.conteudo|escapejs }}', '{{ card.data_prevista|date:"Y-m-d" }}')">
+                        <i class="bi bi-pencil me-2"></i>Editar
+                    </a>
+                </li>
+                
                 <li><a class="dropdown-item small text-danger" href="#" onclick="abrirModalExcluir('{{ card.id }}')"><i class="bi bi-trash me-2"></i>Excluir</a></li>
             </ul>
         </div>
     </div>
     
-    <div class="mt-2 d-flex justify-content-end">
-        <small class="text-muted" style="font-size: 0.7rem;">#{{ card.id }}</small>
+    <div class="mt-3 d-flex justify-content-between align-items-end">
+        
+        {% if card.data_prevista %}
+        <span class="badge bg-light text-secondary border fw-normal">
+            <i class="bi bi-calendar-event me-1"></i> {{ card.data_prevista|date:"d/m/Y" }}
+        </span>
+        {% else %}
+        <span></span> {% endif %}
+
+        <small class="text-muted opacity-50" style="font-size: 0.7rem;">#{{ card.id }}</small>
     </div>
 </div>
