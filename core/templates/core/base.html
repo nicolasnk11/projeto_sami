@@ -262,7 +262,15 @@
                 <span>Importar Alunos</span>
             </a>
 
-            <div class="mt-auto"></div> <div class="nav-label">Sistema</div>
+            <div class="mt-auto"></div> 
+            
+            <div class="nav-label">Sistema</div>
+            
+            <a href="{% url 'gerenciar_virada_ano' %}" class="nav-link {% if request.resolver_match.url_name == 'gerenciar_virada_ano' %}active{% endif %}">
+                <i class="bi bi-calendar-range-fill"></i> 
+                <span>Virada de Ano</span>
+            </a>
+
             <a href="{% url 'painel_gestao' %}" class="nav-link {% if request.resolver_match.url_name == 'painel_gestao' %}active{% endif %}">
                 <i class="bi bi-gear-wide-connected"></i> 
                 <span>Configurações</span>
@@ -294,6 +302,7 @@
                     {% elif 'aluno' in request.path %} Gestão de Alunos
                     {% elif 'avaliacao' in request.path %} Avaliações
                     {% elif 'ajuda' in request.path %} Central de Ajuda
+                    {% elif 'virada-ano' in request.path %} Transição de Ano Letivo
                     {% else %} Portal {{ escola.nome_escola|default:"SAMI" }}
                     {% endif %}
                 </h4>

@@ -632,7 +632,7 @@ def criar_avaliacao(request):
             messages.error(request, 'Erro: Preencha título, disciplina e data.')
 
     context = {
-        'turmas': Turma.objects.all().order_by('nome'), 
+        'turmas': Turma.objects.filter(ano_letivo=2026).order_by('nome'), 
         'disciplinas': Disciplina.objects.all().order_by('nome')
     }
     return render(request, 'core/criar_avaliacao.html', context)
@@ -1255,6 +1255,8 @@ def lancar_nota(request):
 # 📋 GERENCIAMENTO GERAL
 # ==============================================================================
 
+# Em core/views.py
+
 @login_required
 def gerenciar_alunos(request):
     # --- LÓGICA DE AÇÕES (POST) ---
@@ -1266,16 +1268,28 @@ def gerenciar_alunos(request):
             nome = request.POST.get('nome')
             turma_id = request.POST.get('turma')
             
+            # Novos Campos de Inclusão e Social
+            is_pcd = request.POST.get('is_pcd') == 'on'
+            tipo_deficiencia = request.POST.get('tipo_deficiencia')
+            cor_raca = request.POST.get('cor_raca')
+            
             if nome and turma_id:
                 try:
-                    # Passo A: Cria o Aluno (Pessoa)
-                    novo_aluno = Aluno.objects.create(nome_completo=nome.upper())
-                    
-                    # Passo B: Cria a Matrícula (Vínculo)
-                    turma_obj = Turma.objects.get(id=turma_id)
-                    Matricula.objects.create(aluno=novo_aluno, turma=turma_obj, status='CURSANDO')
-                    
-                    messages.success(request, 'Aluno matriculado com sucesso!')
+                    with transaction.atomic():
+                        # Passo A: Cria o Aluno com os dados novos
+                        novo_aluno = Aluno.objects.create(
+                            nome_completo=nome.upper(),
+                            is_pcd=is_pcd,
+                            tipo_deficiencia=tipo_deficiencia,
+                            cor_raca=cor_raca
+                        )
+                        
+                        # Passo B: Cria a Matrícula
+                        turma_obj = Turma.objects.get(id=turma_id)
+                        Matricula.objects.create(aluno=novo_aluno, turma=turma_obj, status='CURSANDO')
+                        
+                        msg_extra = " (Marcado como Inclusão)" if is_pcd else ""
+                        messages.success(request, f'Aluno matriculado com sucesso!{msg_extra}')
                 except Exception as e:
                     messages.error(request, f'Erro ao cadastrar: {e}')
             else:
@@ -1283,15 +1297,22 @@ def gerenciar_alunos(request):
 
         # 2. EDITAR ALUNO EXISTENTE
         elif acao == 'editar':
-            matricula_id = request.POST.get('matricula_id') # Usamos o ID da matrícula agora
+            matricula_id = request.POST.get('matricula_id')
             try:
                 mat = get_object_or_404(Matricula, id=matricula_id)
                 
-                # Atualiza Nome (Tabela Aluno)
+                # Atualiza Dados Básicos
                 novo_nome = request.POST.get('nome')
-                if novo_nome:
-                    mat.aluno.nome_completo = novo_nome.upper()
-                    mat.aluno.save()
+                if novo_nome: mat.aluno.nome_completo = novo_nome.upper()
+                
+                # Atualiza Dados de Inclusão e Social
+                mat.aluno.is_pcd = request.POST.get('is_pcd') == 'on'
+                mat.aluno.tipo_deficiencia = request.POST.get('tipo_deficiencia')
+                mat.aluno.cor_raca = request.POST.get('cor_raca')
+                mat.aluno.genero = request.POST.get('genero')
+                mat.aluno.renda_familiar = request.POST.get('renda_familiar')
+                
+                mat.aluno.save() # Salva na tabela Aluno
                 
                 # Atualiza Turma (Tabela Matrícula)
                 nova_turma_id = request.POST.get('turma')
@@ -1300,13 +1321,12 @@ def gerenciar_alunos(request):
                 
                 # Atualiza Status
                 status_novo = request.POST.get('status')
-                if status_novo:
-                    mat.status = status_novo
+                if status_novo: mat.status = status_novo
                     
-                mat.save()
-                messages.success(request, 'Dados atualizados com sucesso!')
+                mat.save() # Salva na tabela Matrícula
+                messages.success(request, 'Dados do aluno atualizados com sucesso!')
             except Exception as e:
-                messages.error(request, 'Erro ao editar aluno.')
+                messages.error(request, f'Erro ao editar: {e}')
 
         # 3. EXCLUIR (Inativar Matrícula ou Deletar)
         elif acao == 'excluir':
@@ -1322,6 +1342,85 @@ def gerenciar_alunos(request):
                 messages.error(request, 'Erro ao excluir.')
 
         return redirect('gerenciar_alunos')
+
+    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
+    busca = request.GET.get('busca')
+    filtro_turma = request.GET.get('turma')
+    apenas_pcd = request.GET.get('apenas_pcd')
+    
+    # NOVO: Filtro de Ano (Padrão 2026)
+    filtro_ano = request.GET.get('ano', '2026')
+
+    # Busca matrículas. Filtra status 'CURSANDO' E O ANO LETIVO DA TURMA
+    # Importante: se quiser ver alunos 'APROVADOS' de 2025, tem que tirar o status='CURSANDO' ou adaptar a lógica.
+    # Aqui vou deixar mostrar todos daquele ano, independente do status, para você ver o histórico.
+    matriculas = Matricula.objects.filter(turma__ano_letivo=filtro_ano).select_related('aluno', 'turma')
+    
+    # Se for o ano atual (2026), foca nos Cursando. Se for passado (2025), mostra tudo.
+    if filtro_ano == '2026':
+        matriculas = matriculas.filter(status='CURSANDO')
+
+    # Filtros Adicionais
+    if busca:
+        matriculas = matriculas.filter(aluno__nome_completo__icontains=busca)
+    
+    if filtro_turma:
+        matriculas = matriculas.filter(turma_id=filtro_turma)
+
+    if apenas_pcd == 'on':
+        matriculas = matriculas.filter(aluno__is_pcd=True)
+
+    # Ordenação
+    matriculas = matriculas.order_by('aluno__nome_completo')
+
+    # Paginação
+    paginator = Paginator(matriculas, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    # IMPORTANTE: O Select de turmas só deve mostrar turmas do ANO selecionado
+    turmas_para_select = Turma.objects.filter(ano_letivo=filtro_ano).order_by('nome')
+
+    return render(request, 'core/gerenciar_alunos.html', {
+        'matriculas': page_obj,
+        'turmas': turmas_para_select,
+        'busca_atual': busca,
+        'turma_selecionada': filtro_turma,
+        'ano_atual': filtro_ano # Passa o ano para o template manter o filtro
+    })
+
+    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
+    busca = request.GET.get('busca')
+    filtro_turma = request.GET.get('turma')
+    apenas_pcd = request.GET.get('apenas_pcd') # Novo Filtro
+
+    # Busca matrículas ativas (CURSANDO) para exibir
+    matriculas = Matricula.objects.filter(status='CURSANDO').select_related('aluno', 'turma')
+    
+    # Filtros
+    if busca:
+        matriculas = matriculas.filter(aluno__nome_completo__icontains=busca)
+    
+    if filtro_turma:
+        matriculas = matriculas.filter(turma_id=filtro_turma)
+
+    if apenas_pcd == 'on':
+        matriculas = matriculas.filter(aluno__is_pcd=True)
+
+    # Ordenação
+    matriculas = matriculas.order_by('aluno__nome_completo')
+
+    # Paginação
+    paginator = Paginator(matriculas, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    turmas = Turma.objects.all().order_by('nome')
+
+    return render(request, 'core/gerenciar_alunos.html', {
+        'matriculas': page_obj,
+        'turmas': turmas,
+        'busca_atual': busca,
+        'turma_selecionada': filtro_turma
+    })
 
     # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
     busca = request.GET.get('busca')
@@ -1412,22 +1511,46 @@ def gerenciar_avaliacoes(request):
 
 @login_required
 def gerenciar_turmas(request):
+    from django.db.models import Count, Q
+
     if request.method == 'POST':
         acao = request.POST.get('acao')
+        
+        # 1. CRIAR TURMA
         if acao == 'criar':
-            Turma.objects.create(nome=request.POST.get('nome_turma'), ano_letivo=2026)
-            messages.success(request, 'Turma criada!')
+            nome = request.POST.get('nome_turma')
+            # Pega o ano do select ou usa 2026 como padrão
+            ano = request.POST.get('ano_letivo', 2026) 
+            
+            if nome:
+                Turma.objects.create(nome=nome, ano_letivo=ano)
+                messages.success(request, 'Turma criada com sucesso!')
+        
+        # 2. EDITAR TURMA
         elif acao == 'editar':
-            t = Turma.objects.get(id=request.POST.get('id_turma'))
+            t = get_object_or_404(Turma, id=request.POST.get('id_turma'))
             t.nome = request.POST.get('novo_nome')
+            # Permite corrigir o ano se foi cadastrado errado
+            novo_ano = request.POST.get('ano_letivo')
+            if novo_ano:
+                t.ano_letivo = novo_ano
             t.save()
-            messages.success(request, 'Turma editada!')
+            messages.success(request, 'Turma atualizada!')
+        
+        # 3. EXCLUIR TURMA
         elif acao == 'excluir':
-            Turma.objects.get(id=request.POST.get('id_turma')).delete()
+            t = get_object_or_404(Turma, id=request.POST.get('id_turma'))
+            t.delete()
             messages.success(request, 'Turma excluída!')
+        
         return redirect('gerenciar_turmas')
 
-    turmas = Turma.objects.annotate(qtd_alunos=Count('alunos_matriculados')).order_by('nome') # Corrigido related name
+    # LISTAGEM
+    # Filtra apenas alunos ATIVOS (Cursando) para a contagem não pegar ex-alunos
+    turmas = Turma.objects.annotate(
+        qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'))
+    ).order_by('-ano_letivo', 'nome') # Ordena: Ano mais novo primeiro, depois alfabético
+    
     return render(request, 'core/turmas.html', {'turmas': turmas})
 
 
@@ -3206,3 +3329,180 @@ def redirecionar_apos_login(request):
     # 4. Se não se encaixar em nada, manda para o Dashboard padrão ou Login
     messages.error(request, "Perfil não identificado. Contate a secretaria.")
     return redirect('dashboard')
+
+# Em core/views.py
+
+@login_required
+def gerenciar_virada_ano(request):
+    """
+    Dashboard da Virada: Mostra o cenário de 2025 e permite avançar para 2026.
+    """
+    # Passo 1: Estatísticas de 2025
+    turmas_2025 = Turma.objects.filter(ano_letivo=2025)
+    matriculas_2025 = Matricula.objects.filter(turma__in=turmas_2025)
+    
+    total_alunos_2025 = matriculas_2025.count()
+    aprovados = matriculas_2025.filter(situacao='APROVADO').count()
+    reprovados = matriculas_2025.filter(situacao='REPROVADO').count()
+    # Consideramos 'PENDENTE' quem ainda está como 'CURSANDO'
+    pendentes = matriculas_2025.filter(situacao='CURSANDO').count()
+
+    # Passo 2: Verificação se 2026 já existe
+    turmas_2026 = Turma.objects.filter(ano_letivo=2026).count()
+    
+    context = {
+        'total_2025': total_alunos_2025,
+        'aprovados': aprovados,
+        'reprovados': reprovados,
+        'pendentes': pendentes,
+        'turmas_2026_criadas': turmas_2026 > 0,
+        'qtd_turmas_2026': turmas_2026
+    }
+    return render(request, 'core/virada_ano.html', context)
+
+@login_required
+def processar_fechamento_2025(request):
+    """
+    REGRA DE TRANSIÇÃO (LEGADO 2025):
+    Ignora o NDI. Calcula apenas a média das provas (Avaliacoes/Resultados) realizadas.
+    """
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # 1. Pega as turmas de 2025
+                turmas_2025 = Turma.objects.filter(ano_letivo=2025)
+                
+                # 2. Pega os alunos que ainda estão cursando
+                matriculas = Matricula.objects.filter(turma__in=turmas_2025, status='CURSANDO')
+                
+                processados = 0
+                sem_notas = 0
+                
+                for mat in matriculas:
+                    # BUSCA INTELIGENTE: 
+                    # Vai na tabela de Resultados (onde ficam as notas das provas de marcar gabarito/scanner)
+                    # Filtra apenas resultados ligados a esta matrícula
+                    media_provas = Resultado.objects.filter(matricula=mat).aggregate(Avg('percentual'))['percentual__avg']
+                    
+                    media_final = 0.0
+                    
+                    if media_provas is not None:
+                        # O percentual vem de 0 a 100 (ex: 80.0). Dividimos por 10 para virar nota (8.0)
+                        media_final = float(media_provas) / 10
+                    else:
+                        # Se o aluno não fez nenhuma prova, marcamos para aviso
+                        sem_notas += 1
+                        # (Opcional: Você pode decidir se quem não tem nota é Reprovado ou fica Pendente)
+                        # Por segurança, vamos considerar 0.
+                        media_final = 0.0
+
+                    # Salva a média calculada para histórico
+                    mat.media_final = media_final
+                    
+                    # REGRA DE APROVAÇÃO (Média 6.0)
+                    if media_final >= 6.0:
+                        mat.status = 'APROVADO'
+                        mat.situacao = 'APROVADO'
+                    else:
+                        mat.status = 'REPROVADO'
+                        mat.situacao = 'REPROVADO'
+                    
+                    mat.save()
+                    processados += 1
+                    
+                msg_aviso = ""
+                if sem_notas > 0:
+                    msg_aviso = f" (Atenção: {sem_notas} alunos não tinham provas lançadas e ficaram com média 0)."
+                    
+                messages.success(request, f"Cálculo de 2025 concluído! {processados} alunos processados com base nas provas.{msg_aviso}")
+        
+        except Exception as e:
+            messages.error(request, f"Erro técnico no fechamento: {e}")
+
+        return redirect('gerenciar_virada_ano')
+
+@login_required
+def gerar_estrutura_2026(request):
+    """
+    Clona as turmas de 2025 para 2026 e migra os alunos.
+    """
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # 1. Cria as Turmas de 2026 (se não existirem)
+                turmas_2025 = Turma.objects.filter(ano_letivo=2025)
+                mapa_turmas_promocao = {} # Onde o aprovado vai cair
+                mapa_turmas_retencao = {} # Onde o reprovado vai cair
+                
+                for t_antiga in turmas_2025:
+                    nome_base = t_antiga.nome.upper()
+                    
+                    # Lógica de RETENÇÃO (Reprovado fica na mesma série)
+                    t_retencao, _ = Turma.objects.get_or_create(
+                        nome=nome_base, 
+                        ano_letivo=2026
+                    )
+                    mapa_turmas_retencao[t_antiga.id] = t_retencao
+
+                    # Lógica de PROMOÇÃO (Aprovado sobe)
+                    if "3º" in nome_base or "3" in nome_base:
+                        # Formado - não tem turma destino
+                        pass
+                    else:
+                        # Tenta descobrir o próximo nome (1º -> 2º, 2º -> 3º)
+                        nome_destino = nome_base
+                        if "1º" in nome_base: nome_destino = nome_base.replace("1º", "2º")
+                        elif "1" in nome_base: nome_destino = nome_base.replace("1", "2")
+                        elif "2º" in nome_base: nome_destino = nome_base.replace("2º", "3º")
+                        elif "2" in nome_base: nome_destino = nome_base.replace("2", "3")
+                        
+                        t_promocao, _ = Turma.objects.get_or_create(
+                            nome=nome_destino,
+                            ano_letivo=2026
+                        )
+                        mapa_turmas_promocao[t_antiga.id] = t_promocao
+                    
+                # 2. Migra os Alunos
+                matriculas_2025 = Matricula.objects.filter(turma__ano_letivo=2025)
+                migrados = 0
+                formados = 0
+                
+                for mat_antiga in matriculas_2025:
+                    # Só migra quem já tem situação definida (não é 'CURSANDO')
+                    if mat_antiga.situacao == 'CURSANDO': continue 
+                    
+                    aluno = mat_antiga.aluno
+                    nova_turma = None
+                    
+                    # REGRA APROVADO
+                    if mat_antiga.situacao == 'APROVADO':
+                        if "3º" in mat_antiga.turma.nome or "3" in mat_antiga.turma.nome:
+                            # Formou! Marca no cadastro do aluno se quiser, mas não cria matrícula 2026
+                            formados += 1
+                            continue 
+                        else:
+                            # Vai para a próxima série
+                            nova_turma = mapa_turmas_promocao.get(mat_antiga.turma.id)
+                            
+                    # REGRA REPROVADO
+                    elif mat_antiga.situacao == 'REPROVADO':
+                        # Fica na mesma série (retenção)
+                        nova_turma = mapa_turmas_retencao.get(mat_antiga.turma.id)
+                    
+                    # CRIA A NOVA MATRÍCULA
+                    if nova_turma:
+                        # Verifica se já não foi migrado pra não duplicar
+                        if not Matricula.objects.filter(aluno=aluno, turma=nova_turma).exists():
+                            Matricula.objects.create(
+                                aluno=aluno,
+                                turma=nova_turma,
+                                status='CURSANDO' # Começa 2026 limpo!
+                            )
+                            migrados += 1
+
+                messages.success(request, f"Sucesso! {migrados} alunos enturmados para 2026. {formados} alunos concluíram o 3º Ano.")
+                
+        except Exception as e:
+            messages.error(request, f"Erro na migração: {e}")
+            
+        return redirect('gerenciar_virada_ano')

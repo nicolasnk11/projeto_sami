@@ -76,6 +76,11 @@ urlpatterns = [
     path('api/toggle-topico/<int:id>/', views.toggle_topico, name='toggle_topico'),
     path('api/lancar-notas-ajax/', views.api_lancar_nota_ajax, name='api_lancar_nota_ajax'),
     path('api/raio-x/', views.api_raio_x, name='api_raio_x'),
+
+    # --- passar de ano ---
+    path('virada-ano/', views.gerenciar_virada_ano, name='gerenciar_virada_ano'),
+    path('processar-fechamento/', views.processar_fechamento_2025, name='processar_fechamento_2025'),
+    path('gerar-2026/', views.gerar_estrutura_2026, name='gerar_estrutura_2026'),
     
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

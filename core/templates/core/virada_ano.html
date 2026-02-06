@@ -1,0 +1,127 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="text-center mb-5">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 60px; height: 60px;">
+            <i class="bi bi-calendar-range fs-2"></i>
+        </div>
+        <h2 class="fw-bold text-dark">Virada de Ano Letivo</h2>
+        <p class="text-muted">Ferramenta de transição automática: <span class="badge bg-secondary">2025</span> <i class="bi bi-arrow-right mx-1"></i> <span class="badge bg-success">2026</span></p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-4">
+                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">1</div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Fechamento de Notas (2025)</h5>
+                            <small class="text-muted">Calcula média simples (Parcial + Bimestral) / 2</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 bg-light bg-opacity-25">
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-white rounded-3 shadow-sm border h-100">
+                                <h3 class="fw-bold text-dark mb-0">{{ total_2025 }}</h3>
+                                <div class="small text-muted fw-bold mt-1">TOTAL 2025</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-white rounded-3 shadow-sm border border-success border-opacity-25 h-100">
+                                <h3 class="fw-bold text-success mb-0">{{ aprovados }}</h3>
+                                <div class="small text-success fw-bold mt-1">APROVADOS</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-white rounded-3 shadow-sm border border-danger border-opacity-25 h-100">
+                                <h3 class="fw-bold text-danger mb-0">{{ reprovados }}</h3>
+                                <div class="small text-danger fw-bold mt-1">REPROVADOS</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-white rounded-3 shadow-sm border border-warning border-opacity-25 h-100">
+                                <h3 class="fw-bold text-warning mb-0">{{ pendentes }}</h3>
+                                <div class="small text-warning fw-bold mt-1">PENDENTES</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if pendentes > 0 %}
+                    <div class="alert alert-warning border-0 d-flex align-items-center shadow-sm">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
+                        <div>
+                            <strong>Atenção:</strong> Existem {{ pendentes }} alunos com situação indefinida.<br>
+                            Execute o cálculo para definir quem foi aprovado ou reprovado.
+                        </div>
+                    </div>
+                    <form method="post" action="{% url 'processar_fechamento_2025' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100 fw-bold py-3 shadow-sm hover-scale text-dark">
+                            <i class="bi bi-calculator me-2"></i> CALCULAR RESULTADOS FINAIS
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-success border-0 shadow-sm">
+                        <i class="bi bi-check-circle-fill me-2"></i> Todos os alunos de 2025 foram processados.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 {{ pendentes|yesno:'opacity-50 pointer-events-none,' }}">
+                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light text-success fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">2</div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Gerar Ano Letivo 2026</h5>
+                            <small class="text-muted">Cria turmas novas e migra os alunos automaticamente.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4 bg-light bg-opacity-25">
+                    
+                    {% if turmas_2026_criadas %}
+                        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
+                            <div>
+                                <strong>Status 2026:</strong> Já existem {{ qtd_turmas_2026 }} turmas criadas.<br>
+                                Clicar abaixo irá migrar apenas alunos que ainda não foram movidos.
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'gerar_estrutura_2026' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100 fw-bold py-3 shadow-sm hover-scale" {% if pendentes > 0 %}disabled{% endif %}>
+                            <i class="bi bi-rocket-takeoff-fill me-2"></i> EXECUTAR MIGRAÇÃO PARA 2026
+                        </button>
+                    </form>
+
+                    <div class="mt-4 p-3 bg-white rounded border border-dashed text-muted x-small">
+                        <h6 class="fw-bold text-uppercase small mb-2"><i class="bi bi-gear-fill me-1"></i> Regras de Migração:</h6>
+                        <ul class="mb-0 ps-3">
+                            <li><strong>1º Ano (Aprovado)</strong> <i class="bi bi-arrow-right mx-1"></i> Vai para 2º Ano (2026)</li>
+                            <li><strong>2º Ano (Aprovado)</strong> <i class="bi bi-arrow-right mx-1"></i> Vai para 3º Ano (2026)</li>
+                            <li><strong>3º Ano (Aprovado)</strong> <i class="bi bi-arrow-right mx-1"></i> Conclusão (Sai da lista ativa)</li>
+                            <li><strong>Reprovados</strong> <i class="bi bi-arrow-right mx-1"></i> Permanecem na mesma série (Retenção)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-scale:hover { transform: translateY(-2px); transition: transform 0.2s; }
+    .pointer-events-none { pointer-events: none; }
+</style>
+{% endblock %}

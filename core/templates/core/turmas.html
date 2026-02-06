@@ -5,7 +5,7 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
             <h4 class="fw-bold text-dark mb-0"><i class="bi bi-gear-fill text-primary me-2"></i>Gerenciar Turmas</h4>
-            <p class="text-muted small mb-0">Renomeie ou exclua turmas duplicadas.</p>
+            <p class="text-muted small mb-0">Renomeie, exclua ou organize as turmas por ano letivo.</p>
         </div>
         <div class="col-md-6 text-end">
             <button class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovaTurma">
@@ -16,50 +16,65 @@
 
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4">Nome da Turma</th>
-                        <th class="text-center">Qtd. Alunos</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-end pe-4">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for t in turmas %}
-                    <tr>
-                        <td class="ps-4 fw-bold text-dark">{{ t.nome }}</td>
-                        <td class="text-center">
-                            <span class="badge rounded-pill {% if t.qtd_alunos > 0 %}bg-primary{% else %}bg-secondary{% endif %}">
-                                {{ t.qtd_alunos }} matriculados
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            {% if t.qtd_alunos == 0 %}
-                                <span class="badge bg-light text-muted border">Vazia</span>
-                            {% else %}
-                                <span class="badge bg-success-subtle text-success border border-success-subtle">Ativa</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end pe-4">
-                            <button class="btn btn-sm btn-outline-secondary border-0" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#modalEditar{{ t.id }}" 
-                                    title="Renomear">
-                                <i class="bi bi-pencil"></i>
-                            </button>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Nome da Turma</th>
+                            <th class="text-center">Ano Letivo</th> <th class="text-center">Qtd. Alunos</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in turmas %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">{{ t.nome }}</td>
+                            
+                            <td class="text-center">
+                                {% if t.ano_letivo == 2026 %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle shadow-sm">
+                                        <i class="bi bi-calendar-check me-1"></i> 2026 (Atual)
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">
+                                        <i class="bi bi-archive me-1"></i> {{ t.ano_letivo }}
+                                    </span>
+                                {% endif %}
+                            </td>
 
-                            <button class="btn btn-sm btn-outline-danger border-0" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#modalExcluir{{ t.id }}" 
-                                    title="Excluir">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <td class="text-center">
+                                <span class="badge rounded-pill {% if t.qtd_alunos > 0 %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ t.qtd_alunos }} matriculados
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if t.qtd_alunos == 0 %}
+                                    <span class="badge bg-light text-muted border">Vazia</span>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Ativa</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-secondary border-0" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEditar{{ t.id }}" 
+                                        title="Renomear">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <button class="btn btn-sm btn-outline-danger border-0" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalExcluir{{ t.id }}" 
+                                        title="Excluir">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -74,8 +89,17 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body bg-light p-4">
-                <label class="form-label fw-bold small text-uppercase">Nome da Turma</label>
-                <input type="text" name="nome_turma" class="form-control" placeholder="Ex: 3º Ano D" required>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase">Nome da Turma</label>
+                    <input type="text" name="nome_turma" class="form-control" placeholder="Ex: 3º Ano D" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase">Ano Letivo</label>
+                    <select name="ano_letivo" class="form-select">
+                        <option value="2026" selected>2026 (Atual)</option>
+                        <option value="2025">2025 (Passado)</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer bg-white border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -94,12 +118,18 @@
             <input type="hidden" name="id_turma" value="{{ t.id }}">
             
             <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title fw-bold">Renomear Turma</h5>
+                <h5 class="modal-title fw-bold">Editar Turma</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <label class="form-label fw-bold small text-uppercase">Nome Atual</label>
-                <input type="text" name="novo_nome" class="form-control" value="{{ t.nome }}" required>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase">Nome Atual</label>
+                    <input type="text" name="novo_nome" class="form-control" value="{{ t.nome }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase">Ano Letivo</label>
+                    <input type="number" name="ano_letivo" class="form-control" value="{{ t.ano_letivo }}" required>
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -121,7 +151,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body bg-white p-4">
-                <p class="fs-5 mb-3">Você está prestes a excluir: <strong>{{ t.nome }}</strong></p>
+                <p class="fs-5 mb-3">Você está prestes a excluir: <strong>{{ t.nome }} ({{ t.ano_letivo }})</strong></p>
                 
                 {% if t.qtd_alunos > 0 %}
                     <div class="alert alert-warning border-warning d-flex align-items-center rounded-3">

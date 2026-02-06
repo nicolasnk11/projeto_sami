@@ -25,27 +25,86 @@ class Disciplina(models.Model):
 
 class Turma(models.Model):
     nome = models.CharField(max_length=50, help_text="Ex: 3º Ano B")
-    ano_letivo = models.IntegerField(default=2026)
+    # O ano letivo é crucial para a "Virada de Ano"
+    ano_letivo = models.IntegerField(default=2026) 
+    
     def __str__(self): return f"{self.nome} ({self.ano_letivo})"
 
 class Aluno(models.Model):
     """
-    Representa a PESSOA. Não tem turma aqui, pois a turma muda todo ano.
+    Representa a PESSOA. Contém dados perenes (que não mudam a cada ano).
+    INCLUI: Perfil Socioeconômico e Dados de Inclusão (AEE).
     """
+    # --- DADOS PESSOAIS BÁSICOS ---
     nome_completo = models.CharField(max_length=100)
     data_nascimento = models.DateField(null=True, blank=True)
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     foto = models.ImageField(upload_to='alunos/', null=True, blank=True)
+
+    # --- PERFIL SOCIOECONÔMICO (Censo Escolar) ---
+    COR_RACA_CHOICES = [
+        ('BRANCA', 'Branca'),
+        ('PRETA', 'Preta'),
+        ('PARDA', 'Parda'),
+        ('AMARELA', 'Amarela'),
+        ('INDIGENA', 'Indígena'),
+        ('NAO_DECLARADO', 'Não Declarado'),
+    ]
+    GENERO_CHOICES = [
+        ('M', 'Masculino'),
+        ('F', 'Feminino'),
+        ('NB', 'Não-Binário'),
+        ('OUTRO', 'Outro'),
+    ]
+    RENDA_CHOICES = [
+        ('BAIXA', 'Até 1 Salário Mínimo (Baixa Renda)'),
+        ('MEDIA_BAIXA', '1 a 3 Salários Mínimos'),
+        ('MEDIA', '3 a 6 Salários Mínimos'),
+        ('ALTA', 'Acima de 6 Salários Mínimos'),
+    ]
+    INTERNET_CHOICES = [
+        ('SEM', 'Sem acesso à internet'),
+        ('MOVEL', 'Apenas dados móveis (Celular)'),
+        ('FIXA', 'Banda Larga / Wi-Fi'),
+    ]
+
+    cor_raca = models.CharField(max_length=20, choices=COR_RACA_CHOICES, default='NAO_DECLARADO', verbose_name="Cor/Raça")
+    genero = models.CharField(max_length=10, choices=GENERO_CHOICES, default='M', verbose_name="Gênero")
+    renda_familiar = models.CharField(max_length=20, choices=RENDA_CHOICES, blank=True, null=True, verbose_name="Renda Familiar")
+    tipo_acesso_internet = models.CharField(max_length=10, choices=INTERNET_CHOICES, default='FIXA', verbose_name="Acesso Digital")
+    possui_computador = models.BooleanField(default=False, verbose_name="Possui Computador/Tablet?")
+
+    # --- INCLUSÃO E AEE (Atendimento Educacional Especializado) ---
+    is_pcd = models.BooleanField(default=False, verbose_name="É PcD / Inclusão?")
     
+    DEFICIENCIA_CHOICES = [
+        ('TEA', 'Transtorno do Espectro Autista (TEA)'),
+        ('TDAH', 'TDAH (Laudo Clínico)'),
+        ('DV', 'Deficiência Visual / Baixa Visão'),
+        ('DA', 'Deficiência Auditiva'),
+        ('DF', 'Deficiência Física/Motora'),
+        ('DI', 'Deficiência Intelectual'),
+        ('AH', 'Altas Habilidades / Superdotação'),
+        ('OUTRA', 'Outra Necessidade Específica'),
+    ]
+    tipo_deficiencia = models.CharField(max_length=10, choices=DEFICIENCIA_CHOICES, blank=True, null=True, verbose_name="Tipo de Condição")
+    
+    # PEI: Plano de Ensino Individualizado (Arquivo PDF ou Imagem)
+    arquivo_pei = models.FileField(upload_to='pei_alunos/', blank=True, null=True, verbose_name="Documento PEI/Laudo")
+    observacoes_clinicas = models.TextField(blank=True, null=True, help_text="Cuidados específicos, medicação, suporte necessário.")
+
     def __str__(self): return self.nome_completo
+
+    @property
+    def tem_icone_inclusao(self):
+        """Helper para o template saber se mostra o ícone de acessibilidade"""
+        return self.is_pcd
 
 
 class Professor(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professor_perfil')
     nome_completo = models.CharField(max_length=150)
-    
-    # Aqui está a mágica: O professor pode ter várias disciplinas e várias turmas
     disciplinas = models.ManyToManyField(Disciplina, related_name='professores')
     turmas = models.ManyToManyField(Turma, related_name='professores')
 
@@ -55,18 +114,28 @@ class Professor(models.Model):
 
 class Matricula(models.Model):
     """
-    TABELA NOVA: Liga o Aluno à Turma em um Ano específico.
+    Liga o Aluno à Turma em um Ano específico.
+    Guardamos aqui o resultado final para histórico.
     """
     STATUS_CHOICES = [
-        ('CURSANDO', 'Cursando'), ('APROVADO', 'Aprovado'),
-        ('REPROVADO', 'Reprovado'), ('RECUPERACAO', 'Recuperação'),
-        ('FORMADO', 'Formado/Concluinte'), ('TRANSFERIDO', 'Transferido'),
+        ('CURSANDO', 'Cursando'), 
+        ('APROVADO', 'Aprovado'),
+        ('REPROVADO', 'Reprovado'), 
+        ('RECUPERACAO', 'Em Recuperação Final'),
+        ('FORMADO', 'Formado/Concluinte'), 
+        ('TRANSFERIDO', 'Transferido'),
     ]
+    
     aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name='matriculas')
-    turma = models.ForeignKey(Turma, on_delete=models.CASCADE, related_name='alunos_matriculados')
+    turma = models.ForeignKey(Turma, on_delete=models.CASCADE, related_name='alunos_matriculados') # Note o related_name corrigido
     data_matricula = models.DateField(auto_now_add=True)
     numero_chamada = models.IntegerField(null=True, blank=True)
+    
+    # Status Atual (Mudará durante a "Virada de Ano")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='CURSANDO')
+    
+    # Campo Novo: Para congelar a média final do ano (importante para histórico 2025 -> 2026)
+    media_final = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
 
     class Meta:
         unique_together = ['aluno', 'turma']
@@ -76,7 +145,7 @@ class Matricula(models.Model):
         return f"{self.aluno.nome_completo} - {self.turma}"
 
 # ==============================================================================
-# 2. HABILIDADES E QUESTÕES (Compatível com Backup)
+# 2. HABILIDADES E QUESTÕES
 # ==============================================================================
 
 class Descritor(models.Model):
@@ -111,22 +180,15 @@ class Questao(models.Model):
 # 3. AVALIAÇÃO E RESULTADOS
 # ==============================================================================
 
-# ... seus outros imports ...
-
 class Avaliacao(models.Model):
     titulo = models.CharField(max_length=100)
     data_aplicacao = models.DateField()
     disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
     turma = models.ForeignKey(Turma, on_delete=models.PROTECT)
     questoes = models.ManyToManyField(Questao, related_name='avaliacoes', blank=True)
-    
-    # --- NOVO CAMPO (O Jeito Certo) ---
-    # Vincula a prova a um aluno específico (para recuperações).
-    # Se for prova geral da turma, fica vazio.
     matricula = models.ForeignKey('Matricula', on_delete=models.SET_NULL, null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.titulo} - {self.turma}"
+    def __str__(self): return f"{self.titulo} - {self.turma}"
 
 class ItemGabarito(models.Model):
     avaliacao = models.ForeignKey(Avaliacao, on_delete=models.CASCADE, related_name='itens_gabarito')
@@ -139,10 +201,7 @@ class ItemGabarito(models.Model):
 class Resultado(models.Model):
     STATUS_CHOICES = [('ADQ', 'Adequado'), ('INT', 'Intermediário'), ('CRI', 'Crítico'), ('MCR', 'Muito Crítico')]
     avaliacao = models.ForeignKey(Avaliacao, on_delete=models.CASCADE)
-    
-    # IMPORTANTE: Resultado ligado à Matrícula
     matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE, related_name='resultados')
-    
     acertos = models.IntegerField()
     total_questoes = models.IntegerField()
     percentual = models.FloatField(editable=False, null=True, blank=True)
@@ -169,10 +228,8 @@ class RespostaDetalhada(models.Model):
 # ==============================================================================
 
 class NDI(models.Model):
-    # IMPORTANTE: NDI ligado à Matrícula
     matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE, related_name='boletins')
     bimestre = models.IntegerField(default=1)
-    
     nota_frequencia = models.FloatField(default=0)
     nota_atividade = models.FloatField(default=0)
     nota_comportamento = models.FloatField(default=0)
@@ -221,7 +278,6 @@ class CategoriaAjuda(models.Model):
     def __str__(self): return self.nome
 
 class Tutorial(models.Model):
-    # CORRIGIDO: Adicionados os campos que o Admin exige
     PUBLICO_CHOICES = [
         ('PROF', 'Professor / Gestão'),
         ('ALUNO', 'Aluno / Responsável'),
@@ -230,11 +286,8 @@ class Tutorial(models.Model):
     titulo = models.CharField(max_length=200)
     descricao = models.TextField()
     categoria = models.ForeignKey(CategoriaAjuda, on_delete=models.CASCADE)
-    
-    # Estes campos estavam faltando e causavam o erro no Admin:
     publico = models.CharField(max_length=10, choices=PUBLICO_CHOICES, default='PROF')
     data_criacao = models.DateTimeField(auto_now_add=True)
-    
     link_video = models.URLField(blank=True, null=True)
     
     def __str__(self): return self.titulo
