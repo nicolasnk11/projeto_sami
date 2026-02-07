@@ -1,0 +1,11 @@
+# 1. Instala dependências do Linux (O segredo está aqui)
+[phases.setup]
+nixPkgs = ["python312", "cairo", "pkg-config", "gobject-introspection", "postgresql"]
+
+# 2. Configura o Python
+[phases.install]
+cmds = ["python -m venv /opt/venv && . /opt/venv/bin/activate && pip install -r requirements.txt"]
+
+# 3. Inicia o site
+[start]
+cmd = "gunicorn setup.wsgi --log-file -"
