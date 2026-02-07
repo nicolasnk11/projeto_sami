@@ -1,3 +1,7 @@
+import os
+import dj_database_url
+from decouple import config
+
 """
 Django settings for setup project.
 
@@ -20,10 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qd@)f!4f72ii)gpdn_1cfhmw2l@m2qe0wtd1pv8vcq)hp68$9d'
-
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-qd@)f!4f72ii)gpdn_1cfhmw2l@m2qe0wtd1pv8vcq)hp68$9d')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['*']
 
@@ -42,6 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -82,6 +86,9 @@ DATABASES = {
     }
 }
 
+# Se estivermos no Railway, ele substitui pelo PostgreSQL automaticamente
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -118,7 +125,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # --- CONFIGURAÇÕES DE LOGIN (SAMI) ---
 LOGIN_URL = 'login'              # Se tentar acessar sem senha, joga pra cá

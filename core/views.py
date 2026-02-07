@@ -3335,174 +3335,123 @@ def redirecionar_apos_login(request):
 @login_required
 def gerenciar_virada_ano(request):
     """
-    Dashboard da Virada: Mostra o cenário de 2025 e permite avançar para 2026.
+    Painel de Migração Controlada (Com Saneamento de Base):
+    1. Seleciona a série de 2025.
+    2. Gestor confere e define status (Aprovado, Reprovado, Transferido, Abandono).
+    3. Sistema atualiza 2025 e cria 2026 apenas para quem continua.
     """
-    # Passo 1: Estatísticas de 2025
-    turmas_2025 = Turma.objects.filter(ano_letivo=2025)
-    matriculas_2025 = Matricula.objects.filter(turma__in=turmas_2025)
+    turmas_2025 = Turma.objects.filter(ano_letivo=2025).order_by('nome')
+    serie_filtro = request.GET.get('serie_filtro') # Ex: '1', '2', '3'
     
-    total_alunos_2025 = matriculas_2025.count()
-    aprovados = matriculas_2025.filter(situacao='APROVADO').count()
-    reprovados = matriculas_2025.filter(situacao='REPROVADO').count()
-    # Consideramos 'PENDENTE' quem ainda está como 'CURSANDO'
-    pendentes = matriculas_2025.filter(situacao='CURSANDO').count()
-
-    # Passo 2: Verificação se 2026 já existe
-    turmas_2026 = Turma.objects.filter(ano_letivo=2026).count()
+    alunos_simulados = []
     
-    context = {
-        'total_2025': total_alunos_2025,
-        'aprovados': aprovados,
-        'reprovados': reprovados,
-        'pendentes': pendentes,
-        'turmas_2026_criadas': turmas_2026 > 0,
-        'qtd_turmas_2026': turmas_2026
-    }
-    return render(request, 'core/virada_ano.html', context)
-
-@login_required
-def processar_fechamento_2025(request):
-    """
-    REGRA DE TRANSIÇÃO (LEGADO 2025):
-    Ignora o NDI. Calcula apenas a média das provas (Avaliacoes/Resultados) realizadas.
-    """
-    if request.method == 'POST':
-        try:
-            with transaction.atomic():
-                # 1. Pega as turmas de 2025
-                turmas_2025 = Turma.objects.filter(ano_letivo=2025)
-                
-                # 2. Pega os alunos que ainda estão cursando
-                matriculas = Matricula.objects.filter(turma__in=turmas_2025, status='CURSANDO')
-                
-                processados = 0
-                sem_notas = 0
-                
-                for mat in matriculas:
-                    # BUSCA INTELIGENTE: 
-                    # Vai na tabela de Resultados (onde ficam as notas das provas de marcar gabarito/scanner)
-                    # Filtra apenas resultados ligados a esta matrícula
-                    media_provas = Resultado.objects.filter(matricula=mat).aggregate(Avg('percentual'))['percentual__avg']
-                    
-                    media_final = 0.0
-                    
-                    if media_provas is not None:
-                        # O percentual vem de 0 a 100 (ex: 80.0). Dividimos por 10 para virar nota (8.0)
-                        media_final = float(media_provas) / 10
-                    else:
-                        # Se o aluno não fez nenhuma prova, marcamos para aviso
-                        sem_notas += 1
-                        # (Opcional: Você pode decidir se quem não tem nota é Reprovado ou fica Pendente)
-                        # Por segurança, vamos considerar 0.
-                        media_final = 0.0
-
-                    # Salva a média calculada para histórico
-                    mat.media_final = media_final
-                    
-                    # REGRA DE APROVAÇÃO (Média 6.0)
-                    if media_final >= 6.0:
-                        mat.status = 'APROVADO'
-                        mat.situacao = 'APROVADO'
-                    else:
-                        mat.status = 'REPROVADO'
-                        mat.situacao = 'REPROVADO'
-                    
-                    mat.save()
-                    processados += 1
-                    
-                msg_aviso = ""
-                if sem_notas > 0:
-                    msg_aviso = f" (Atenção: {sem_notas} alunos não tinham provas lançadas e ficaram com média 0)."
-                    
-                messages.success(request, f"Cálculo de 2025 concluído! {processados} alunos processados com base nas provas.{msg_aviso}")
+    # --- PASSO 1: SIMULAÇÃO (GET) ---
+    if serie_filtro:
+        # Pega turmas da série escolhida
+        turmas_da_serie = turmas_2025.filter(nome__icontains=f"{serie_filtro}º") | turmas_2025.filter(nome__icontains=f"{serie_filtro} ANO")
         
-        except Exception as e:
-            messages.error(request, f"Erro técnico no fechamento: {e}")
+        matriculas = Matricula.objects.filter(turma__in=turmas_da_serie, status='CURSANDO').select_related('aluno', 'turma').order_by('aluno__nome_completo')
+        
+        for mat in matriculas:
+            # 1. Calcula Média (Híbrida: NDI ou Provas)
+            # Tenta pegar do NDI
+            ndis = NDI.objects.filter(matricula=mat)
+            soma_ndi = 0; cont_ndi = 0
+            for n in ndis:
+                n1 = float(n.nota_prova_parcial or 0); n2 = float(n.nota_prova_bimestral or 0)
+                if n.nota_prova_parcial is not None or n.nota_prova_bimestral is not None:
+                    media_b = (n1 + n2) / 2 if (n1 > 0 and n2 > 0) else max(n1, n2)
+                    soma_ndi += media_b; cont_ndi += 1
+            media_ndi = (soma_ndi / cont_ndi) if cont_ndi > 0 else 0.0
 
-        return redirect('gerenciar_virada_ano')
+            # Tenta pegar dos Resultados (Provas avulsas/Scanner)
+            media_provas = Resultado.objects.filter(matricula=mat).aggregate(Avg('percentual'))['percentual__avg']
+            media_result = (float(media_provas) / 10) if media_provas is not None else 0.0
+            
+            # Usa a maior nota encontrada
+            media_final = max(media_ndi, media_result)
+            
+            # 2. Sugere Status
+            status_sugerido = 'APROVADO' if media_final >= 6.0 else 'REPROVADO'
+            
+            alunos_simulados.append({
+                'id': mat.id,
+                'nome': mat.aluno.nome_completo,
+                'turma': mat.turma.nome,
+                'media': round(media_final, 1),
+                'status_sugerido': status_sugerido
+            })
 
-@login_required
-def gerar_estrutura_2026(request):
-    """
-    Clona as turmas de 2025 para 2026 e migra os alunos.
-    """
+    # --- PASSO 2: EXECUÇÃO (POST) ---
     if request.method == 'POST':
         try:
             with transaction.atomic():
-                # 1. Cria as Turmas de 2026 (se não existirem)
-                turmas_2025 = Turma.objects.filter(ano_letivo=2025)
-                mapa_turmas_promocao = {} # Onde o aprovado vai cair
-                mapa_turmas_retencao = {} # Onde o reprovado vai cair
+                lista_ids = request.POST.getlist('matricula_id')
+                count_migrados = 0
+                count_formados = 0
+                count_saida = 0 # Transferidos ou Abandono
                 
-                for t_antiga in turmas_2025:
-                    nome_base = t_antiga.nome.upper()
+                for mat_id in lista_ids:
+                    status_decidido = request.POST.get(f'status_{mat_id}')
+                    mat = Matricula.objects.get(id=mat_id)
                     
-                    # Lógica de RETENÇÃO (Reprovado fica na mesma série)
-                    t_retencao, _ = Turma.objects.get_or_create(
-                        nome=nome_base, 
-                        ano_letivo=2026
-                    )
-                    mapa_turmas_retencao[t_antiga.id] = t_retencao
-
-                    # Lógica de PROMOÇÃO (Aprovado sobe)
-                    if "3º" in nome_base or "3" in nome_base:
-                        # Formado - não tem turma destino
-                        pass
-                    else:
-                        # Tenta descobrir o próximo nome (1º -> 2º, 2º -> 3º)
-                        nome_destino = nome_base
-                        if "1º" in nome_base: nome_destino = nome_base.replace("1º", "2º")
-                        elif "1" in nome_base: nome_destino = nome_base.replace("1", "2")
-                        elif "2º" in nome_base: nome_destino = nome_base.replace("2º", "3º")
-                        elif "2" in nome_base: nome_destino = nome_base.replace("2", "3")
+                    # 1. Atualiza o histórico de 2025
+                    mat.status = status_decidido
+                    mat.situacao = status_decidido # Campo legado
+                    
+                    nota_hidden = request.POST.get(f'nota_{mat_id}')
+                    if nota_hidden: mat.media_final = float(nota_hidden.replace(',', '.'))
+                    mat.save()
+                    
+                    # --- FILTRO DE LIMPEZA (SANEAMENTO) ---
+                    # Se marcou que saiu, não cria matrícula em 2026.
+                    if status_decidido in ['TRANSFERIDO', 'ABANDONO']:
+                        count_saida += 1
+                        continue 
+                    
+                    # 2. Lógica de Migração para 2026 (Quem ficou)
+                    nome_turma_atual = mat.turma.nome.upper()
+                    
+                    # 3º Ano Aprovado -> CONCLUIDO (Vira estatística)
+                    if status_decidido == 'APROVADO' and ('3º' in nome_turma_atual or '3 ANO' in nome_turma_atual):
+                        mat.status = 'CONCLUIDO'
+                        mat.save()
+                        count_formados += 1
+                        continue 
                         
-                        t_promocao, _ = Turma.objects.get_or_create(
-                            nome=nome_destino,
+                    # Define próxima turma
+                    nova_turma_nome = None
+                    if status_decidido == 'APROVADO':
+                        if '1º' in nome_turma_atual or '1 ANO' in nome_turma_atual:
+                            nova_turma_nome = nome_turma_atual.replace('1', '2')
+                        elif '2º' in nome_turma_atual or '2 ANO' in nome_turma_atual:
+                            nova_turma_nome = nome_turma_atual.replace('2', '3')
+                    
+                    elif status_decidido == 'REPROVADO':
+                        nova_turma_nome = nome_turma_atual # Retenção
+                        
+                    # 3. Cria a nova matrícula em 2026
+                    if nova_turma_nome:
+                        nova_turma_obj, _ = Turma.objects.get_or_create(
+                            nome=nova_turma_nome, 
                             ano_letivo=2026
                         )
-                        mapa_turmas_promocao[t_antiga.id] = t_promocao
-                    
-                # 2. Migra os Alunos
-                matriculas_2025 = Matricula.objects.filter(turma__ano_letivo=2025)
-                migrados = 0
-                formados = 0
-                
-                for mat_antiga in matriculas_2025:
-                    # Só migra quem já tem situação definida (não é 'CURSANDO')
-                    if mat_antiga.situacao == 'CURSANDO': continue 
-                    
-                    aluno = mat_antiga.aluno
-                    nova_turma = None
-                    
-                    # REGRA APROVADO
-                    if mat_antiga.situacao == 'APROVADO':
-                        if "3º" in mat_antiga.turma.nome or "3" in mat_antiga.turma.nome:
-                            # Formou! Marca no cadastro do aluno se quiser, mas não cria matrícula 2026
-                            formados += 1
-                            continue 
-                        else:
-                            # Vai para a próxima série
-                            nova_turma = mapa_turmas_promocao.get(mat_antiga.turma.id)
-                            
-                    # REGRA REPROVADO
-                    elif mat_antiga.situacao == 'REPROVADO':
-                        # Fica na mesma série (retenção)
-                        nova_turma = mapa_turmas_retencao.get(mat_antiga.turma.id)
-                    
-                    # CRIA A NOVA MATRÍCULA
-                    if nova_turma:
-                        # Verifica se já não foi migrado pra não duplicar
-                        if not Matricula.objects.filter(aluno=aluno, turma=nova_turma).exists():
+                        # Evita duplicidade
+                        if not Matricula.objects.filter(aluno=mat.aluno, turma=nova_turma_obj).exists():
                             Matricula.objects.create(
-                                aluno=aluno,
-                                turma=nova_turma,
-                                status='CURSANDO' # Começa 2026 limpo!
+                                aluno=mat.aluno,
+                                turma=nova_turma_obj,
+                                status='CURSANDO'
                             )
-                            migrados += 1
-
-                messages.success(request, f"Sucesso! {migrados} alunos enturmados para 2026. {formados} alunos concluíram o 3º Ano.")
+                            count_migrados += 1
+                            
+                messages.success(request, f"Sucesso! {count_migrados} renovados para 2026, {count_formados} formados e {count_saida} desligados (Transferência/Abandono).")
+                return redirect('gerenciar_virada_ano')
                 
         except Exception as e:
-            messages.error(request, f"Erro na migração: {e}")
-            
-        return redirect('gerenciar_virada_ano')
+            messages.error(request, f"Erro ao processar: {e}")
+
+    return render(request, 'core/virada_ano.html', {
+        'serie_filtro': serie_filtro,
+        'alunos': alunos_simulados
+    })

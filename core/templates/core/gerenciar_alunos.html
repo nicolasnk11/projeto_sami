@@ -118,6 +118,10 @@
                                 {% endif %}
                             </td>
                             <td class="text-end pe-4">
+                                <a href="{% url 'perfil_aluno' mat.aluno.id %}" class="btn btn-sm btn-outline-info me-1" title="Ver Desempenho / Raio-X">
+                                    <i class="bi bi-graph-up"></i>
+                                </a>
+
                                 <button class="btn btn-sm btn-outline-primary me-1" 
                                         data-bs-toggle="modal" 
                                         data-bs-target="#modalEditar"
@@ -366,20 +370,14 @@
 </div>
 
 <script>
-    // Função atualizada para preencher TODOS os campos no modal de edição
     function preencherEdicao(id, nome, turmaId, status, isPcd, tipoDef, corRaca, genero, renda) {
-        // Dados Básicos
         document.getElementById('edit_id').value = id;
         document.getElementById('edit_nome').value = nome;
         document.getElementById('edit_turma').value = turmaId;
         document.getElementById('edit_status').value = status;
-        
-        // Dados Sociais
         document.getElementById('edit_cor_raca').value = corRaca || 'NAO_DECLARADO';
         document.getElementById('edit_genero').value = genero || 'M';
         document.getElementById('edit_renda').value = renda || '';
-
-        // Dados de Inclusão
         document.getElementById('edit_is_pcd').checked = (isPcd === 'true');
         document.getElementById('edit_tipo_deficiencia').value = tipoDef || '';
     }

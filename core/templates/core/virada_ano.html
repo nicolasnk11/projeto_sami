@@ -4,124 +4,134 @@
 <div class="container py-5">
     
     <div class="text-center mb-5">
-        <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 60px; height: 60px;">
-            <i class="bi bi-calendar-range fs-2"></i>
-        </div>
-        <h2 class="fw-bold text-dark">Virada de Ano Letivo</h2>
-        <p class="text-muted">Ferramenta de transição automática: <span class="badge bg-secondary">2025</span> <i class="bi bi-arrow-right mx-1"></i> <span class="badge bg-success">2026</span></p>
+        <h2 class="fw-bold text-dark">🏁 Virada de Ano Letivo (2025 &rarr; 2026)</h2>
+        <p class="text-muted">Confira as notas, ajuste o resultado final e promova os alunos com segurança.</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm mt-3 w-75 mx-auto" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <form method="get" class="row align-items-center justify-content-center">
+                <div class="col-auto">
+                    <label class="fw-bold text-uppercase small text-muted">Selecione a Série de 2025:</label>
+                </div>
+                <div class="col-md-4">
+                    <select name="serie_filtro" class="form-select form-select-lg fw-bold text-center border-primary" onchange="this.form.submit()">
+                        <option value="">-- Escolha --</option>
+                        <option value="1" {% if serie_filtro == '1' %}selected{% endif %}>1º Ano (Irão para o 2º)</option>
+                        <option value="2" {% if serie_filtro == '2' %}selected{% endif %}>2º Ano (Irão para o 3º)</option>
+                        <option value="3" {% if serie_filtro == '3' %}selected{% endif %}>3º Ano (Formandos)</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if alunos %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>Conferência Final</h5>
+                <span class="badge bg-white text-primary rounded-pill">{{ alunos|length }} Alunos Listados</span>
+            </div>
             
-            <div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-4">
-                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-light text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">1</div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Fechamento de Notas (2025)</h5>
-                            <small class="text-muted">Calcula média simples (Parcial + Bimestral) / 2</small>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-body p-4 bg-light bg-opacity-25">
-                    <div class="row g-3 mb-4 text-center">
-                        <div class="col-md-3 col-6">
-                            <div class="p-3 bg-white rounded-3 shadow-sm border h-100">
-                                <h3 class="fw-bold text-dark mb-0">{{ total_2025 }}</h3>
-                                <div class="small text-muted fw-bold mt-1">TOTAL 2025</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="p-3 bg-white rounded-3 shadow-sm border border-success border-opacity-25 h-100">
-                                <h3 class="fw-bold text-success mb-0">{{ aprovados }}</h3>
-                                <div class="small text-success fw-bold mt-1">APROVADOS</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="p-3 bg-white rounded-3 shadow-sm border border-danger border-opacity-25 h-100">
-                                <h3 class="fw-bold text-danger mb-0">{{ reprovados }}</h3>
-                                <div class="small text-danger fw-bold mt-1">REPROVADOS</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="p-3 bg-white rounded-3 shadow-sm border border-warning border-opacity-25 h-100">
-                                <h3 class="fw-bold text-warning mb-0">{{ pendentes }}</h3>
-                                <div class="small text-warning fw-bold mt-1">PENDENTES</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if pendentes > 0 %}
-                    <div class="alert alert-warning border-0 d-flex align-items-center shadow-sm">
-                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
-                        <div>
-                            <strong>Atenção:</strong> Existem {{ pendentes }} alunos com situação indefinida.<br>
-                            Execute o cálculo para definir quem foi aprovado ou reprovado.
-                        </div>
-                    </div>
-                    <form method="post" action="{% url 'processar_fechamento_2025' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-warning w-100 fw-bold py-3 shadow-sm hover-scale text-dark">
-                            <i class="bi bi-calculator me-2"></i> CALCULAR RESULTADOS FINAIS
-                        </button>
-                    </form>
-                    {% else %}
-                    <div class="alert alert-success border-0 shadow-sm">
-                        <i class="bi bi-check-circle-fill me-2"></i> Todos os alunos de 2025 foram processados.
-                    </div>
-                    {% endif %}
-                </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-uppercase small fw-bold">
+                        <tr>
+                            <th class="ps-4">Aluno</th>
+                            <th>Turma 2025</th>
+                            <th class="text-center">Média Calc.</th>
+                            <th class="text-center" style="width: 220px;">Decisão Final</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in alunos %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">
+                                {{ a.nome }}
+                                <input type="hidden" name="matricula_id" value="{{ a.id }}">
+                                <input type="hidden" name="nota_{{ a.id }}" value="{{ a.media }}">
+                            </td>
+                            <td><span class="badge bg-light text-muted border">{{ a.turma }}</span></td>
+                            
+                            <td class="text-center">
+                                <span class="badge rounded-pill {% if a.media >= 6 %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                    {{ a.media }}
+                                </span>
+                            </td>
+                            
+                            <td class="text-center">
+                                <select name="status_{{ a.id }}" class="form-select form-select-sm fw-bold"
+                                        style="font-size: 0.85rem;" 
+                                        onchange="atualizarCorSelect(this)">
+                                    
+                                    <option value="APROVADO" class="text-success fw-bold" {% if a.status_sugerido == 'APROVADO' %}selected{% endif %}>
+                                        ✅ APROVADO
+                                    </option>
+                                    
+                                    <option value="REPROVADO" class="text-danger fw-bold" {% if a.status_sugerido == 'REPROVADO' %}selected{% endif %}>
+                                        🔴 REPROVADO
+                                    </option>
+                                    
+                                    <option value="TRANSFERIDO" class="text-warning fw-bold">
+                                        ✈️ TRANSFERIDO (Saiu)
+                                    </option>
+                                    
+                                    <option value="ABANDONO" class="text-secondary fw-bold">
+                                        ❌ ABANDONO (Desistiu)
+                                    </option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
-            <div class="card border-0 shadow-sm rounded-4 {{ pendentes|yesno:'opacity-50 pointer-events-none,' }}">
-                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-light text-success fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">2</div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Gerar Ano Letivo 2026</h5>
-                            <small class="text-muted">Cria turmas novas e migra os alunos automaticamente.</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-4 bg-light bg-opacity-25">
-                    
-                    {% if turmas_2026_criadas %}
-                        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
-                            <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
-                            <div>
-                                <strong>Status 2026:</strong> Já existem {{ qtd_turmas_2026 }} turmas criadas.<br>
-                                Clicar abaixo irá migrar apenas alunos que ainda não foram movidos.
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <form method="post" action="{% url 'gerar_estrutura_2026' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100 fw-bold py-3 shadow-sm hover-scale" {% if pendentes > 0 %}disabled{% endif %}>
-                            <i class="bi bi-rocket-takeoff-fill me-2"></i> EXECUTAR MIGRAÇÃO PARA 2026
-                        </button>
-                    </form>
-
-                    <div class="mt-4 p-3 bg-white rounded border border-dashed text-muted x-small">
-                        <h6 class="fw-bold text-uppercase small mb-2"><i class="bi bi-gear-fill me-1"></i> Regras de Migração:</h6>
-                        <ul class="mb-0 ps-3">
-                            <li><strong>1º Ano (Aprovado)</strong> <i class="bi bi-arrow-right mx-1"></i> Vai para 2º Ano (2026)</li>
-                            <li><strong>2º Ano (Aprovado)</strong> <i class="bi bi-arrow-right mx-1"></i> Vai para 3º Ano (2026)</li>
-                            <li><strong>3º Ano (Aprovado)</strong> <i class="bi bi-arrow-right mx-1"></i> Conclusão (Sai da lista ativa)</li>
-                            <li><strong>Reprovados</strong> <i class="bi bi-arrow-right mx-1"></i> Permanecem na mesma série (Retenção)</li>
-                        </ul>
-                    </div>
+            <div class="card-footer bg-light p-4 text-end">
+                <div class="d-flex justify-content-end align-items-center gap-3">
+                    <small class="text-muted">Ao confirmar, alunos marcados como "Transferido" ou "Abandono" <strong>não</strong> serão matriculados em 2026.</small>
+                    <button type="submit" class="btn btn-success btn-lg fw-bold rounded-pill px-5 shadow transition-hover" onclick="return confirm('ATENÇÃO: Isso irá processar o histórico de 2025 e gerar as turmas de 2026. Deseja continuar?')">
+                        <i class="bi bi-rocket-takeoff-fill me-2"></i> CONFIRMAR E MIGRAR
+                    </button>
                 </div>
             </div>
-
         </div>
-    </div>
+    </form>
+    {% elif serie_filtro %}
+        <div class="alert alert-warning text-center shadow-sm">
+            <i class="bi bi-exclamation-circle me-2"></i> Nenhum aluno "CURSANDO" encontrado nesta série em 2025. Talvez já tenham sido migrados?
+        </div>
+    {% endif %}
+
 </div>
 
+<script>
+    function atualizarCorSelect(select) {
+        select.className = 'form-select form-select-sm fw-bold'; // Reseta
+        if (select.value === 'APROVADO') select.classList.add('text-success', 'border-success');
+        else if (select.value === 'REPROVADO') select.classList.add('text-danger', 'border-danger');
+        else if (select.value === 'TRANSFERIDO') select.classList.add('text-warning', 'border-warning');
+        else if (select.value === 'ABANDONO') select.classList.add('text-secondary', 'border-secondary');
+    }
+
+    // Inicializa as cores ao carregar a página
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('select[name^="status_"]').forEach(sel => atualizarCorSelect(sel));
+    });
+</script>
+
 <style>
-    .hover-scale:hover { transform: translateY(-2px); transition: transform 0.2s; }
-    .pointer-events-none { pointer-events: none; }
+    .transition-hover:hover { transform: translateY(-3px); transition: transform 0.2s; }
 </style>
 {% endblock %}

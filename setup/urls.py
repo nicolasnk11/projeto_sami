@@ -79,8 +79,6 @@ urlpatterns = [
 
     # --- passar de ano ---
     path('virada-ano/', views.gerenciar_virada_ano, name='gerenciar_virada_ano'),
-    path('processar-fechamento/', views.processar_fechamento_2025, name='processar_fechamento_2025'),
-    path('gerar-2026/', views.gerar_estrutura_2026, name='gerar_estrutura_2026'),
     
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
