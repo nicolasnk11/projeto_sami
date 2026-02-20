@@ -6,109 +6,201 @@
     <div class="d-flex justify-content-between align-items-end mb-5">
         <div>
             <h6 class="text-uppercase text-muted fw-bold small mb-1">Painel do Docente</h6>
-            <h2 class="fw-bold text-dark mb-0">
-                Olá, <span class="text-primary">{{ nome_professor }}</span>! 👋
+            <h2 class="fw-bold text-sami-dark mb-0">
+                Olá, <span class="text-sami-gold">{{ nome_professor }}</span>! 👋
             </h2>
             <p class="text-muted mt-2 mb-0">Aqui está o resumo das suas atividades hoje.</p>
         </div>
         <div class="text-end d-none d-md-block">
-            <div class="h1 fw-bold text-dark mb-0">{{ hoje|date:"d" }}</div>
-            <div class="text-uppercase text-primary fw-bold">{{ hoje|date:"F, Y" }}</div>
+            <div class="h1 fw-bold text-sami-dark mb-0">{{ hoje|date:"d" }}</div>
+            <div class="text-uppercase text-sami-gold fw-bold">{{ hoje|date:"F, Y" }}</div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-5">
+        
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'gerenciar_avaliacoes' %}" class="card border-0 shadow-sm h-100 bg-sami-dark text-white text-decoration-none card-hover position-relative overflow-hidden">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-white bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-file-earmark-plus-fill fs-4 text-sami-gold"></i>
+                    </div>
+                    <h5 class="fw-bold">Avaliações</h5>
+                    <p class="text-white-50 small mb-0">Criar provas e gerenciar as antigas.</p>
+                </div>
+                <i class="bi bi-file-earmark-plus position-absolute text-white opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
+            </a>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'painel_gestao' %}" class="card border-0 shadow-sm h-100 bg-sami-green text-white text-decoration-none card-hover position-relative overflow-hidden">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-white bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-collection-fill fs-4 text-white"></i>
+                    </div>
+                    <h5 class="fw-bold">Matriz e Questões</h5>
+                    <p class="text-white-50 small mb-0">Acessar banco de questoes ou criar próprias.</p>
+                </div>
+                <i class="bi bi-collection position-absolute text-white opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
+            </a>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'lancar_nota' %}" class="card border-0 shadow-sm h-100 bg-sami-gold text-sami-dark text-decoration-none card-hover position-relative overflow-hidden">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-white bg-opacity-50 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-qr-code-scan fs-4 text-sami-dark"></i>
+                    </div>
+                    <h5 class="fw-bold">Scanner</h5>
+                    <p class="text-sami-dark opacity-75 small mb-0">Corrigir cartões via câmera ou lançar notas.</p>
+                </div>
+                <i class="bi bi-qr-code position-absolute text-sami-dark opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
+            </a>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'dashboard' %}" class="card border-0 shadow-sm h-100 bg-white text-sami-dark text-decoration-none card-hover position-relative overflow-hidden border-bottom border-sami-dark border-4">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-bar-chart-line-fill fs-4 text-sami-green"></i>
+                    </div>
+                    <h5 class="fw-bold text-sami-dark">Estatísticas</h5>
+                    <p class="text-muted small mb-0">Relatórios e mapa de calor das turmas.</p>
+                </div>
+                <div class="position-absolute bg-sami-gold opacity-10 rounded-circle" style="width: 150px; height: 150px; right: -40px; top: -40px;"></div>
+            </a>
         </div>
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <a href="{% url 'gerenciar_avaliacoes' %}" class="card border-0 shadow-sm h-100 bg-primary text-white text-decoration-none card-hover overflow-hidden position-relative">
-                <div class="card-body p-4 position-relative" style="z-index: 2;">
-                    <div class="icon-box bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
-                        <i class="bi bi-file-earmark-plus-fill fs-3 text-white"></i>
-                    </div>
-                    <h4 class="fw-bold">Nova Avaliação</h4>
-                    <p class="opacity-75 mb-0">Criar prova usando o Banco de Questões ou IA.</p>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-sami-gold border-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-sami-dark mb-0"><i class="bi bi-exclamation-triangle-fill text-sami-gold me-2"></i>Avisos e Pendências</h5>
                 </div>
-                <i class="bi bi-file-earmark-plus-fill position-absolute text-white opacity-10" style="font-size: 10rem; right: -20px; bottom: -40px;"></i>
-            </a>
+                <div class="card-body">
+                    {% if provas_pendentes %}
+                        <p class="text-muted small mb-3">Você tem provas aplicadas sem notas lançadas:</p>
+                        <div class="list-group list-group-flush">
+                            {% for pendencia in provas_pendentes %}
+                            <div class="list-group-item px-0 py-3 border-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold text-sami-dark">{{ pendencia.titulo }}</div>
+                                    <small class="text-muted">{{ pendencia.turma.nome }} | <i class="bi bi-calendar-event"></i> {{ pendencia.data_aplicacao|date:"d/m/Y" }}</small>
+                                </div>
+                                <a href="{% url 'lancar_nota' %}?avaliacao_id={{ pendencia.id }}" class="btn btn-sm btn-sami-gold rounded-pill px-3">Corrigir</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle text-success fs-1"></i>
+                            <p class="text-muted mt-2 fw-bold">Tudo em dia!</p>
+                            <small class="text-muted">Nenhuma prova pendente de correção.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-4">
-            <a href="{% url 'lancar_nota' %}" class="card border-0 shadow-sm h-100 bg-success text-white text-decoration-none card-hover overflow-hidden position-relative">
-                <div class="card-body p-4 position-relative" style="z-index: 2;">
-                    <div class="icon-box bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
-                        <i class="bi bi-qr-code-scan fs-3 text-white"></i>
-                    </div>
-                    <h4 class="fw-bold">Scanner & Notas</h4>
-                    <p class="opacity-75 mb-0">Usar câmera para corrigir gabaritos automaticamente.</p>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-danger border-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-sami-dark mb-0"><i class="bi bi-radar text-danger me-2"></i>Radar de Atenção</h5>
                 </div>
-                <i class="bi bi-qr-code position-absolute text-white opacity-10" style="font-size: 10rem; right: -20px; bottom: -40px;"></i>
-            </a>
-        </div>
-
-        <div class="col-md-4">
-            <a href="{% url 'dashboard' %}" class="card border-0 shadow-sm h-100 bg-white text-dark text-decoration-none card-hover overflow-hidden position-relative">
-                <div class="card-body p-4 position-relative" style="z-index: 2;">
-                    <div class="icon-box bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
-                        <i class="bi bi-bar-chart-line-fill fs-3 text-primary"></i>
-                    </div>
-                    <h4 class="fw-bold text-dark">Desempenho</h4>
-                    <p class="text-muted mb-0">Visualizar relatórios de proficiência das turmas.</p>
+                <div class="card-body">
+                    {% if alunos_alerta %}
+                        <p class="text-muted small mb-3">Alunos das suas turmas com desempenho crítico (Média < 6):</p>
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle mb-0">
+                                <tbody>
+                                    {% for alerta in alunos_alerta %}
+                                    <tr class="border-bottom border-light">
+                                        <td class="ps-0 py-2">
+                                            <div class="fw-bold text-sami-dark">{{ alerta.aluno.nome_completo|truncatechars:25 }}</div>
+                                            <small class="text-muted">{{ alerta.turma.nome }}</small>
+                                        </td>
+                                        <td class="text-end pe-0 py-2">
+                                            <span class="badge bg-danger text-white rounded-pill px-3 py-2" style="font-size: 0.85rem;">
+                                                Média: {{ alerta.media_geral|default_if_none:"0"|floatformat:1 }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-emoji-sunglasses text-success fs-1"></i>
+                            <p class="text-muted mt-2 fw-bold">Nenhum aluno em estado crítico.</p>
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="position-absolute bg-primary opacity-10 rounded-circle" style="width: 200px; height: 200px; right: -50px; top: -50px;"></div>
-            </a>
+            </div>
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
+        
         <div class="col-lg-8">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Minhas Turmas</h5>
+                <h5 class="fw-bold text-sami-dark mb-0"><i class="bi bi-people-fill me-2 text-sami-green"></i>Minhas Turmas</h5>
             </div>
             
             <div class="row g-3">
                 {% for turma in turmas %}
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm h-100 rounded-3 card-turma transition-hover">
-                        <div class="card-body d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avatar-turma bg-primary bg-opacity-10 text-primary fw-bold rounded-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                <div class="col-md-6" style="z-index: {{ forloop.revcounter }}; position: relative;">
+                    <div class="card border-0 shadow-sm h-100 rounded-3 border-start border-sami-green border-4">
+                        <div class="card-body d-flex align-items-center justify-content-between p-3">
+                            
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-turma bg-light text-sami-green fw-bold rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; font-size: 1rem; border: 1px solid #e9ecef;">
                                     {{ turma.nome|slice:":2" }}
                                 </div>
+                                <div class="ms-3">
+                                    <h6 class="fw-bold mb-0 text-sami-dark">{{ turma.nome }}</h6>
+                                    <small class="text-muted">{{ turma.qtd_alunos }} alunos</small>
+                                </div>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="fw-bold mb-0 text-dark">{{ turma.nome }}</h6>
-                                <small class="text-muted">{{ turma.qtd_alunos }} alunos matriculados</small>
-                            </div>
+                            
                             <div class="dropdown">
-                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
+                                <button class="btn btn-sm btn-light border-0 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical text-sami-green"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{% url 'gerenciar_alunos' %}?turma={{ turma.id }}"><i class="bi bi-person me-2"></i>Ver Alunos</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'gerenciar_ndi' %}?turma={{ turma.id }}"><i class="bi bi-journal-check me-2"></i>Diário (NDI)</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'plano_anual' %}?turma={{ turma.id }}"><i class="bi bi-calendar3 me-2"></i>Plano Anual</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2">
+                                    <li><a class="dropdown-item py-2" href="{% url 'gerenciar_alunos' %}?turma={{ turma.id }}"><i class="bi bi-person me-2 text-sami-gold"></i>Ver Alunos</a></li>
+                                    <li><a class="dropdown-item py-2" href="{% url 'gerenciar_ndi' %}?turma={{ turma.id }}"><i class="bi bi-journal-check me-2 text-sami-gold"></i>Diário (NDI)</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item py-2" href="{% url 'plano_anual' %}?turma={{ turma.id }}"><i class="bi bi-calendar3 me-2 text-sami-gold"></i>Plano Anual</a></li>
                                 </ul>
                             </div>
+
                         </div>
                     </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted py-4 bg-white rounded-3 shadow-sm border border-light">
+                    Você ainda não possui turmas atribuídas para este ano.
                 </div>
                 {% endfor %}
             </div>
         </div>
 
         <div class="col-lg-4">
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history me-2 text-warning"></i>Últimas Provas</h5>
-            <div class="card border-0 shadow-sm rounded-4">
+            <h5 class="fw-bold text-sami-dark mb-3"><i class="bi bi-clock-history me-2 text-sami-green"></i>Últimas Provas</h5>
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="list-group list-group-flush rounded-4">
                     {% for prova in provas_recentes %}
-                    <div class="list-group-item border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+                    <div class="list-group-item border-light py-3 px-4 d-flex align-items-center justify-content-between">
                         <div class="overflow-hidden me-3">
-                            <div class="fw-bold text-truncate">{{ prova.titulo }}</div>
-                            <div class="small text-muted">
-                                <span class="badge bg-light text-dark border me-1">{{ prova.turma.nome }}</span>
+                            <div class="fw-bold text-sami-dark text-truncate">{{ prova.titulo }}</div>
+                            <div class="small text-muted mt-1">
+                                <span class="badge bg-light text-sami-dark border me-1">{{ prova.turma.nome }}</span>
                                 {{ prova.data_aplicacao|date:"d/m" }}
                             </div>
                         </div>
-                        <a href="{% url 'lancar_nota' %}?avaliacao_id={{ prova.id }}" class="btn btn-sm btn-outline-success rounded-pill fw-bold" title="Lançar Notas">
+                        <a href="{% url 'lancar_nota' %}?avaliacao_id={{ prova.id }}" class="btn btn-sm btn-outline-sami-green rounded-pill" title="Lançar Notas">
                             <i class="bi bi-qr-code"></i>
                         </a>
                     </div>
@@ -116,31 +208,86 @@
                     <div class="text-center py-4 text-muted">Nenhuma prova recente.</div>
                     {% endfor %}
                 </div>
-                <div class="card-footer bg-white border-0 text-center py-3">
-                    <a href="{% url 'gerenciar_avaliacoes' %}" class="text-decoration-none fw-bold small text-primary">Ver todas as avaliações</a>
+                <div class="card-footer bg-white border-0 text-center py-3 rounded-bottom-4">
+                    <a href="{% url 'gerenciar_avaliacoes' %}" class="text-decoration-none fw-bold small text-sami-green">Ver histórico completo</a>
                 </div>
             </div>
+
+            <a href="{% url 'central_ajuda' %}" class="card border-0 shadow-sm rounded-4 bg-light text-decoration-none card-hover">
+                <div class="card-body d-flex align-items-center p-3">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="bi bi-question-circle-fill text-primary fs-4"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="fw-bold text-dark mb-0">Central de Ajuda</h6>
+                        <small class="text-muted">Tutoriais e manuais do SAMI</small>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 </div>
 
 <style>
-    /* EFEITOS VISUAIS PARA IMPRESSIONAR */
+    :root {
+        /* Paleta Oficial do Sistema */
+        --sami-dark: #0A2619;     /* Verde Escuro Principal */
+        --sami-green: #11422b;    /* Verde Secundário (Apoio) */
+        --sami-gold: #D4AF37;     /* Dourado Oficial */
+        --sami-gold-hover: #b8972e;
+    }
+
+    /* Classes Utilitárias */
+    .bg-sami-dark { background-color: var(--sami-dark) !important; }
+    .text-sami-dark { color: var(--sami-dark) !important; }
+    
+    .bg-sami-green { background-color: var(--sami-green) !important; }
+    .text-sami-green { color: var(--sami-green) !important; }
+    
+    .bg-sami-gold { background-color: var(--sami-gold) !important; }
+    .text-sami-gold { color: var(--sami-gold) !important; }
+
+    .border-sami-dark { border-color: var(--sami-dark) !important; }
+    .border-sami-green { border-color: var(--sami-green) !important; }
+    .border-sami-gold { border-color: var(--sami-gold) !important; }
+
+    /* Botão Dourado Personalizado */
+    .btn-sami-gold {
+        background-color: var(--sami-gold);
+        color: var(--sami-dark);
+        font-weight: bold;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-sami-gold:hover {
+        background-color: var(--sami-gold-hover);
+        color: var(--sami-dark);
+    }
+
+    /* Botão Verde Vazado Personalizado */
+    .btn-outline-sami-green {
+        color: var(--sami-dark);
+        border-color: var(--sami-dark);
+        background-color: transparent;
+    }
+    .btn-outline-sami-green:hover {
+        color: white;
+        background-color: var(--sami-dark);
+        border-color: var(--sami-dark);
+    }
+
+    /* Efeito Suave nos Cards Superiores (Sem conflito de Z-index) */
     .card-hover {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     }
     .card-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
-    }
-    
-    .transition-hover:hover {
-        background-color: #f8f9fa;
-        cursor: pointer;
+        transform: translateY(-4px);
+        box-shadow: 0 .5rem 1rem rgba(10, 38, 25, 0.15) !important;
     }
 
     .avatar-turma {
-        font-family: 'Courier New', Courier, monospace; /* Estilo 'código' */
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: -1px;
     }
 </style>
 {% endblock %}

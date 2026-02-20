@@ -32,6 +32,16 @@
             overflow-x: hidden;
             color: #334155;
         }
+
+        /* Faz com que toda tabela no celular ganhe um scroll lateral em vez de quebrar o layout */
+        .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+       }
+
+        
         
         /* Sidebar usando a cor primária da escola */
         .sidebar {
@@ -273,7 +283,7 @@
 
             <a href="{% url 'painel_gestao' %}" class="nav-link {% if request.resolver_match.url_name == 'painel_gestao' %}active{% endif %}">
                 <i class="bi bi-gear-wide-connected"></i> 
-                <span>Configurações</span>
+                <span>Matriz e questões</span>
             </a>
 
             <a href="{% url 'central_ajuda' %}" class="nav-link {% if request.resolver_match.url_name == 'central_ajuda' %}active{% endif %}">

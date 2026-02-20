@@ -3292,54 +3292,82 @@ def api_lancar_nota_ajax(request):
 
 @login_required
 def area_professor(request):
+    from django.db.models import Avg, Q, Count
+    from datetime import datetime
     
-    nome_exibicao = "Professor(a)" # Valor padrão de segurança
+    nome_exibicao = "Professor(a)"
 
     try:
-        # Tenta pegar o perfil de professor
         perfil = request.user.professor_perfil
         
-        # LÓGICA DE NOME INTELIGENTE:
-        # 1. Tenta o Nome Completo do cadastro de Professor
-        # 2. Se não tiver, tenta o Primeiro Nome do Usuário de Login
-        # 3. Se não tiver, usa o Login (username)
-        if perfil.nome_completo:
-            nome_exibicao = perfil.nome_completo.split()[0] # Pega só o primeiro nome
-        elif request.user.first_name:
-            nome_exibicao = request.user.first_name
-        else:
-            nome_exibicao = request.user.username
+        # 1. Nome Inteligente
+        if perfil.nome_completo: nome_exibicao = perfil.nome_completo.split()[0]
+        elif request.user.first_name: nome_exibicao = request.user.first_name
+        else: nome_exibicao = request.user.username
 
-        # Filtros (mantendo a correção do alunos_matriculados)
+        # 2. Turmas e Provas do Professor
         turmas = perfil.turmas.annotate(
             qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'))
         ).order_by('nome')
         
-        provas_recentes = Avaliacao.objects.filter(
+        avaliacoes_base = Avaliacao.objects.filter(
             turma__in=perfil.turmas.all(),
             disciplina__in=perfil.disciplinas.all()
-        ).order_by('-data_aplicacao')[:5]
+        )
+        provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
+
+        # 3. NOVO: Alunos em Alerta (Média Crítica nas turmas dele)
+        # Pega as matrículas das turmas do professor
+        matriculas_prof = Matricula.objects.filter(turma__in=perfil.turmas.all(), status='CURSANDO')
+        
+        alunos_alerta = matriculas_prof.annotate(
+            media_geral=Avg('resultados__percentual')
+        ).filter(
+            # Traz quem tem média abaixo de 60% (ou 6.0)
+            media_geral__lt=60
+        ).select_related('aluno', 'turma').order_by('media_geral')[:5]
+
+        # 4. NOVO: Quadro de Pendências (Provas aplicadas mas sem resultados lançados)
+        provas_pendentes_qs = avaliacoes_base.annotate(
+            qtd_resultados=Count('resultado')
+        ).filter(
+            data_aplicacao__lte=datetime.now().date(), # Prova já passou
+            qtd_resultados=0 # Ninguém tem nota ainda
+        ).order_by('-data_aplicacao')[:3]
+        
+        total_alunos = matriculas_prof.count()
+        kpi_pendencias = provas_pendentes_qs.count()
 
     except AttributeError:
-        # FALLBACK PARA ADMIN (Se você logar com admin)
+        # FALLBACK ADMIN
         turmas = Turma.objects.annotate(
             qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'))
         ).order_by('nome')
-        provas_recentes = Avaliacao.objects.all().order_by('-data_aplicacao')[:5]
         
-        # Pega nome do Admin ou usa "Administrador"
-        nome_exibicao = request.user.first_name or request.user.username or "Administrador"
+        avaliacoes_base = Avaliacao.objects.all()
+        provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
+        
+        alunos_alerta = Matricula.objects.filter(status='CURSANDO').annotate(
+            media_geral=Avg('resultados__percentual')
+        ).filter(media_geral__lt=60).select_related('aluno', 'turma').order_by('media_geral')[:5]
+        
+        provas_pendentes_qs = avaliacoes_base.annotate(
+            qtd_resultados=Count('resultado')
+        ).filter(data_aplicacao__lte=datetime.now().date(), qtd_resultados=0).order_by('-data_aplicacao')[:3]
 
-    total_alunos = Matricula.objects.filter(status='CURSANDO').count()
-    provas_pendentes = provas_recentes.count()
+        total_alunos = Matricula.objects.filter(status='CURSANDO').count()
+        kpi_pendencias = provas_pendentes_qs.count()
+        nome_exibicao = request.user.first_name or request.user.username or "Administrador"
 
     context = {
         'turmas': turmas,
         'provas_recentes': provas_recentes,
+        'alunos_alerta': alunos_alerta,             # NOVO
+        'provas_pendentes': provas_pendentes_qs,    # NOVO
         'kpi_alunos': total_alunos,
-        'kpi_pendencias': provas_pendentes,
+        'kpi_pendencias': kpi_pendencias,
         'hoje': datetime.now(),
-        'nome_professor': nome_exibicao # <--- Agora vai chegar certinho!
+        'nome_professor': nome_exibicao
     }
     return render(request, 'core/area_professor.html', context)
 

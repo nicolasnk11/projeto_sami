@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from .models import Avaliacao, Resultado, Turma, Questao, Disciplina, Aluno, Matricula
 
 # ==============================================================================
@@ -8,7 +9,6 @@ from .models import Avaliacao, Resultado, Turma, Questao, Disciplina, Aluno, Mat
 class ResultadoForm(forms.ModelForm):
     class Meta:
         model = Resultado
-        # MUDANÇA: Agora usamos 'matricula' em vez de 'aluno'
         fields = ['avaliacao', 'matricula', 'acertos', 'total_questoes']
         labels = {
             'matricula': 'Aluno (Matrícula Ativa)'
@@ -19,6 +19,13 @@ class ResultadoForm(forms.ModelForm):
             'acertos': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 7'}),
             'total_questoes': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 10'}),
         }
+    
+    # 🔥 MELHORIA: Filtra apenas as avaliações e matrículas do ano atual
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        ano_atual = timezone.now().year
+        self.fields['avaliacao'].queryset = Avaliacao.objects.filter(turma__ano_letivo=ano_atual).order_by('-data_aplicacao')
+        self.fields['matricula'].queryset = Matricula.objects.filter(turma__ano_letivo=ano_atual, status='CURSANDO').order_by('aluno__nome_completo')
 
 class AvaliacaoForm(forms.ModelForm):
     class Meta:
@@ -30,6 +37,13 @@ class AvaliacaoForm(forms.ModelForm):
             'disciplina': forms.Select(attrs={'class': 'form-select'}),
             'turma': forms.Select(attrs={'class': 'form-select'}),
         }
+    
+    # 🔥 MELHORIA: Só mostra Turmas do ano atual (Ex: 2026) na hora de criar prova
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        ano_atual = timezone.now().year
+        self.fields['turma'].queryset = Turma.objects.filter(ano_letivo=ano_atual).order_by('nome')
+        self.fields['disciplina'].queryset = Disciplina.objects.all().order_by('nome')
 
 class DefinirGabaritoForm(forms.ModelForm):
     class Meta:
@@ -51,7 +65,6 @@ class DefinirGabaritoForm(forms.ModelForm):
 class AlunoForm(forms.ModelForm):
     class Meta:
         model = Aluno
-        # MUDANÇA: Removemos 'turma' daqui, pois aluno não tem turma fixa no cadastro
         fields = ['nome_completo', 'cpf', 'data_nascimento', 'foto']
         widgets = {
             'nome_completo': forms.TextInput(attrs={'class': 'form-control'}),
@@ -68,7 +81,7 @@ class ImportarAlunosForm(forms.Form):
 
 class GerarProvaForm(forms.Form):
     disciplina = forms.ModelChoiceField(
-        queryset=Disciplina.objects.all(),
+        queryset=Disciplina.objects.all().order_by('nome'), # 🔥 Adicionado order_by para o select ficar alfabético
         widget=forms.Select(attrs={'class': 'form-select'}),
         label="Escolha a Matéria"
     )
