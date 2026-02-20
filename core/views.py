@@ -1037,7 +1037,7 @@ def montar_prova(request, avaliacao_id):
     if f_descritor:
         questoes = questoes.filter(descritor__id=f_descritor)
     if f_busca:
-        questoes = questões.filter(enunciado__icontains=f_busca)
+        questoes = questoes.filter(enunciado__icontains=f_busca)
 
     descritores = Descritor.objects.filter(disciplina=avaliacao.disciplina).order_by('codigo')
 
@@ -1344,6 +1344,67 @@ def gerenciar_alunos(request):
         return redirect('gerenciar_alunos')
 
     # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
+    # Captura filtros da URL
+    busca = request.GET.get('busca')
+    filtro_turma = request.GET.get('turma')
+    filtro_serie = request.GET.get('serie')
+    apenas_pcd = request.GET.get('apenas_pcd')
+    ordem = request.GET.get('ordem', 'nome')
+    filtro_ano = request.GET.get('ano', '2026') # Padrão para o ano atual
+
+    # 1. Base da Busca: Filtra pelo Ano Letivo da Turma
+    matriculas = Matricula.objects.filter(turma__ano_letivo=filtro_ano).select_related('aluno', 'turma')
+    
+    # Se for o ano corrente, foca nos alunos ativos (CURSANDO)
+    if filtro_ano == '2026':
+        matriculas = matriculas.filter(status='CURSANDO')
+
+    # Anota a média para poder ordenar (Melhores/Críticos)
+    matriculas = matriculas.annotate(media_geral=Avg('resultados__percentual'))
+
+    # 2. Aplica Filtros Dinâmicos
+    if busca:
+        matriculas = matriculas.filter(
+            Q(aluno__nome_completo__icontains=busca) | 
+            Q(aluno__cpf__icontains=busca)
+        )
+    
+    if filtro_turma:
+        matriculas = matriculas.filter(turma_id=filtro_turma)
+        
+    if filtro_serie:
+        matriculas = matriculas.filter(turma__nome__startswith=filtro_serie)
+
+    if apenas_pcd == 'on':
+        matriculas = matriculas.filter(aluno__is_pcd=True)
+
+    # 3. Ordenação
+    if ordem == 'nome':
+        matriculas = matriculas.order_by('aluno__nome_completo')
+    elif ordem == 'melhores':
+        matriculas = matriculas.order_by('-media_geral')
+    elif ordem == 'criticos':
+        matriculas = matriculas.order_by('media_geral')
+
+    # 4. Paginação
+    paginator = Paginator(matriculas, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    # 5. Contexto (Dropdowns) - Apenas turmas do ano selecionado
+    turmas_para_select = Turma.objects.filter(ano_letivo=filtro_ano).order_by('nome')
+
+    return render(request, 'core/gerenciar_alunos.html', {
+        'matriculas': page_obj,
+        'turmas': turmas_para_select,
+        'busca_atual': busca,
+        'turma_selecionada': int(filtro_turma) if filtro_turma else None,
+        'serie_selecionada': filtro_serie,
+        'apenas_pcd': apenas_pcd,
+        'ordem_atual': ordem,
+        'ano_atual': filtro_ano 
+    })
+
+    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
     busca = request.GET.get('busca')
     filtro_turma = request.GET.get('turma')
     apenas_pcd = request.GET.get('apenas_pcd')
@@ -1511,7 +1572,6 @@ def gerenciar_avaliacoes(request):
 
 @login_required
 def gerenciar_turmas(request):
-    from django.db.models import Count, Q
 
     if request.method == 'POST':
         acao = request.POST.get('acao')
@@ -3232,7 +3292,6 @@ def api_lancar_nota_ajax(request):
 
 @login_required
 def area_professor(request):
-    from django.db.models import Count, Q
     
     nome_exibicao = "Professor(a)" # Valor padrão de segurança
 

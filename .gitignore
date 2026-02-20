@@ -1,14 +1,41 @@
-# Ignorar ambiente virtual
+# ==========================================
+# 🔐 SEGURANÇA E AMBIENTE VIRTUAL
+# ==========================================
 venv/
 env/
 .env
 
-# Ignorar arquivos compilados do Python
+# ==========================================
+# 🗄️ BANCO DE DADOS (NUNCA SUBIR)
+# ==========================================
+# Impede que seu banco local vazio apague a escola real
+db.sqlite3
+db.sqlite3-journal
+
+# ==========================================
+# 🖼️ ARQUIVOS DE USUÁRIOS (CRÍTICO PARA PRODUÇÃO)
+# ==========================================
+# Impede que testes locais apaguem uploads reais da escola
+media/
+/media/
+
+# ==========================================
+# ⚙️ ARQUIVOS COMPILADOS E CACHE DO PYTHON
+# ==========================================
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# Ignorar banco de dados local (Opcional, mas recomendado para produção)
-db.sqlite3
+# ==========================================
+# 💻 ARQUIVOS DO SISTEMA E DO VS CODE
+# ==========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
 
-# Ignorar pastas de mídia (uploads locais de teste)
-media/
+# ==========================================
+# 📝 LOGS E OUTROS
+# ==========================================
+*.log
