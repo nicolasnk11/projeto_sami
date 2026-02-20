@@ -39,7 +39,9 @@ class Aluno(models.Model):
     nome_completo = models.CharField(max_length=100)
     data_nascimento = models.DateField(null=True, blank=True)
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # CORREÇÃO DE SEGURANÇA: SET_NULL impede que apagar o login apague o aluno
+    usuario = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     foto = models.ImageField(upload_to='alunos/', null=True, blank=True)
 
     # --- PERFIL SOCIOECONÔMICO (Censo Escolar) ---
@@ -127,7 +129,10 @@ class Matricula(models.Model):
     ]
     
     aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name='matriculas')
-    turma = models.ForeignKey(Turma, on_delete=models.CASCADE, related_name='alunos_matriculados') # Note o related_name corrigido
+    
+    # CORREÇÃO DE SEGURANÇA: PROTECT impede apagar a turma se tiver alunos
+    turma = models.ForeignKey(Turma, on_delete=models.PROTECT, related_name='alunos_matriculados') 
+    
     data_matricula = models.DateField(auto_now_add=True)
     numero_chamada = models.IntegerField(null=True, blank=True)
     
@@ -151,7 +156,10 @@ class Matricula(models.Model):
 class Descritor(models.Model):
     codigo = models.CharField(max_length=20)
     descricao = models.TextField()
-    disciplina = models.ForeignKey(Disciplina, on_delete=models.CASCADE)
+    
+    # CORREÇÃO DE SEGURANÇA: PROTECT impede apagar a disciplina e perder descritores
+    disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
+    
     tema = models.CharField(max_length=100, null=True, blank=True)
     def __str__(self): return f"{self.codigo} - {self.descricao[:50]}..."
     class Meta: ordering = ['disciplina', 'codigo']
@@ -196,7 +204,12 @@ class ItemGabarito(models.Model):
     questao_banco = models.ForeignKey(Questao, on_delete=models.SET_NULL, null=True, blank=True)
     resposta_correta = models.CharField(max_length=1) 
     descritor = models.ForeignKey(Descritor, on_delete=models.SET_NULL, null=True, blank=True)
+    
     class Meta: ordering = ['numero']
+
+    # NOVO STR
+    def __str__(self):
+        return f"Q{self.numero} - {self.avaliacao.titulo}"
 
 class Resultado(models.Model):
     STATUS_CHOICES = [('ADQ', 'Adequado'), ('INT', 'Intermediário'), ('CRI', 'Crítico'), ('MCR', 'Muito Crítico')]
@@ -215,6 +228,10 @@ class Resultado(models.Model):
         elif self.percentual >= 25: self.status = 'CRI'
         else: self.status = 'MCR'
         super().save(*args, **kwargs)
+
+    # NOVO STR
+    def __str__(self):
+        return f"Resultado: {self.matricula.aluno.nome_completo[:15]} - {self.avaliacao.titulo[:15]}"
 
 class RespostaDetalhada(models.Model):
     resultado = models.ForeignKey(Resultado, on_delete=models.CASCADE, related_name='respostas_detalhadas')
@@ -243,6 +260,10 @@ class NDI(models.Model):
         parcial = (self.nota_frequencia + self.nota_atividade + self.nota_comportamento) / 3
         return (parcial + self.nota_prova_parcial + self.nota_prova_bimestral) / 3
 
+    # NOVO STR
+    def __str__(self):
+        return f"Boletim {self.bimestre}º Bim - {self.matricula.aluno.nome_completo[:20]}"
+
 # ==============================================================================
 # 5. GESTÃO DE AULAS E SUPORTE
 # ==============================================================================
@@ -262,6 +283,10 @@ class PlanoEnsino(models.Model):
         concluidos = self.topicos.filter(status='DONE').count()
         return int((concluidos / total) * 100)
 
+    # NOVO STR
+    def __str__(self):
+        return f"Plano {self.disciplina_nome} - {self.turma.nome}"
+
 class TopicoPlano(models.Model):
     BIMESTRES = [(1, '1º'), (2, '2º'), (3, '3º'), (4, '4º')]
     STATUS_CHOICES = [('TODO', 'A Planejar'), ('DOING', 'Em Aula'), ('DONE', 'Concluído')]
@@ -271,6 +296,10 @@ class TopicoPlano(models.Model):
     conteudo = models.CharField(max_length=255)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='TODO')
     data_prevista = models.DateField(null=True, blank=True)
+
+    # NOVO STR
+    def __str__(self):
+        return f"{self.bimestre}ºB: {self.conteudo[:30]}..."
 
 class CategoriaAjuda(models.Model):
     nome = models.CharField(max_length=50)
