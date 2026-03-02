@@ -1,6 +1,6 @@
 from django import forms
 from django.utils import timezone
-from .models import Avaliacao, Resultado, Turma, Questao, Disciplina, Aluno, Matricula
+from .models import Avaliacao, Resultado, Turma, Questao, Disciplina, Aluno, Matricula, Professor
 
 # ==============================================================================
 # FORMULÁRIOS DE AVALIAÇÃO E RESULTADO
@@ -98,3 +98,35 @@ class ImportarQuestoesForm(forms.Form):
         label="Selecione o arquivo Excel (.xlsx)",
         widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.xlsx'})
     )
+
+class ProfessorCadastroForm(forms.ModelForm):
+    nome_completo = forms.CharField(
+        max_length=150, 
+        required=True, 
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: João Carlos da Silva'})
+    )
+    email = forms.EmailField(
+        required=False, 
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'joao@escola.com (Opcional)'})
+    )
+    disciplinas = forms.ModelMultipleChoiceField(
+        queryset=Disciplina.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '4'}),
+        required=True,
+        help_text="Segure CTRL para selecionar mais de uma."
+    )
+    turmas = forms.ModelMultipleChoiceField(
+        queryset=Turma.objects.none(), # Será preenchido no __init__
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '6'}),
+        required=False,
+        help_text="Opcional. Segure CTRL para selecionar mais de uma."
+    )
+
+    class Meta:
+        model = Professor
+        fields = ['disciplinas', 'turmas'] # O User (nome/senha) vamos criar na View
+
+    def __init__(self, ano_atual, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtro de Ouro: Mostra apenas as turmas do ano letivo atual (ex: 2026)
+        self.fields['turmas'].queryset = Turma.objects.filter(ano_letivo=ano_atual).order_by('nome')

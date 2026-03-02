@@ -2,6 +2,7 @@ import io
 import os
 import json
 import csv
+import re
 import qrcode
 import unicodedata
 import pandas as pd
@@ -13,7 +14,7 @@ from io import StringIO, BytesIO
 # Django Imports
 from django.contrib import messages
 from django.contrib.auth import logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Sum, Q, F, Prefetch
 from django.db import transaction
@@ -43,12 +44,14 @@ from .models import (
 )
 from .forms import (
     AvaliacaoForm, ResultadoForm, GerarProvaForm, ImportarQuestoesForm, 
-    DefinirGabaritoForm, ImportarAlunosForm, AlunoForm
+    DefinirGabaritoForm, ImportarAlunosForm, AlunoForm, ProfessorCadastroForm
 )
 
 from .services.ai_generator import gerar_questao_ia
 from .services.omr_scanner import OMRScanner
 
+def is_staff_check(user):
+    return user.is_authenticated and user.is_staff
 # ==============================================================================
 # 🖨️ FUNÇÕES AUXILIARES DE PDF (LAYOUT)
 # ==============================================================================
@@ -3542,3 +3545,61 @@ def gerenciar_virada_ano(request):
         'serie_filtro': serie_filtro,
         'alunos': alunos_simulados
     })
+
+@user_passes_test(is_staff_check)
+def cadastrar_professor(request):
+    # Pega o ano atual para filtrar as turmas corretamente (ex: 2026)
+    ano_atual = timezone.now().year
+    
+    if request.method == 'POST':
+        form = ProfessorCadastroForm(ano_atual, request.POST)
+        if form.is_valid():
+            nome_completo = form.cleaned_data['nome_completo'].strip()
+            email = form.cleaned_data['email']
+            
+            # --- MÁGICA 1: Criar o Username (joao.silva) ---
+            # Tira acentos e deixa tudo minúsculo
+            nome_limpo = unicodedata.normalize('NFKD', nome_completo).encode('ASCII', 'ignore').decode('utf-8').lower()
+            # Pega só as palavras (ignorando espaços soltos)
+            partes_nome = re.findall(r'\b[a-z]+\b', nome_limpo)
+            
+            if len(partes_nome) > 1:
+                base_username = f"{partes_nome[0]}.{partes_nome[-1]}" # primeiro.ultimo
+            else:
+                base_username = partes_nome[0]
+                
+            # Evitar nomes de usuários duplicados (ex: joao.silva2)
+            username = base_username
+            contador = 2
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{contador}"
+                contador += 1
+                
+            # --- MÁGICA 2: Criar o Usuário com Senha Padrão ---
+            senha_padrao = "Sami@2026"
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=senha_padrao,
+                first_name=partes_nome[0].title(),
+                last_name=partes_nome[-1].title() if len(partes_nome) > 1 else ""
+            )
+            
+            # --- MÁGICA 3: Criar o Perfil do Professor ---
+            professor = form.save(commit=False)
+            professor.usuario = user
+            professor.save()
+            form.save_m2m() # Importante! Salva as disciplinas e turmas múltiplas
+            
+            # Feedback matador para o gestor copiar e enviar no WhatsApp do professor
+            mensagem = f"Sucesso! Professor cadastrado. Entregue este acesso: Login: <b>{username}</b> | Senha: <b>{senha_padrao}</b>"
+            messages.success(request, mensagem)
+            
+            return redirect('cadastrar_professor')
+    else:
+        form = ProfessorCadastroForm(ano_atual)
+        
+    context = {
+        'form': form,
+    }
+    return render(request, 'core/cadastrar_professor.html', context)

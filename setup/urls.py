@@ -56,6 +56,7 @@ urlpatterns = [
     path('turmas/', views.gerenciar_turmas, name='gerenciar_turmas'),
     path('importar_alunos/', views.importar_alunos, name='importar_alunos'),
     path('importar-questoes/', views.importar_questoes, name='importar_questoes'),
+    path('cadastrar-professor/', views.cadastrar_professor, name='cadastrar_professor'),
     path('banco-questoes/', views.listar_questoes, name='listar_questoes'),
     path('gestao/descritores/', views.gerenciar_descritores, name='gerenciar_descritores'),
     path('gerar-acessos-massa/', views.gerar_acessos_em_massa, name='gerar_acessos_em_massa'),

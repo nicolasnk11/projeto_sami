@@ -1,0 +1,126 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h6 class="text-uppercase text-muted fw-bold small mb-1">Gestão de Equipe</h6>
+            <h2 class="fw-bold text-sami-dark mb-0">
+                Cadastrar <span class="text-sami-gold">Novo Professor</span>
+            </h2>
+            <p class="text-muted mt-2 mb-0">O sistema criará o acesso e a senha automaticamente.</p>
+        </div>
+        <div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm rounded-4 border-top border-sami-gold border-4">
+                <div class="card-body p-5">
+                    
+                    <form method="POST" action="{% url 'cadastrar_professor' %}">
+                        {% csrf_token %}
+                        
+                        <h5 class="fw-bold text-sami-dark mb-4 border-bottom pb-2">
+                            <i class="bi bi-person-badge text-sami-green me-2"></i>1. Dados do Docente
+                        </h5>
+                        
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Nome Completo *</label>
+                                {{ form.nome_completo }}
+                                <small class="text-muted" style="font-size: 0.75rem;">O login será gerado a partir deste nome.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">E-mail (Opcional)</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-sami-dark mb-4 border-bottom pb-2">
+                            <i class="bi bi-book-half text-sami-green me-2"></i>2. Atribuição Acadêmica
+                        </h5>
+                        
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Disciplinas Ministradas *</label>
+                                {{ form.disciplinas }}
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">{{ form.disciplinas.help_text }}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Turmas Atendidas (2026)</label>
+                                {{ form.turmas }}
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">{{ form.turmas.help_text }}</small>
+                            </div>
+                        </div>
+
+                        <div class="text-end border-top pt-4">
+                            <button type="submit" class="btn btn-sami-dark btn-lg px-5 rounded-pill shadow-sm">
+                                <i class="bi bi-check2-circle me-2 text-sami-gold"></i>Gerar Acesso e Salvar
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+            
+            <div class="alert bg-light border-0 shadow-sm rounded-4 mt-4 d-flex align-items-center">
+                <i class="bi bi-lightbulb-fill fs-3 text-warning me-3"></i>
+                <div>
+                    <strong>Como funciona o cadastro?</strong><br>
+                    <span class="text-muted small">Após salvar, o sistema vai gerar um nome de usuário (ex: <i>joao.silva</i>) e a senha padrão <b>Sami@2026</b>. Um aviso verde aparecerá na sua tela com esses dados para você copiar e enviar ao professor.</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --sami-dark: #0A2619;
+        --sami-green: #11422b;
+        --sami-gold: #D4AF37;
+        --sami-gold-hover: #b8972e;
+    }
+    .text-sami-dark { color: var(--sami-dark) !important; }
+    .text-sami-green { color: var(--sami-green) !important; }
+    .text-sami-gold { color: var(--sami-gold) !important; }
+    .bg-sami-dark { background-color: var(--sami-dark) !important; color: white; }
+    .bg-sami-gold { background-color: var(--sami-gold) !important; color: var(--sami-dark); }
+    .border-sami-gold { border-color: var(--sami-gold) !important; }
+    
+    .btn-sami-dark {
+        background-color: var(--sami-dark);
+        color: white;
+        transition: all 0.2s;
+    }
+    .btn-sami-dark:hover {
+        background-color: var(--sami-green);
+        color: var(--sami-gold);
+        transform: translateY(-2px);
+    }
+    
+    /* Melhorando a aparência das caixas de múltipla escolha */
+    select[multiple] {
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        padding: 8px;
+    }
+    select[multiple] option {
+        padding: 8px 12px;
+        margin-bottom: 2px;
+        border-radius: 6px;
+    }
+    select[multiple] option:checked {
+        background-color: rgba(17, 66, 43, 0.1);
+        color: var(--sami-dark);
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
