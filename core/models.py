@@ -154,15 +154,35 @@ class Matricula(models.Model):
 # ==============================================================================
 
 class Descritor(models.Model):
-    codigo = models.CharField(max_length=20)
-    descricao = models.TextField()
+    MATRIZ_CHOICES = [
+        ('SPAECE', 'SPAECE - Ceará'),
+        ('SAEB', 'SAEB - Nacional'),
+        ('ENEM', 'Matriz ENEM')
+    ]
     
-    # CORREÇÃO DE SEGURANÇA: PROTECT impede apagar a disciplina e perder descritores
+    codigo = models.CharField(max_length=20, help_text="Ex: S01, S01H01, H12")
+    descricao = models.TextField()
     disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
     
-    tema = models.CharField(max_length=100, null=True, blank=True)
-    def __str__(self): return f"{self.codigo} - {self.descricao[:50]}..."
-    class Meta: ordering = ['disciplina', 'codigo']
+    # NOVOS CAMPOS PARA HIERARQUIA E ORGANIZAÇÃO
+    matriz = models.CharField(max_length=15, choices=MATRIZ_CHOICES, default='SPAECE')
+    
+    # Campo mágico: Auto-referência. Permite que um descritor seja filho de outro.
+    # Ex: S01H01 (filho) aponta para S01 (pai). Se for nulo, é um descritor Pai.
+    descritor_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='habilidades_filhas')
+    
+    # Mantido por compatibilidade com sistema antigo, mas pode ser ignorado no novo fluxo
+    tema = models.CharField(max_length=100, null=True, blank=True) 
+    
+    def __str__(self): 
+        # Se tem pai, mostra de quem ele é filho para facilitar a leitura no Admin
+        prefixo = f"[{self.matriz}] "
+        if self.descritor_pai:
+            return f"{prefixo}{self.descritor_pai.codigo} > {self.codigo} - {self.descricao[:40]}..."
+        return f"{prefixo}{self.codigo} - {self.descricao[:40]}..."
+        
+    class Meta: 
+        ordering = ['matriz', 'disciplina', 'codigo']
 
 class Questao(models.Model):
     SERIE_CHOICES = [(1, '1º Ano'), (2, '2º Ano'), (3, '3º Ano')]

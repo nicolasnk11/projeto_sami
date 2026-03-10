@@ -2656,40 +2656,33 @@ def api_gerar_questao(request):
 @login_required
 def gerenciar_descritores(request):
     filtro_disc = request.GET.get('disciplina')
-    filtro_fonte = request.GET.get('fonte')
+    filtro_matriz = request.GET.get('matriz')
 
-    disciplinas_queryset = Disciplina.objects.all().order_by('nome')
-
-    if filtro_disc:
-        disciplinas_queryset = disciplinas_queryset.filter(id=filtro_disc)
-
-    from django.db.models import Prefetch
-    
-    descritores_filter = Descritor.objects.all().order_by('codigo')
-    if filtro_fonte:
-        if filtro_fonte == 'ENEM':
-            descritores_filter = descritores_filter.filter(tema__icontains='ENEM')
-        elif filtro_fonte == 'SAEB':
-            descritores_filter = descritores_filter.exclude(tema__icontains='ENEM')
-            
-    disciplinas = disciplinas_queryset.prefetch_related(
-        Prefetch('descritor_set', queryset=descritores_filter)
-    )
-
+    # Lógica de Salvar/Excluir (POST)
     if request.method == 'POST':
         acao = request.POST.get('acao')
         if acao == 'excluir':
             desc_id = request.POST.get('descritor_id')
+            # Deletar um pai vai deletar os filhos em cascata automaticamente pelo Model!
             Descritor.objects.filter(id=desc_id).delete()
-            messages.success(request, 'Removido com sucesso.')
+            messages.success(request, 'Item removido com sucesso.')
+            
         elif acao == 'salvar':
             desc_id = request.POST.get('descritor_id')
             disciplina_id = request.POST.get('disciplina')
-            codigo = request.POST.get('codigo')
+            matriz = request.POST.get('matriz')
+            codigo = request.POST.get('codigo').upper() # Força maiúsculo
             descricao = request.POST.get('descricao')
-            tema = request.POST.get('tema')
+            pai_id = request.POST.get('descritor_pai')
             
-            dados = {'disciplina_id': disciplina_id, 'codigo': codigo, 'descricao': descricao, 'tema': tema}
+            dados = {
+                'disciplina_id': disciplina_id, 
+                'matriz': matriz,
+                'codigo': codigo, 
+                'descricao': descricao,
+                'descritor_pai_id': pai_id if pai_id else None
+            }
+            
             if desc_id:
                 d = Descritor.objects.get(id=desc_id)
                 for k, v in dados.items(): setattr(d, k, v)
@@ -2698,13 +2691,37 @@ def gerenciar_descritores(request):
             else:
                 Descritor.objects.create(**dados)
                 messages.success(request, 'Criado!')
-        return redirect('gerenciar_descritores')
+                
+        return redirect(f"{request.path}?disciplina={filtro_disc or ''}&matriz={filtro_matriz or ''}")
+
+    # Lógica de Exibição (GET) - Estrutura de Árvore
+    # Pegamos apenas os "Pais" (descritor_pai__isnull=True). 
+    # O HTML vai se encarregar de puxar os filhos usando o related_name 'habilidades_filhas'.
+    descritores_base = Descritor.objects.filter(descritor_pai__isnull=True).order_by('codigo')
+    
+    if filtro_disc:
+        descritores_base = descritores_base.filter(disciplina_id=filtro_disc)
+    if filtro_matriz:
+        descritores_base = descritores_base.filter(matriz=filtro_matriz)
+
+    # Agrupa os descritores base por Disciplina para montar a tela
+    disciplinas_ativas = Disciplina.objects.all().order_by('nome')
+    arvore = []
+    
+    for disc in disciplinas_ativas:
+        pais_da_disc = descritores_base.filter(disciplina=disc)
+        if pais_da_disc.exists() or not filtro_disc: # Mostra a disciplina se tiver itens ou se não tiver filtro
+            arvore.append({
+                'disciplina': disc,
+                'pais': pais_da_disc
+            })
 
     context = {
-        'disciplinas': disciplinas,
-        'todas_disciplinas': Disciplina.objects.all().order_by('nome'), 
+        'arvore': arvore,
+        'todas_disciplinas': disciplinas_ativas, 
         'filtro_atual_disc': int(filtro_disc) if filtro_disc else '',
-        'filtro_atual_fonte': filtro_fonte or ''
+        'filtro_atual_matriz': filtro_matriz or '',
+        'todos_pais_opts': Descritor.objects.filter(descritor_pai__isnull=True).order_by('disciplina', 'codigo') # Para o Modal de criação
     }
     return render(request, 'core/gerenciar_descritores.html', context)
 
