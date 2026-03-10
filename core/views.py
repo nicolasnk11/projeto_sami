@@ -589,10 +589,12 @@ def criar_avaliacao(request):
                 turmas_alvo = []
                 
                 # 1. Define quem recebe a prova
+                ano_atual = timezone.now().year # Pega o ano atual dinamicamente
+                
                 if tipo_foco == 'escola':
-                    turmas_alvo = Turma.objects.all()
+                    turmas_alvo = Turma.objects.filter(ano_letivo=ano_atual)
                 elif tipo_foco == 'serie':
-                    turmas_alvo = Turma.objects.filter(nome__startswith=serie_alvo)
+                    turmas_alvo = Turma.objects.filter(nome__startswith=serie_alvo, ano_letivo=ano_atual)
                 else: # turma específica
                     if turma_id:
                         turmas_alvo = [get_object_or_404(Turma, id=turma_id)]
@@ -686,13 +688,15 @@ def gerar_prova_pdf(request):
             turmas_alvo = [t_obj]
             filtro_erros = Q(resultado__matricula__turma=t_obj)
 
+            ano_atual = timezone.now().year
+
         elif tipo_foco == 'serie' and serie_alvo:
-            turmas_alvo = Turma.objects.filter(nome__startswith=serie_alvo)
-            filtro_erros = Q(resultado__matricula__turma__nome__startswith=serie_alvo)
+            turmas_alvo = Turma.objects.filter(nome__startswith=serie_alvo, ano_letivo=ano_atual)
+            filtro_erros = Q(resultado__matricula__turma__nome__startswith=serie_alvo, resultado__matricula__turma__ano_letivo=ano_atual)
 
         elif tipo_foco == 'escola':
-            turmas_alvo = Turma.objects.all()
-            filtro_erros = Q() 
+            turmas_alvo = Turma.objects.filter(ano_letivo=ano_atual)
+            filtro_erros = Q(resultado__matricula__turma__ano_letivo=ano_atual)
 
         if not turmas_alvo:
             messages.error(request, "Nenhuma turma encontrada.")
@@ -1346,20 +1350,23 @@ def gerenciar_alunos(request):
 
         return redirect('gerenciar_alunos')
 
-    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
+    # ==========================================================
+    # --- LÓGICA DE VISUALIZAÇÃO (GET) LIMPA E ÚNICA ---
+    # ==========================================================
+    
     # Captura filtros da URL
     busca = request.GET.get('busca')
     filtro_turma = request.GET.get('turma')
     filtro_serie = request.GET.get('serie')
     apenas_pcd = request.GET.get('apenas_pcd')
     ordem = request.GET.get('ordem', 'nome')
-    filtro_ano = request.GET.get('ano', '2026') # Padrão para o ano atual
+    filtro_ano = request.GET.get('ano', str(timezone.now().year)) # Ano atual dinâmico
 
     # 1. Base da Busca: Filtra pelo Ano Letivo da Turma
     matriculas = Matricula.objects.filter(turma__ano_letivo=filtro_ano).select_related('aluno', 'turma')
     
     # Se for o ano corrente, foca nos alunos ativos (CURSANDO)
-    if filtro_ano == '2026':
+    if str(filtro_ano) == str(timezone.now().year):
         matriculas = matriculas.filter(status='CURSANDO')
 
     # Anota a média para poder ordenar (Melhores/Críticos)
@@ -1405,131 +1412,6 @@ def gerenciar_alunos(request):
         'apenas_pcd': apenas_pcd,
         'ordem_atual': ordem,
         'ano_atual': filtro_ano 
-    })
-
-    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
-    busca = request.GET.get('busca')
-    filtro_turma = request.GET.get('turma')
-    apenas_pcd = request.GET.get('apenas_pcd')
-    
-    # NOVO: Filtro de Ano (Padrão 2026)
-    filtro_ano = request.GET.get('ano', '2026')
-
-    # Busca matrículas. Filtra status 'CURSANDO' E O ANO LETIVO DA TURMA
-    # Importante: se quiser ver alunos 'APROVADOS' de 2025, tem que tirar o status='CURSANDO' ou adaptar a lógica.
-    # Aqui vou deixar mostrar todos daquele ano, independente do status, para você ver o histórico.
-    matriculas = Matricula.objects.filter(turma__ano_letivo=filtro_ano).select_related('aluno', 'turma')
-    
-    # Se for o ano atual (2026), foca nos Cursando. Se for passado (2025), mostra tudo.
-    if filtro_ano == '2026':
-        matriculas = matriculas.filter(status='CURSANDO')
-
-    # Filtros Adicionais
-    if busca:
-        matriculas = matriculas.filter(aluno__nome_completo__icontains=busca)
-    
-    if filtro_turma:
-        matriculas = matriculas.filter(turma_id=filtro_turma)
-
-    if apenas_pcd == 'on':
-        matriculas = matriculas.filter(aluno__is_pcd=True)
-
-    # Ordenação
-    matriculas = matriculas.order_by('aluno__nome_completo')
-
-    # Paginação
-    paginator = Paginator(matriculas, 20)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
-    # IMPORTANTE: O Select de turmas só deve mostrar turmas do ANO selecionado
-    turmas_para_select = Turma.objects.filter(ano_letivo=filtro_ano).order_by('nome')
-
-    return render(request, 'core/gerenciar_alunos.html', {
-        'matriculas': page_obj,
-        'turmas': turmas_para_select,
-        'busca_atual': busca,
-        'turma_selecionada': filtro_turma,
-        'ano_atual': filtro_ano # Passa o ano para o template manter o filtro
-    })
-
-    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
-    busca = request.GET.get('busca')
-    filtro_turma = request.GET.get('turma')
-    apenas_pcd = request.GET.get('apenas_pcd') # Novo Filtro
-
-    # Busca matrículas ativas (CURSANDO) para exibir
-    matriculas = Matricula.objects.filter(status='CURSANDO').select_related('aluno', 'turma')
-    
-    # Filtros
-    if busca:
-        matriculas = matriculas.filter(aluno__nome_completo__icontains=busca)
-    
-    if filtro_turma:
-        matriculas = matriculas.filter(turma_id=filtro_turma)
-
-    if apenas_pcd == 'on':
-        matriculas = matriculas.filter(aluno__is_pcd=True)
-
-    # Ordenação
-    matriculas = matriculas.order_by('aluno__nome_completo')
-
-    # Paginação
-    paginator = Paginator(matriculas, 20)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
-    turmas = Turma.objects.all().order_by('nome')
-
-    return render(request, 'core/gerenciar_alunos.html', {
-        'matriculas': page_obj,
-        'turmas': turmas,
-        'busca_atual': busca,
-        'turma_selecionada': filtro_turma
-    })
-
-    # --- LÓGICA DE VISUALIZAÇÃO (GET) ---
-    busca = request.GET.get('busca')
-    filtro_turma = request.GET.get('turma')
-    filtro_serie = request.GET.get('serie')
-    ordem = request.GET.get('ordem', 'nome')
-
-    # AQUI MUDOU: Trabalhamos com MATRÍCULAS agora
-    matriculas = Matricula.objects.select_related('aluno', 'turma') \
-        .annotate(media_geral=Avg('resultados__percentual'))
-    
-    # Filtros
-    if busca:
-        matriculas = matriculas.filter(
-            Q(aluno__nome_completo__icontains=busca) | 
-            Q(aluno__cpf__icontains=busca)
-        )
-    
-    if filtro_turma:
-        matriculas = matriculas.filter(turma_id=filtro_turma)
-        
-    if filtro_serie:
-        matriculas = matriculas.filter(turma__nome__startswith=filtro_serie)
-
-    # Ordenação
-    if ordem == 'nome':
-        matriculas = matriculas.order_by('aluno__nome_completo')
-    elif ordem == 'melhores':
-        matriculas = matriculas.order_by('-media_geral')
-    elif ordem == 'criticos':
-        matriculas = matriculas.order_by('media_geral')
-
-    # Paginação
-    paginator = Paginator(matriculas, 20)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
-    turmas = Turma.objects.all().order_by('nome')
-
-    return render(request, 'core/gerenciar_alunos.html', {
-        'matriculas': page_obj, # Enviamos como 'matriculas' para ficar claro no HTML
-        'turmas': turmas,
-        'busca_atual': busca,
-        'turma_selecionada': filtro_turma, # Corrigido para manter select marcado
-        'serie_selecionada': filtro_serie,
-        'ordem_atual': ordem
     })
 
 @login_required
