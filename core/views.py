@@ -1,5 +1,6 @@
 import io
 import os
+import uuid
 import json
 import csv
 import re
@@ -342,10 +343,10 @@ def dashboard(request):
 def api_raio_x(request):
     descritor_cod = request.GET.get('descritor')
     
-    # Filtros base
+  # Filtros base
     filtros = Q(acertou=False) 
     
-    # CORREÇÃO: Procura o descritor no Item OU na Questão
+    # CORREÇÃO: Procura o descritor no Item OU na Questão (Fallback)
     if descritor_cod: 
         filtros &= (Q(item_gabarito__descritor__codigo=descritor_cod) | Q(questao__descritor__codigo=descritor_cod))
     
@@ -475,19 +476,23 @@ def importar_alunos(request):
             try:
                 arquivo = request.FILES['arquivo_excel']
                 
-                # Leitura flexível
-                if arquivo.name.endswith('.csv'):
-                    try:
-                        df = pd.read_csv(arquivo, sep=';', encoding='utf-8')
-                        if len(df.columns) < 2:
+               # Leitura flexível
+                try:
+                    if arquivo.name.endswith('.csv'):
+                        try:
+                            df = pd.read_csv(arquivo, sep=';', encoding='utf-8')
+                            if len(df.columns) < 2:
+                                arquivo.seek(0)
+                                df = pd.read_csv(arquivo, sep=',', encoding='utf-8')
+                        except:
                             arquivo.seek(0)
-                            df = pd.read_csv(arquivo, sep=',', encoding='utf-8')
-                    except:
-                        arquivo.seek(0)
-                        df = pd.read_csv(arquivo, sep=';', encoding='latin-1')
-                else:
-                    df = pd.read_excel(arquivo)
-
+                            df = pd.read_csv(arquivo, sep=';', encoding='latin-1')
+                    else:
+                        df = pd.read_excel(arquivo)
+                except Exception as erro_leitura:
+                    messages.error(request, f"Erro ao ler o arquivo. Verifique se não está corrompido: {str(erro_leitura)}")
+                    return redirect('importar_alunos')
+                
                 # Limpeza de colunas
                 df.columns = [str(c).strip().upper() for c in df.columns]
                 c_nome = next((c for c in df.columns if c in ['NOME', 'ESTUDANTE', 'ALUNO', 'NOME COMPLETO']), None)
@@ -507,7 +512,7 @@ def importar_alunos(request):
                         # Tenta criar
                         turma_obj, _ = Turma.objects.get_or_create(
                             nome=str(row.get(c_turma, 'SEM TURMA')).strip().upper(),
-                            defaults={'ano_letivo': 2026}
+                            defaults={'ano_letivo': timezone.now().year}
                         )
                         
                         aluno_obj, created_aluno = Aluno.objects.get_or_create(
@@ -620,15 +625,15 @@ def criar_avaliacao(request):
 
                 messages.success(request, f'Sucesso! {count} avaliações criadas.')
 
-                # 3. Redirecionamento Inteligente
-                # Se criou só uma e pediu para configurar, vai para a configuração
-                if count == 1 and acao == 'salvar_configurar':
+                # 3. Redirecionamento Inteligente (CORRIGIDO)
+                # Removida a trava "count == 1" para permitir ir ao gabarito em criações em massa.
+                if acao == 'salvar_configurar':
                     if modo == 'banco': 
                         return redirect('montar_prova', ultimo_id) 
                     else: 
                         return redirect('definir_gabarito', ultimo_id)
                 
-                # Se criou várias ou pediu para sair, volta para a lista
+                # Se pediu apenas para salvar e sair, volta para a lista
                 return redirect('gerenciar_avaliacoes')
 
             except Exception as e:
@@ -637,7 +642,7 @@ def criar_avaliacao(request):
             messages.error(request, 'Erro: Preencha título, disciplina e data.')
 
     context = {
-        'turmas': Turma.objects.filter(ano_letivo=2026).order_by('nome'), 
+        'turmas': Turma.objects.filter(ano_letivo=timezone.now().year).order_by('nome'),
         'disciplinas': Disciplina.objects.all().order_by('nome')
     }
     return render(request, 'core/criar_avaliacao.html', context)
@@ -1105,9 +1110,11 @@ def definir_gabarito(request, avaliacao_id):
                     # 2. Verifica se deve REPLICAR para as outras turmas
                     if request.POST.get('replicar_para_todos') == 'on':
                         # Busca provas "irmãs" (Mesmo título e disciplina, mas turmas diferentes)
+                        # Busca provas "irmãs" APENAS DO MESMO ANO
                         provas_irmas = Avaliacao.objects.filter(
                             titulo=avaliacao.titulo, 
-                            disciplina=avaliacao.disciplina
+                            disciplina=avaliacao.disciplina,
+                            data_aplicacao__year=avaliacao.data_aplicacao.year # <--- A TRAVA DE SEGURANÇA
                         ).exclude(id=avaliacao.id)
 
                         count_replicas = 0
@@ -1440,13 +1447,15 @@ def gerenciar_avaliacoes(request):
     if data_filtro:
         avaliacoes = avaliacoes.filter(data_aplicacao=data_filtro)
 
+    ano_atual = timezone.now().year # Pega o ano dinâmico
+
     context = {
         'avaliacoes': avaliacoes,
-        'turmas': Turma.objects.all().order_by('nome'),
+        'turmas': Turma.objects.all().order_by('nome'), # Para o filtro (histórico)
+        'turmas_ativas': Turma.objects.filter(ano_letivo=ano_atual).order_by('nome'), # NOVO: Apenas para criar provas
         'disciplinas': Disciplina.objects.all().order_by('nome'),
         'total_avaliacoes': avaliacoes.count(),
         
-        # Devolvemos o valor selecionado para o HTML manter o filtro ativo
         'filtro_turma': int(turma_id) if turma_id else None,
         'filtro_disciplina': int(disciplina_id) if disciplina_id else None,
         'filtro_data': data_filtro
@@ -1465,7 +1474,7 @@ def gerenciar_turmas(request):
         if acao == 'criar':
             nome = request.POST.get('nome_turma')
             # Pega o ano do select ou usa 2026 como padrão
-            ano = request.POST.get('ano_letivo', 2026) 
+            ano = request.POST.get('ano_letivo', timezone.now().year) 
             
             if nome:
                 Turma.objects.create(nome=nome, ano_letivo=ano)
@@ -2507,13 +2516,13 @@ def plano_anual(request):
         plano, created = PlanoEnsino.objects.get_or_create(
             turma=turma, 
             disciplina_nome=disciplina_selecionada, 
-            defaults={'ano_letivo': 2026}
+            defaults={'ano_letivo': timezone.now().year}
         )
 
         # Busca outros planos da MESMA disciplina mas OUTRAS turmas (para importar)
         planos_para_importar = PlanoEnsino.objects.filter(
             disciplina_nome=disciplina_selecionada,
-            ano_letivo=2026
+            ano_letivo=timezone.now().year
         ).exclude(id=plano.id)
 
         if request.method == 'POST':
@@ -2761,11 +2770,13 @@ def api_ler_cartao(request):
     if request.method == 'POST' and request.FILES.get('foto'):
         path = ""
         try:
+            
             foto = request.FILES['foto']
             avaliacao_id = request.POST.get('avaliacao_id')
             
-            # Salva temporariamente
-            path = f"media/temp/{foto.name}"
+            # Salva temporariamente com NOME ÚNICO IMPOSSÍVEL DE REPETIR
+            nome_unico = f"{uuid.uuid4().hex}_{foto.name}"
+            path = f"media/temp/{nome_unico}"
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, 'wb+') as destination:
                 for chunk in foto.chunks():
@@ -2857,6 +2868,7 @@ def dashboard_aluno(request):
 
     media_geral = 0
     if resultados.exists():
+        # Filtra apenas notas válidas (ignora 'None') para não quebrar a matemática
         notas_validas = [r.percentual for r in resultados if r.percentual is not None]
         if notas_validas:
             media_geral = sum(notas_validas) / len(notas_validas)
@@ -3324,20 +3336,26 @@ def redirecionar_apos_login(request):
 @login_required
 def gerenciar_virada_ano(request):
     """
-    Painel de Migração Controlada (Com Saneamento de Base):
-    1. Seleciona a série de 2025.
-    2. Gestor confere e define status (Aprovado, Reprovado, Transferido, Abandono).
-    3. Sistema atualiza 2025 e cria 2026 apenas para quem continua.
+    Painel de Migração Dinâmico (Com Saneamento de Base):
+    Lê o ano atual e calcula o próximo automaticamente, sem "chumbar" datas.
     """
-    turmas_2025 = Turma.objects.filter(ano_letivo=2025).order_by('nome')
+    mes_atual = timezone.now().month
+    ano_atual = timezone.now().year
+    
+    # Lógica inteligente: Se a escola rodar a virada no início do ano (Jan/Fev/Mar), 
+    # ela está fechando o ano letivo que acabou de passar. Se não, é o ano atual.
+    ano_origem = ano_atual - 1 if mes_atual <= 3 else ano_atual
+    ano_destino = ano_origem + 1
+
+    turmas_origem = Turma.objects.filter(ano_letivo=ano_origem).order_by('nome')
     serie_filtro = request.GET.get('serie_filtro') # Ex: '1', '2', '3'
     
     alunos_simulados = []
     
     # --- PASSO 1: SIMULAÇÃO (GET) ---
     if serie_filtro:
-        # Pega turmas da série escolhida
-        turmas_da_serie = turmas_2025.filter(nome__icontains=f"{serie_filtro}º") | turmas_2025.filter(nome__icontains=f"{serie_filtro} ANO")
+        # Pega turmas da série escolhida NO ANO DE ORIGEM
+        turmas_da_serie = turmas_origem.filter(nome__icontains=f"{serie_filtro}º") | turmas_origem.filter(nome__icontains=f"{serie_filtro} ANO")
         
         matriculas = Matricula.objects.filter(turma__in=turmas_da_serie, status='CURSANDO').select_related('aluno', 'turma').order_by('aluno__nome_completo')
         
@@ -3384,7 +3402,7 @@ def gerenciar_virada_ano(request):
                     status_decidido = request.POST.get(f'status_{mat_id}')
                     mat = Matricula.objects.get(id=mat_id)
                     
-                    # 1. Atualiza o histórico de 2025
+                    # 1. Atualiza o histórico do ano de origem
                     mat.status = status_decidido
                     mat.situacao = status_decidido # Campo legado
                     
@@ -3393,12 +3411,12 @@ def gerenciar_virada_ano(request):
                     mat.save()
                     
                     # --- FILTRO DE LIMPEZA (SANEAMENTO) ---
-                    # Se marcou que saiu, não cria matrícula em 2026.
+                    # Se marcou que saiu, não cria matrícula no ano novo.
                     if status_decidido in ['TRANSFERIDO', 'ABANDONO']:
                         count_saida += 1
                         continue 
                     
-                    # 2. Lógica de Migração para 2026 (Quem ficou)
+                    # 2. Lógica de Migração (Quem ficou)
                     nome_turma_atual = mat.turma.nome.upper()
                     
                     # 3º Ano Aprovado -> CONCLUIDO (Vira estatística)
@@ -3419,11 +3437,11 @@ def gerenciar_virada_ano(request):
                     elif status_decidido == 'REPROVADO':
                         nova_turma_nome = nome_turma_atual # Retenção
                         
-                    # 3. Cria a nova matrícula em 2026
+                    # 3. Cria a nova matrícula no ANO DE DESTINO
                     if nova_turma_nome:
                         nova_turma_obj, _ = Turma.objects.get_or_create(
                             nome=nova_turma_nome, 
-                            ano_letivo=2026
+                            ano_letivo=ano_destino
                         )
                         # Evita duplicidade
                         if not Matricula.objects.filter(aluno=mat.aluno, turma=nova_turma_obj).exists():
@@ -3434,15 +3452,18 @@ def gerenciar_virada_ano(request):
                             )
                             count_migrados += 1
                             
-                messages.success(request, f"Sucesso! {count_migrados} renovados para 2026, {count_formados} formados e {count_saida} desligados (Transferência/Abandono).")
+                messages.success(request, f"Sucesso! {count_migrados} renovados para {ano_destino}, {count_formados} formados e {count_saida} desligados.")
                 return redirect('gerenciar_virada_ano')
                 
         except Exception as e:
             messages.error(request, f"Erro ao processar: {e}")
 
+    # Passei o ano de origem e destino para a tela, caso queira exibir para o usuário!
     return render(request, 'core/virada_ano.html', {
         'serie_filtro': serie_filtro,
-        'alunos': alunos_simulados
+        'alunos': alunos_simulados,
+        'ano_origem': ano_origem,
+        'ano_destino': ano_destino
     })
 
 @user_passes_test(is_staff_check)
@@ -3475,7 +3496,7 @@ def cadastrar_professor(request):
                 contador += 1
                 
             # --- MÁGICA 2: Criar o Usuário com Senha Padrão ---
-            senha_padrao = "Sami@2026"
+            senha_padrao = f"Sami@{ano_atual}"
             user = User.objects.create_user(
                 username=username,
                 email=email,

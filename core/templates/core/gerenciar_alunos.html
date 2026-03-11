@@ -152,11 +152,25 @@
             <nav>
                 <ul class="pagination justify-content-center mb-0">
                     {% if matriculas.has_previous %}
-                        <li class="page-item"><a class="page-link border-0 text-secondary" href="?page={{ matriculas.previous_page_number }}&busca={{ busca_atual }}&ano={{ ano_atual }}">&laquo; Anterior</a></li>
+                        <li class="page-item">
+                            <a class="page-link border-0 text-secondary" 
+                               href="?page={{ matriculas.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                               &laquo; Anterior
+                            </a>
+                        </li>
                     {% endif %}
-                    <li class="page-item disabled"><span class="page-link border-0 text-dark fw-bold">Pág {{ matriculas.number }}</span></li>
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 text-dark fw-bold">Pág {{ matriculas.number }} de {{ matriculas.paginator.num_pages }}</span>
+                    </li>
+                    
                     {% if matriculas.has_next %}
-                        <li class="page-item"><a class="page-link border-0 text-primary fw-bold" href="?page={{ matriculas.next_page_number }}&busca={{ busca_atual }}&ano={{ ano_atual }}">Próxima &raquo;</a></li>
+                        <li class="page-item">
+                            <a class="page-link border-0 text-primary fw-bold" 
+                               href="?page={{ matriculas.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                               Próxima &raquo;
+                            </a>
+                        </li>
                     {% endif %}
                 </ul>
             </nav>

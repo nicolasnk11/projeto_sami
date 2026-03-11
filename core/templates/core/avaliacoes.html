@@ -277,7 +277,7 @@
                         <label class="form-label fw-bold small text-muted">SELECIONE A TURMA</label>
                         <select name="turma_id" class="form-select">
                             <option value="">--- Selecione ---</option>
-                            {% for t in turmas %}
+                            {% for t in turmas_ativas %}
                                 <option value="{{ t.id }}">{{ t.nome }}</option>
                             {% endfor %}
                         </select>
@@ -296,7 +296,7 @@
                         <label class="form-label fw-bold small text-muted">1. FILTRE A TURMA</label>
                         <select id="filtroTurmaAluno" class="form-select mb-2" onchange="carregarAlunos(this.value)">
                             <option value="">-- Selecione a Turma do Aluno --</option>
-                            {% for t in turmas %}
+                            {% for t in turmas_ativas %}
                                 <option value="{{ t.id }}">{{ t.nome }}</option>
                             {% endfor %}
                         </select>
