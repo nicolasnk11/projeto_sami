@@ -45,28 +45,28 @@ class OMRScanner:
         M = cv2.getPerspectiveTransform(rect, dst)
         return cv2.warpPerspective(image, M, (maxWidth, maxHeight))
 
-    def processar_cartao(self, image_path, qtd_questoes=30, alternativas=5, threshold=0.45):
-        print(f"🚀 OMR PRODUCTION SCALED - {image_path}")
+    def processar_cartao(self, image_path, qtd_questoes=30, alternativas=5):
+        print(f"🚀 OMR DEFINITIVO - {image_path}")
         
         image = cv2.imread(image_path)
         if image is None: return {"sucesso": False, "erro": "Imagem inválida"}
 
-        # 1. QR Code
+        # 1. QR Code (Mantém a lógica robusta do SAMI: A39-M559)
         dados_qr = None
         try:
             decodes = decode(image)
             if decodes:
                 dados_qr = decodes[0].data.decode("utf-8")
-        except Exception:
+        except Exception as e:
             pass
 
-        # 2. Resize Controlado e Fator de Escala Dinâmico
+        # 2. Resize Controlado
         h, w = image.shape[:2]
         target_h = 1200
-        scale_factor = target_h / float(h)
-        image = cv2.resize(image, (int(w * scale_factor), target_h))
+        scale = target_h / float(h)
+        image = cv2.resize(image, (int(w * scale), target_h))
 
-        # 3. CLAHE (Correção de Iluminação)
+        # 3. CLAHE + Encontrar a Folha
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         gray = clahe.apply(gray)
@@ -76,18 +76,14 @@ class OMRScanner:
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         edges = cv2.dilate(edges, kernel, iterations=1)
 
-        # Fix de Compatibilidade OpenCV 3 vs 4
-        cnts_info = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cnts = cnts_info[0] if len(cnts_info) == 2 else cnts_info[1]
-        
+        cnts = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         docCnt = None
         if len(cnts) > 0:
             cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
             for c in cnts:
                 peri = cv2.arcLength(c, True)
                 approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-                # Área de detecção da folha baseada na escala
-                if len(approx) == 4 and cv2.contourArea(c) > (60000 * scale_factor):
+                if len(approx) == 4 and cv2.contourArea(c) > 60000:
                     docCnt = approx
                     break
 
@@ -99,31 +95,25 @@ class OMRScanner:
 
         self._salvar_debug("01_warped.jpg", warped)
 
-        # 4. Adaptive Threshold
+        # 4. Adaptive Threshold (O Fim das Sombras)
         thresh = cv2.adaptiveThreshold(warped_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 4)
         self._salvar_debug("02_thresh.jpg", thresh)
 
-        # 5. Encontrar Bolinhas com Filtros Escalonados
-        cnts_info = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cnts = cnts_info[0] if len(cnts_info) == 2 else cnts_info[1]
-        
+        # 5. Encontrar Bolinhas (Geometria Estrita anti-números e letras)
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         todas_bolinhas = []
         img_bolinhas = warped.copy()
-
-        # Tamanhos baseados no Scale Factor
-        min_size = int(18 * scale_factor)
-        max_size = int(50 * scale_factor)
 
         for c in cnts:
             x, y, w_box, h_box = cv2.boundingRect(c)
             ar = w_box / float(h_box)
             area = cv2.contourArea(c)
             
-            # Filtro Dinâmico
-            if min_size <= w_box <= max_size and min_size <= h_box <= max_size and 0.75 <= ar <= 1.25:
+            # Filtro de bolinha
+            if 15 <= w_box <= 45 and 15 <= h_box <= 45 and 0.75 <= ar <= 1.25:
                 extent = area / float(w_box * h_box)
-                # Adicionamos o scale_factor no y do cabeçalho!
-                if 0.55 <= extent <= 0.95 and y > int(150 * scale_factor): 
+                # O Extent bloqueia letras. O "y > 150" bloqueia o cabeçalho.
+                if 0.55 <= extent <= 0.95 and y > 150:
                     todas_bolinhas.append(c)
                     cv2.rectangle(img_bolinhas, (x, y), (x+w_box, y+h_box), (255, 0, 0), 2)
 
@@ -132,44 +122,41 @@ class OMRScanner:
         if not todas_bolinhas:
             return {"sucesso": False, "erro": "Nenhuma marcação detectável.", "qr_code": dados_qr}
 
-        # 6. Dividir Colunas com Gap Escalonado
+        # 6. Dividir Colunas (O Algoritmo "GAP" da Perplexity)
         coords_x = [cv2.boundingRect(c)[0] for c in todas_bolinhas]
         coords_x_sorted = sorted(coords_x)
+        # Calcula a distância (gap) entre as bolinhas
         gaps = [coords_x_sorted[i+1] - coords_x_sorted[i] for i in range(len(coords_x_sorted)-1)]
         
         colunas = []
-        gap_limit = 60 * scale_factor # Gap dinâmico
-        
-        if gaps and max(gaps) > gap_limit:
+        if gaps and max(gaps) > 50: # Se houver um buraco maior que 50px, divide em 2 colunas!
             gap_idx = np.argmax(gaps)
             split_val = coords_x_sorted[gap_idx] + (max(gaps) / 2)
             
             col_esq = [c for c in todas_bolinhas if cv2.boundingRect(c)[0] < split_val]
             col_dir = [c for c in todas_bolinhas if cv2.boundingRect(c)[0] > split_val]
             
-            colunas = [col_esq, col_dir] if len(col_dir) > 3 else [todas_bolinhas]
+            colunas = [col_esq, col_dir] if col_dir else [col_esq]
         else:
             colunas = [todas_bolinhas]
 
-        # 7. Leitura Final com Erosão
+        # 7. Leitura com a EROSÃO DE MÁSCARA (A Mágica Anti-NULA)
         respostas_lidas = {}
         img_resultados = warped.copy()
         prox_num = 1
 
         for col in colunas:
             if not col: continue
+            # Ordena de cima para baixo
             col = sorted(col, key=lambda c: cv2.boundingRect(c)[1])
             
             linhas = []
             linha_atual = [col[0]]
-            # Tolerância de alinhamento escalonada
-            y_tolerance = 25 * scale_factor 
-            
             for i in range(1, len(col)):
-                if abs(cv2.boundingRect(col[i])[1] - cv2.boundingRect(linha_atual[-1])[1]) < y_tolerance:
+                if abs(cv2.boundingRect(col[i])[1] - cv2.boundingRect(linha_atual[-1])[1]) < 20:
                     linha_atual.append(col[i])
                 else:
-                    if len(linha_atual) >= 3: 
+                    if len(linha_atual) >= 3: # Salva linha e ordena da esq->dir (A, B, C, D, E)
                         linhas.append(sorted(linha_atual, key=lambda c: cv2.boundingRect(c)[0]))
                     linha_atual = [col[i]]
             if len(linha_atual) >= 3:
@@ -180,25 +167,29 @@ class OMRScanner:
                 preenchimentos = []
 
                 for j, c in enumerate(l_sort):
+                    # 1. Cria a máscara cobrindo a bolinha inteira
                     mask = np.zeros(thresh.shape, dtype="uint8")
                     cv2.drawContours(mask, [c], -1, 255, -1)
                     
+                    # 2. O SEGREDO: Corrói as beiradas da máscara! (Exclui a linha grossa do gabarito)
                     kernel_erode = np.ones((4,4), np.uint8)
                     mask = cv2.erode(mask, kernel_erode, iterations=1)
                     
+                    # 3. Lê apenas os pixels que sobraram no miolo absoluto
                     miolo = cv2.bitwise_and(thresh, thresh, mask=mask)
-                    # No THRESH_BINARY_INV a tinta fica branca (255). countNonZero conta brancos.
-                    pixels_tinta = cv2.countNonZero(miolo) 
+                    pixels_brancos = cv2.countNonZero(miolo)
                     area_mascara = cv2.countNonZero(mask)
                     
-                    pct = pixels_tinta / float(area_mascara) if area_mascara > 0 else 0
+                    pct = pixels_brancos / float(area_mascara) if area_mascara > 0 else 0
                     preenchimentos.append((pct, j))
 
+                # Ordena as bolinhas da mais marcada para a menos marcada
                 preenchimentos.sort(reverse=True, key=lambda x: x[0])
                 
-                if preenchimentos[0][0] > threshold:
-                    # Dupla marcação
-                    if len(preenchimentos) > 1 and preenchimentos[1][0] > threshold:
+                # Se o miolo tiver mais de 45% pintado, é resposta!
+                if preenchimentos[0][0] > 0.45:
+                    # Verifica Rasura / Dupla marcação
+                    if len(preenchimentos) > 1 and preenchimentos[1][0] > 0.45:
                         respostas_lidas[prox_num] = "NULA"
                     else:
                         idx = preenchimentos[0][1]
