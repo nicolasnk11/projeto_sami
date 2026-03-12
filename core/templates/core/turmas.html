@@ -7,27 +7,27 @@
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div class="d-flex align-items-center gap-3">
-            <a href="javascript:history.back()" class="btn btn-light rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center transition-hover" style="width: 45px; height: 45px;" data-bs-toggle="tooltip" data-bs-placement="right" title="Voltar à tela anterior">
-                <i class="bi bi-arrow-left fs-5 text-sami-dark"></i>
+            <a href="javascript:history.back()" class="btn btn-light border border-secondary border-opacity-25 rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center transition-hover" style="width: 45px; height: 45px;" data-bs-toggle="tooltip" data-bs-placement="right" title="Voltar à tela anterior">
+                <i class="bi bi-arrow-left fs-5 text-dark"></i>
             </a>
             <div>
-                <h4 class="fw-bold text-sami-dark mb-0"><i class="bi bi-gear-fill text-sami-gold me-2"></i>Gerenciar Turmas</h4>
-                <p class="text-muted small mb-0">Renomeie, exclua ou organize as turmas por ano letivo.</p>
+                <h4 class="fw-bold text-dark mb-0"><i class="bi bi-gear-fill me-2" style="color: #0A2619;"></i>Gerenciar Turmas</h4>
+                <p class="text-secondary fw-medium small mb-0">Renomeie, exclua ou organize as turmas por ano letivo.</p>
             </div>
         </div>
         <div class="w-100 w-md-auto">
-            <button class="btn btn-sami-dark shadow-sm rounded-pill px-4 py-2 w-100 w-md-auto fw-bold transition-hover" data-bs-toggle="modal" data-bs-target="#modalNovaTurma" data-bs-toggle="tooltip" title="Criar uma nova turma no sistema">
-                <i class="bi bi-plus-lg me-2 text-sami-gold"></i> Nova Turma
+            <button class="btn btn-dark shadow-sm rounded-pill px-4 py-2 w-100 w-md-auto fw-bold transition-hover" data-bs-toggle="modal" data-bs-target="#modalNovaTurma" data-bs-toggle="tooltip" title="Criar uma nova turma no sistema" style="background-color: #0A2619;">
+                <i class="bi bi-plus-lg me-2" style="color: #D4AF37;"></i> Nova Turma
             </button>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 rounded-4 overflow-hidden border-top border-sami-green border-4">
+    <div class="card shadow-sm border border-secondary border-opacity-25 rounded-4 overflow-hidden border-top border-4" style="border-top-color: #0A2619 !important;">
         <div class="card-body p-0">
             <div class="table-responsive custom-scrollbar">
                 <table class="table table-hover align-middle mb-0 text-nowrap">
                     <thead class="bg-light">
-                        <tr class="text-muted text-uppercase small fw-bold">
+                        <tr class="text-dark text-uppercase small fw-bold border-bottom">
                             <th class="ps-4 py-3">Nome da Turma</th>
                             <th class="text-center">Ano Letivo</th> 
                             <th class="text-center">Qtd. Alunos</th>
@@ -42,51 +42,53 @@
                             
                             <td class="text-center">
                                 {% if t.ano_letivo|stringformat:"s" == ano_atual %}
-                                    <span class="badge bg-sami-green bg-opacity-10 text-sami-green border border-sami-green border-opacity-25 shadow-sm px-2 py-1" data-bs-toggle="tooltip" title="Turma do ano vigente">
-                                        <i class="bi bi-calendar-check me-1"></i> {{ t.ano_letivo }} (Atual)
+                                    <span class="badge bg-light text-dark border border-success border-opacity-50 shadow-sm px-2 py-1" data-bs-toggle="tooltip" title="Turma do ano vigente">
+                                        <i class="bi bi-calendar-check-fill me-1 text-success"></i> {{ t.ano_letivo }} (Atual)
                                     </span>
                                 {% else %}
-                                    <span class="badge bg-light text-muted border px-2 py-1" data-bs-toggle="tooltip" title="Turma de arquivo histórico">
-                                        <i class="bi bi-archive me-1"></i> {{ t.ano_letivo }}
+                                    <span class="badge bg-light text-secondary border px-2 py-1" data-bs-toggle="tooltip" title="Turma de arquivo histórico">
+                                        <i class="bi bi-archive-fill me-1"></i> {{ t.ano_letivo }}
                                     </span>
                                 {% endif %}
                             </td>
 
                             <td class="text-center">
-                                <span class="badge rounded-pill {% if t.qtd_alunos > 0 %}bg-sami-dark{% else %}bg-secondary{% endif %} shadow-sm">
+                                <span class="badge rounded-pill {% if t.qtd_alunos > 0 %}bg-dark text-white{% else %}bg-secondary text-white{% endif %} shadow-sm">
                                     {{ t.qtd_alunos }} matriculados
                                 </span>
                             </td>
                             
                             <td class="text-center">
                                 {% if t.qtd_alunos == 0 %}
-                                    <span class="badge bg-light text-muted border">Vazia</span>
+                                    <span class="badge bg-light text-secondary border">Vazia</span>
                                 {% else %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Ativa</span>
+                                    <span class="badge bg-success text-white shadow-sm px-2">Ativa</span>
                                 {% endif %}
                             </td>
                             
                             <td class="text-end pe-4">
-                                <button class="btn btn-sm btn-light border shadow-sm rounded-circle text-sami-gold transition-hover me-1" style="width: 35px; height: 35px;"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#modalEditar{{ t.id }}" 
-                                        title="Renomear ou mudar ano letivo">
-                                    <i class="bi bi-pencil-fill"></i>
-                                </button>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-sm btn-light border border-secondary border-opacity-50 shadow-sm rounded-circle text-dark transition-hover" style="width: 35px; height: 35px;"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalEditar{{ t.id }}" 
+                                            title="Renomear ou mudar ano letivo" data-bs-toggle="tooltip">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
 
-                                <button class="btn btn-sm btn-light border shadow-sm rounded-circle text-danger transition-hover" style="width: 35px; height: 35px;"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#modalExcluir{{ t.id }}" 
-                                        title="Apagar turma">
-                                    <i class="bi bi-trash-fill"></i>
-                                </button>
+                                    <button class="btn btn-sm btn-light border border-danger border-opacity-50 shadow-sm rounded-circle text-danger transition-hover" style="width: 35px; height: 35px;"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalExcluir{{ t.id }}" 
+                                            title="Apagar turma" data-bs-toggle="tooltip">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
+                            <td colspan="5" class="text-center py-5 text-secondary">
                                 <i class="bi bi-inbox display-4 d-block mb-3 opacity-50"></i>
-                                Nenhuma turma cadastrada no sistema.
+                                <h6 class="fw-bold text-dark">Nenhuma turma cadastrada no sistema.</h6>
                             </td>
                         </tr>
                         {% endfor %}
@@ -102,26 +104,26 @@
         <form method="post" class="modal-content shadow-lg border-0 rounded-4">
             {% csrf_token %}
             <input type="hidden" name="acao" value="criar">
-            <div class="modal-header bg-sami-dark text-white border-0 rounded-top-4">
-                <h5 class="modal-title fw-bold text-sami-gold"><i class="bi bi-plus-circle me-2"></i>Nova Turma</h5>
+            <div class="modal-header bg-dark text-white border-0 rounded-top-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2" style="color: #D4AF37;"></i>Nova Turma</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body bg-light p-4">
+            <div class="modal-body bg-white p-4">
                 <div class="mb-4">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Nome da Turma *</label>
-                    <input type="text" name="nome_turma" class="form-control form-control-lg border-0 shadow-sm" placeholder="Ex: 3º Ano D" required autofocus>
+                    <label class="form-label fw-bold small text-secondary text-uppercase">Nome da Turma *</label>
+                    <input type="text" name="nome_turma" class="form-control form-control-lg border-secondary border-opacity-50 shadow-sm text-dark fw-medium" placeholder="Ex: 3º Ano D" required autofocus>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Ano Letivo *</label>
-                    <select name="ano_letivo" class="form-select form-select-lg border-0 shadow-sm fw-bold text-sami-dark" data-bs-toggle="tooltip" title="Em qual ano esta turma atuará?">
+                    <label class="form-label fw-bold small text-secondary text-uppercase">Ano Letivo *</label>
+                    <select name="ano_letivo" class="form-select form-select-lg border-secondary border-opacity-50 shadow-sm fw-bold text-dark" data-bs-toggle="tooltip" title="Em qual ano esta turma atuará?">
                         <option value="{% now 'Y' %}" selected>{% now "Y" %} (Atual)</option>
                         <option value="{% now 'Y' as current_year %}{{ current_year|add:'-1' }}">{% now "Y" as current_year %}{{ current_year|add:"-1" }} (Passado)</option>
                     </select>
                 </div>
             </div>
-            <div class="modal-footer bg-white border-0 rounded-bottom-4">
-                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-sami-green rounded-pill px-5 fw-bold shadow-sm">Salvar Turma</button>
+            <div class="modal-footer bg-light border-0 rounded-bottom-4">
+                <button type="button" class="btn btn-light border border-secondary border-opacity-50 rounded-pill px-4 fw-bold text-dark" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-dark rounded-pill px-5 fw-bold shadow-sm" style="background-color: #0A2619;">Salvar Turma</button>
             </div>
         </form>
     </div>
@@ -136,23 +138,23 @@
             <input type="hidden" name="acao" value="editar">
             <input type="hidden" name="id_turma" value="{{ t.id }}">
             
-            <div class="modal-header bg-sami-gold bg-opacity-25 border-0 rounded-top-4">
-                <h5 class="modal-title fw-bold text-sami-dark"><i class="bi bi-pencil-square me-2"></i>Editar Turma</h5>
+            <div class="modal-header bg-light border-bottom border-secondary border-opacity-25 rounded-top-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-pencil-square me-2" style="color: #D4AF37;"></i>Editar Turma</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body bg-light p-4">
+            <div class="modal-body bg-white p-4">
                 <div class="mb-4">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Nome Atual</label>
-                    <input type="text" name="novo_nome" class="form-control form-control-lg border-0 shadow-sm fw-bold" value="{{ t.nome }}" required>
+                    <label class="form-label fw-bold small text-secondary text-uppercase">Nome Atual</label>
+                    <input type="text" name="novo_nome" class="form-control form-control-lg border-secondary border-opacity-50 shadow-sm fw-bold text-dark" value="{{ t.nome }}" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Ano Letivo</label>
-                    <input type="number" name="ano_letivo" class="form-control form-control-lg border-0 shadow-sm" value="{{ t.ano_letivo }}" required>
+                    <label class="form-label fw-bold small text-secondary text-uppercase">Ano Letivo</label>
+                    <input type="number" name="ano_letivo" class="form-control form-control-lg border-secondary border-opacity-50 shadow-sm text-dark fw-bold" value="{{ t.ano_letivo }}" required>
                 </div>
             </div>
-            <div class="modal-footer bg-white border-0 rounded-bottom-4">
-                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-sami-gold rounded-pill px-5 fw-bold shadow-sm">Atualizar</button>
+            <div class="modal-footer bg-light border-0 rounded-bottom-4">
+                <button type="button" class="btn btn-light border border-secondary border-opacity-50 rounded-pill px-4 fw-bold text-dark" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-dark rounded-pill px-5 fw-bold shadow-sm">Atualizar</button>
             </div>
         </form>
     </div>
@@ -165,29 +167,29 @@
             <input type="hidden" name="acao" value="excluir">
             <input type="hidden" name="id_turma" value="{{ t.id }}">
             
-            <div class="modal-header bg-danger text-white border-0 rounded-top-4">
-                <h5 class="modal-title fw-bold"><i class="bi bi-trash-fill me-2"></i>Excluir Turma?</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body bg-white p-4 text-center">
-                <i class="bi bi-exclamation-octagon text-danger pulse-warning d-block mb-3" style="font-size: 4rem;"></i>
-                <p class="fs-5 mb-3 text-dark">Você está prestes a excluir:<br><strong class="fs-4">{{ t.nome }} ({{ t.ano_letivo }})</strong></p>
+            <div class="modal-body bg-white p-4 text-center rounded-4">
+                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3 pulse-warning">
+                    <i class="bi bi-trash-fill text-danger fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-2 text-dark">Excluir Turma?</h4>
+                <p class="fs-6 mb-4 text-secondary">Você está prestes a excluir definitivamente a turma <strong class="text-dark">{{ t.nome }} ({{ t.ano_letivo }})</strong>.</p>
                 
                 {% if t.qtd_alunos > 0 %}
                     <div class="alert alert-danger border-0 bg-danger bg-opacity-10 d-flex align-items-center justify-content-center flex-column rounded-3 p-3">
                         <strong><i class="bi bi-shield-fill-x me-2"></i>ATENÇÃO MÁXIMA!</strong>
-                        <span class="mt-2 text-danger fw-medium">Existem <strong>{{ t.qtd_alunos }} matrículas</strong> ativas nesta turma. Ao excluir, esses alunos perderão o vínculo e ficarão "soltos" no sistema!</span>
+                        <span class="mt-2 text-danger fw-medium small">Existem <strong>{{ t.qtd_alunos }} matrículas</strong> ativas nesta turma. Ao excluir, esses alunos perderão o vínculo e ficarão soltos no sistema.</span>
                     </div>
                 {% else %}
                     <div class="alert alert-success border-0 bg-success bg-opacity-10 d-flex align-items-center justify-content-center rounded-3 p-3">
                         <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
-                        <span class="text-success fw-bold">Turma vazia. Exclusão segura.</span>
+                        <span class="text-success fw-bold small">Turma vazia. Exclusão segura.</span>
                     </div>
                 {% endif %}
-            </div>
-            <div class="modal-footer bg-light border-0 rounded-bottom-4 justify-content-center">
-                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Sim, Excluir Turma</button>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-danger fw-bold rounded-pill shadow-sm">Sim, Excluir Definitivamente</button>
+                    <button type="button" class="btn btn-light border border-secondary border-opacity-50 fw-bold rounded-pill text-dark" data-bs-dismiss="modal">Cancelar</button>
+                </div>
             </div>
         </form>
     </div>
@@ -195,46 +197,20 @@
 {% endfor %}
 
 <style>
-    /* Variáveis SAMI */
-    :root {
-        --sami-dark: #0A2619;
-        --sami-green: #11422b;
-        --sami-gold: #D4AF37;
-        --sami-gold-hover: #b8972e;
-    }
-    .text-sami-dark { color: var(--sami-dark) !important; }
-    .text-sami-green { color: var(--sami-green) !important; }
-    .text-sami-gold { color: var(--sami-gold) !important; }
-    
-    .bg-sami-dark { background-color: var(--sami-dark) !important; }
-    .bg-sami-green { background-color: var(--sami-green) !important; }
-    
-    .border-sami-green { border-color: var(--sami-green) !important; }
-
-    /* Botões Customizados */
-    .btn-sami-dark {
-        background-color: var(--sami-dark); color: white; border: none; transition: all 0.2s;
-    }
-    .btn-sami-dark:hover { background-color: var(--sami-green); color: var(--sami-gold); transform: translateY(-2px); }
-
-    .btn-sami-green {
-        background-color: var(--sami-green); color: white; border: none; transition: all 0.2s;
-    }
-    .btn-sami-green:hover { background-color: var(--sami-dark); color: var(--sami-gold); transform: translateY(-2px); }
-
-    .btn-sami-gold {
-        background-color: var(--sami-gold); color: var(--sami-dark); border: none; transition: all 0.2s;
-    }
-    .btn-sami-gold:hover { background-color: var(--sami-gold-hover); transform: translateY(-2px); }
-
-    /* Efeitos e Ajustes */
+    /* Efeitos e Ajustes de Alto Contraste */
     .transition-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    .transition-hover:hover { transform: translateY(-3px); }
+    
+    @media (min-width: 768px) {
+        .transition-hover:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        }
+    }
     
     .transition-hover-row:hover { background-color: #f8f9fa; }
 
     .custom-scrollbar::-webkit-scrollbar { height: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #dee2e6; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
 
     @keyframes pulse-danger {
         0% { transform: scale(1); opacity: 1; }
