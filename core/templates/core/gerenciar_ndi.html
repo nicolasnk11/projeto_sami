@@ -33,7 +33,7 @@
                         <span class="input-group-text bg-light border-0"><i class="bi bi-people-fill text-primary"></i></span>
                         <select name="turma" class="form-select border-0 bg-light fw-bold py-2" onchange="this.form.submit()">
                             <option value="">-- Selecione --</option>
-                            {% for t in turmas %}
+                            {% for t in turmas_ativas %}
                             <option value="{{ t.id }}" {% if turma_selecionada.id == t.id %}selected{% endif %}>{{ t.nome }}</option>
                             {% endfor %}
                         </select>
