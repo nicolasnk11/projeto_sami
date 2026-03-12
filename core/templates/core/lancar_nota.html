@@ -106,7 +106,7 @@
 
                     <div class="alert alert-info border-0 shadow-sm d-flex align-items-center py-2 mb-4">
                         <i class="bi bi-info-circle-fill me-2"></i>
-                        <small><strong>Dica:</strong> Verde = Correto | Vermelho = Errado. Digite ou use a câmera.</small>
+                        <small><strong>Dica:</strong> Verde = Correto | Vermelho = Errado | Amarelo = Nula/Rasura.</small>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 justify-content-start" id="gradeQuestoes">
@@ -145,33 +145,73 @@
     {% endif %}
 </div>
 
+<div class="modal fade" id="modalAvisoSaida" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 bg-warning bg-opacity-10 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pt-0 pb-4 px-4">
+                <i class="bi bi-exclamation-triangle-fill text-warning mb-3 d-block" style="font-size: 4rem;"></i>
+                <h4 class="fw-bold text-dark">Atenção! Notas não salvas</h4>
+                <p class="text-muted fs-6 mb-0">Você alterou as notas deste aluno, mas <strong>esqueceu de clicar em Salvar</strong>.</p>
+                <p class="text-muted fs-6 mt-1">Se você trocar de aluno agora, tudo o que digitou será perdido.</p>
+            </div>
+            <div class="modal-footer bg-light border-0 justify-content-center rounded-bottom-4 py-3">
+                <button type="button" class="btn btn-secondary px-4 fw-bold rounded-pill" data-bs-dismiss="modal">Voltar e Salvar</button>
+                <button type="button" class="btn btn-danger px-4 fw-bold rounded-pill" id="btnConfirmarSaida">Sair sem salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const AVALIACAO_ID = "{{ avaliacao_selecionada.id|default:'' }}";
     let ALUNO_ATUAL_ID = null;
+    let isDirty = false; // Espião de alterações
+    let proximoAlunoPendente = null; // Guarda em quem o professor clicou
 
-    // --- FUNÇÃO VISUAL: VALIDA COR (VERDE/VERMELHO) ---
+    // --- FUNÇÃO VISUAL: VALIDA COR (VERDE/VERMELHO/AMARELO) ---
     function validarCor(input) {
         const valor = input.value.trim().toUpperCase();
         const gabarito = input.dataset.gabarito.trim().toUpperCase();
 
         // Reseta classes
-        input.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-light');
-        input.style.backgroundColor = ''; // Remove cor inline se houver
+        input.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-warning-subtle', 'text-warning', 'bg-light');
+        input.style.backgroundColor = '';
 
         if (valor === "") {
-            input.classList.add('bg-light'); // Volta ao padrão
+            input.classList.add('bg-light');
             return;
         }
 
-        if (valor === gabarito) {
-            input.classList.add('bg-success-subtle', 'text-success'); // Verde Suave
+        if (valor === '*') {
+            // NULA / RASURA (Amarelo)
+            input.classList.add('bg-warning-subtle', 'text-warning');
+        } else if (valor === gabarito) {
+            // ACERTO (Verde)
+            input.classList.add('bg-success-subtle', 'text-success'); 
         } else {
-            input.classList.add('bg-danger-subtle', 'text-danger'); // Vermelho Suave
+            // ERRO (Vermelho)
+            input.classList.add('bg-danger-subtle', 'text-danger'); 
         }
     }
 
     // --- 1. SELEÇÃO DE ALUNO ---
-    function selecionarAluno(elemento, id, nome, dadosScaneados = null) {
+    function selecionarAluno(elemento, id, nome, dadosScaneados = null, ignorarAviso = false) {
+        
+        // ALERTA DE PERDA DE DADOS (Com Modal Bonito)
+        if (isDirty && ALUNO_ATUAL_ID !== id && ALUNO_ATUAL_ID !== null && !ignorarAviso) {
+            // Guarda os dados do aluno que ele tentou clicar
+            proximoAlunoPendente = { elemento, id, nome, dadosScaneados };
+            
+            // Dispara o Modal do Bootstrap
+            const modalAviso = new bootstrap.Modal(document.getElementById('modalAvisoSaida'));
+            modalAviso.show();
+            
+            return false; // Interrompe a troca de aluno
+        }
+
         // Visual Seleção
         document.querySelectorAll('.aluno-item').forEach(el => el.classList.remove('active', 'bg-primary-subtle'));
         if (!elemento) elemento = document.querySelector(`.aluno-item[data-id="${id}"]`);
@@ -181,28 +221,34 @@
         }
         
         ALUNO_ATUAL_ID = id;
+        isDirty = false; // Resetamos o espião para o novo aluno
         document.getElementById('nomeAlunoDisplay').innerText = nome;
         document.getElementById('cardLancamento').style.opacity = '1';
         document.getElementById('cardLancamento').style.pointerEvents = 'auto';
         
         limparCampos();
-        mostrarLoader(true, "Carregando aluno...");
 
+        // SE VEIO DA CÂMERA
+        if (dadosScaneados) {
+            preencherCampos({ respostas: dadosScaneados, ausente: false });
+            mostrarToast("Scanner", "Leitura aplicada! Verifique as respostas e clique em Salvar.", "success");
+            isDirty = true; 
+            return;
+        }
+
+        // SE FOI CLIQUE MANUAL
+        mostrarLoader(true, "Carregando aluno...");
         fetch(`/api/lancar-notas-ajax/?aluno_id=${id}&avaliacao_id=${AVALIACAO_ID}`)
             .then(res => res.json())
             .then(data => {
                 mostrarLoader(false);
-                if (dadosScaneados) {
-                    preencherCampos({ respostas: dadosScaneados, ausente: false });
-                    mostrarToast("Scanner", "Respostas aplicadas!", "success");
-                } 
-                else if(data.sucesso && data.dados) {
+                if(data.sucesso && data.dados) {
                     preencherCampos(data.dados);
                 }
             })
             .catch(err => {
                 mostrarLoader(false);
-                mostrarToast("Erro", "Erro ao carregar dados.", "danger");
+                mostrarToast("Erro", "Falha de comunicação com o servidor.", "danger");
             });
     }
 
@@ -213,7 +259,7 @@
             formData.append('foto', input.files[0]);
             formData.append('avaliacao_id', AVALIACAO_ID);
 
-            mostrarLoader(true, "Lendo imagem...");
+            mostrarLoader(true, "Analisando cartão com IA...");
 
             fetch('/api/ler-cartao/', { method: 'POST', body: formData })
             .then(res => res.json())
@@ -229,10 +275,14 @@
                         mostrarToast("Aviso", "Aluno não pertence a esta turma.", "warning");
                     }
                 } else {
-                    mostrarToast("Aviso", "Aluno não identificado no cartão.", "warning");
+                    mostrarToast("Aviso", "Não foi possível ler o QR Code do aluno.", "warning");
                 }
             })
-            .catch(() => { mostrarLoader(false); mostrarToast("Erro", "Falha no scanner.", "danger"); });
+            .catch(() => { 
+                mostrarLoader(false); 
+                mostrarToast("Erro Crítico", "Falha no scanner.", "danger"); 
+            });
+            
             input.value = '';
         }
     }
@@ -246,8 +296,13 @@
             for (const [num, letra] of Object.entries(dados.respostas)) {
                 const input = document.querySelector(`.input-resposta[data-numero="${num}"]`);
                 if(input) {
-                    input.value = (letra === 'X') ? '' : letra;
-                    validarCor(input); // <--- APLICA A COR AQUI
+                    // Tratamento para Dupla Marcação / Nula
+                    if (letra === 'NULA' || letra === 'MULTIPLA') {
+                        input.value = '*';
+                    } else {
+                        input.value = (letra === 'X') ? '' : letra;
+                    }
+                    validarCor(input);
                 }
             }
         }
@@ -263,7 +318,9 @@
 
         const respostas = {};
         document.querySelectorAll('.input-resposta').forEach(inp => {
-            if(inp.value.trim()) respostas[inp.dataset.numero] = inp.value.trim().toUpperCase();
+            if(inp.value.trim()) {
+                respostas[inp.dataset.numero] = (inp.value === '*') ? 'NULA' : inp.value.trim().toUpperCase();
+            }
         });
 
         const payload = {
@@ -271,9 +328,14 @@
             respostas: respostas, ausente: document.getElementById('checkAusente').checked
         };
 
+        const csrfToken = '{{ csrf_token }}';
+
         fetch('/api/lancar-notas-ajax/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': csrfToken
+            },
             body: JSON.stringify(payload)
         })
         .then(res => res.json())
@@ -281,26 +343,31 @@
             btn.innerHTML = txt; btn.disabled = false;
             if (data.sucesso) {
                 mostrarToast("Salvo!", data.msg, "success");
+                isDirty = false; // Notas salvas! Desarma o espião.
                 const icon = document.querySelector(`#aluno-row-${ALUNO_ATUAL_ID} .status-icon`);
                 if(icon) icon.className = 'bi bi-check-circle-fill text-success fs-5 status-icon';
             } else {
                 mostrarToast("Erro", data.erro, "danger");
             }
         })
-        .catch(() => { btn.innerHTML = txt; btn.disabled = false; });
+        .catch(() => { 
+            btn.innerHTML = txt; btn.disabled = false; 
+            mostrarToast("Erro Fatal", "A conexão caiu. Tente novamente.", "danger");
+        });
     }
 
     // --- INTERFACE GERAL ---
     function limparCampos() {
         document.querySelectorAll('.input-resposta').forEach(i => {
             i.value = '';
-            validarCor(i); // Reseta cor
+            validarCor(i);
         });
         document.getElementById('checkAusente').checked = false;
         toggleAusencia();
     }
 
     function toggleAusencia() {
+        if (ALUNO_ATUAL_ID) isDirty = true; 
         const isAusente = document.getElementById('checkAusente').checked;
         document.querySelectorAll('.input-resposta').forEach(inp => {
             inp.disabled = isAusente;
@@ -335,8 +402,11 @@
         inputs.forEach(input => {
             // Evento: Digitar (Input)
             input.addEventListener('input', function() {
-                this.value = this.value.toUpperCase();
-                validarCor(this); // <--- VALIDA COR AO DIGITAR
+                isDirty = true; // Avisa que mexeu!
+                
+                // Restringe para letras válidas e o asterisco de anulação
+                this.value = this.value.replace(/[^ABCDEabcde\*]/g, '').toUpperCase();
+                validarCor(this);
 
                 // Pulo Automático
                 let idx = parseInt(this.dataset.index);
@@ -347,8 +417,10 @@
             input.addEventListener('paste', function(e) {
                 if(this.disabled) return;
                 e.preventDefault();
+                isDirty = true; // Avisa que mexeu!
+                
                 let text = (e.clipboardData || window.clipboardData).getData('text');
-                text = text.replace(/[\s\n\r]/g, '').toUpperCase();
+                text = text.replace(/[^ABCDEabcde\*]/g, '').toUpperCase(); // Filtra lixo
                 if(!text) return;
 
                 let startIdx = parseInt(this.dataset.index);
@@ -356,7 +428,7 @@
                     let targetIdx = startIdx + i;
                     if(targetIdx < inputs.length) {
                         inputs[targetIdx].value = text[i];
-                        validarCor(inputs[targetIdx]); // <--- VALIDA COR AO COLAR
+                        validarCor(inputs[targetIdx]);
                     }
                 }
                 document.querySelector('.btn-success').focus();
@@ -365,13 +437,48 @@
             input.addEventListener('focus', function() { this.select(); });
         });
 
-        // Filtro Busca
-        document.getElementById('buscaAluno').addEventListener('keyup', function() {
-            const termo = this.value.toLowerCase();
+        // ----------------------------------------------------
+        // CORREÇÃO DO FILTRO DE BUSCA
+        // ----------------------------------------------------
+        document.getElementById('buscaAluno').addEventListener('input', function() {
+            const termo = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
             document.querySelectorAll('.aluno-item').forEach(item => {
-                const nome = item.querySelector('.nome-aluno').innerText.toLowerCase();
-                item.style.display = nome.includes(termo) ? 'flex' : 'none';
+                const nome = item.querySelector('.nome-aluno').innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                
+                if (nome.includes(termo)) {
+                    item.classList.remove('d-none');
+                    item.classList.add('d-flex'); 
+                } else {
+                    item.classList.remove('d-flex');
+                    item.classList.add('d-none');
+                }
             });
+        });
+
+        // ----------------------------------------------------
+        // AÇÃO DO MODAL DE AVISO (Sair sem salvar)
+        // ----------------------------------------------------
+        document.getElementById('btnConfirmarSaida').addEventListener('click', function() {
+            // Esconde o modal
+            const modalEl = document.getElementById('modalAvisoSaida');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+            
+            isDirty = false; // Desarma o espião à força
+            
+            // Carrega o aluno que estava aguardando na fila
+            if (proximoAlunoPendente) {
+                selecionarAluno(
+                    proximoAlunoPendente.elemento, 
+                    proximoAlunoPendente.id, 
+                    proximoAlunoPendente.nome, 
+                    proximoAlunoPendente.dadosScaneados, 
+                    true // Força ignorar o aviso!
+                );
+            }
         });
     });
 </script>

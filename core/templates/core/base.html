@@ -15,12 +15,10 @@
         /* --- SISTEMA DE CORES DINÂMICO --- */
         :root {
             --sidebar-width: 280px;
-            /* Cores vindas do Banco ou Fallback */
-            --primary-bg: {{ escola.cor_primaria|default:"#0f172a" }}; 
-            --accent-color: {{ escola.cor_secundaria|default:"#3b82f6" }};
+            /* Cores vindas do Banco ou Fallback (Verde Escuro e Dourado) */
+            --primary-bg: {{ escola.cor_primaria|default:"#0A2619" }}; 
+            --accent-color: {{ escola.cor_secundaria|default:"#D4AF37" }};
             
-            /* Derivações Automáticas (Glow e Hover) */
-            --primary-glow: rgba(59, 130, 246, 0.4); 
             --sidebar-hover: rgba(255, 255, 255, 0.08);
             --bg-body: #f1f5f9; 
             --text-muted: #94a3b8;
@@ -33,47 +31,37 @@
             color: #334155;
         }
 
-        /* Faz com que toda tabela no celular ganhe um scroll lateral em vez de quebrar o layout */
+        /* Correção da Tabela Responsiva (Aplicar apenas se necessário) */
         .table-responsive {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-       }
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
 
-        
-        
-        /* Sidebar usando a cor primária da escola */
+        /* Sidebar */
         .sidebar {
             height: 100vh;
             width: var(--sidebar-width);
             position: fixed;
             top: 0; left: 0;
-            background-color: var(--primary-bg); /* Dinâmico */
+            background-color: var(--primary-bg);
             border-right: 1px solid rgba(255,255,255,0.05);
             display: flex;
             flex-direction: column;
             padding: 24px 16px;
-            z-index: 1000;
+            z-index: 1040;
             transition: transform 0.3s ease;
         }
 
-        /* Classes Utilitárias Dinâmicas */
-        .text-primary-dynamic { color: var(--accent-color) !important; }
-        .bg-primary-dynamic { background-color: var(--accent-color) !important; }
-
-        /* SCROLL INVISÍVEL (AJUSTADO) */
+        /* Scroll Invisível */
         .custom-scrollbar {
             overflow-y: auto; 
             overflow-x: hidden;
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none; /* IE/Edge */
         }
-        
-        .custom-scrollbar::-webkit-scrollbar { 
-            width: 0px; 
-            background: transparent; 
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 0px; background: transparent; }
         
         /* Logo Wrapper */
         .brand-wrapper {
@@ -90,13 +78,9 @@
             border: 1px solid rgba(255,255,255,0.1);
             flex-shrink: 0;
         }
+        .logo-img { max-height: 55px; width: auto; object-fit: contain; }
 
-        .logo-img {
-            max-height: 55px;
-            width: auto;
-            object-fit: contain;
-        }
-
+        /* Navegação Sidebar */
         .nav-label {
             color: var(--text-muted);
             font-size: 0.7rem;
@@ -107,7 +91,6 @@
             margin-bottom: 12px;
             padding-left: 12px;
         }
-        
         .nav-link {
             color: #cbd5e1;
             padding: 14px 16px;
@@ -119,16 +102,14 @@
             align-items: center;
             transition: all 0.2s;
             white-space: nowrap; 
-            text-decoration: none; /* Remove sublinhado padrão */
+            text-decoration: none; 
         }
-        
         .nav-link i {
             font-size: 1.2rem;
             margin-right: 14px;
             color: var(--text-muted);
             transition: color 0.2s;
         }
-        
         .nav-link:hover {
             background-color: var(--sidebar-hover);
             color: #fff;
@@ -136,20 +117,20 @@
         }
         .nav-link:hover i { color: #fff; }
         
-        /* Link Ativo usa a Cor de Destaque da Escola */
+        /* Link Ativo - Adaptação para Cores Claras (Dourado) */
         .nav-link.active {
             background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color) 100%);
-            color: #fff;
+            color: var(--primary-bg); /* Texto Escuro para contraste com fundo Dourado */
             box-shadow: 0 8px 20px -4px rgba(0,0,0,0.3);
-            font-weight: 600;
+            font-weight: 700;
         }
-        .nav-link.active i { color: #fff; }
+        .nav-link.active i { color: var(--primary-bg); }
 
         .content {
             margin-left: var(--sidebar-width);
             padding: 30px;
             min-height: 100vh;
-            width: calc(100% - var(--sidebar-width)); /* Garante que não estoure */
+            width: calc(100% - var(--sidebar-width)); 
             transition: margin-left 0.3s ease, width 0.3s ease;
         }
         
@@ -170,10 +151,9 @@
 
         .user-profile { display: flex; align-items: center; gap: 15px; }
         
-        /* Avatar usa a Cor de Destaque */
         .user-avatar {
             width: 42px; height: 42px;
-            background: linear-gradient(105deg, rgb(0, 88, 47) 0%, #0A2619 100%);
+            background: linear-gradient(105deg, var(--primary-bg) 0%, #111 100%);
             color: white; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-weight: 700; font-size: 1.1rem;
@@ -194,26 +174,46 @@
         }
         .btn-logout:hover { background-color: #ef4444; color: white; }
 
+        .cursor-pointer { cursor: pointer; }
+
         /* RESPONSIVIDADE (MOBILE) */
         @media (max-width: 768px) {
             .sidebar {
-                transform: translateX(-100%); /* Esconde sidebar */
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 10px 0 30px rgba(0,0,0,0.5);
             }
             .content {
                 margin-left: 0;
                 width: 100%;
                 padding: 15px;
             }
-            /* Se quiser mostrar sidebar no mobile, precisa de um botão toggle e JS */
+            /* Overlay quando o menu mobile está aberto */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1030;
+                backdrop-filter: blur(3px);
+            }
+            .sidebar-overlay.show { display: block; }
         }
     </style>
 </head>
 <body>
 
     {% if user.is_staff %}
-    <nav class="sidebar">
+    
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <nav class="sidebar" id="sidebar">
         
-        <div class="brand-wrapper">
+        <div class="brand-wrapper position-relative">
+            <button class="btn-close d-md-none position-absolute top-0 end-0 m-2" id="btnCloseSidebar" aria-label="Close"></button>
+
             {% if escola.logo %}
                 <img src="{{ escola.logo.url }}" alt="{{ escola.nome_escola }}" class="logo-img">
             {% else %}
@@ -310,9 +310,15 @@
         
         <header class="top-navbar">
             <div class="d-flex align-items-center">
-                <i class="bi bi-list fs-3 me-3 d-md-none text-dark cursor-pointer"></i> 
+                <i class="bi bi-list fs-2 me-3 d-md-none text-dark cursor-pointer" id="btnOpenSidebar" data-bs-toggle="tooltip" title="Abrir Menu"></i> 
                 
-                <h4 class="mb-0 fw-bold text-dark me-3" style="letter-spacing: -0.5px;">
+                {% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'area_professor' %}
+                <a href="javascript:history.back()" class="btn btn-light rounded-circle shadow-sm me-3 d-none d-md-flex align-items-center justify-content-center transition-hover" style="width: 40px; height: 40px;" data-bs-toggle="tooltip" title="Voltar à tela anterior">
+                    <i class="bi bi-arrow-left text-dark"></i>
+                </a>
+                {% endif %}
+
+                <h4 class="mb-0 fw-bold text-dark" style="letter-spacing: -0.5px;">
                     {% if request.resolver_match.url_name == 'dashboard' %} Visão Geral
                     {% elif 'aluno' in request.path %} Gestão de Alunos
                     {% elif 'avaliacao' in request.path %} Avaliações
@@ -330,17 +336,17 @@
                         {{ user.username|title }}
                     </div>
                     <div class="text-muted" style="font-size: 0.75rem;">
-                        {{ escola.nome_escola|default:"Usuário" }}
+                        {{ escola.nome_escola|default:"Usuário logado" }}
                     </div>
                 </div>
                 
-                <div class="user-avatar">
+                <div class="user-avatar" data-bs-toggle="tooltip" title="Sua Conta">
                     {{ user.username|slice:":1"|upper }}
                 </div>
 
                 <form action="{% url 'logout' %}" method="post" class="ms-2">
                     {% csrf_token %}
-                    <button type="submit" class="btn-logout" title="Sair do Sistema">
+                    <button type="submit" class="btn-logout d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Sair do Sistema">
                         <i class="bi bi-power"></i>
                     </button>
                 </form>
@@ -375,7 +381,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Aumentei o tempo para 8 segundos para dar tempo do gestor copiar a senha
+        // 1. Fechamento Automático de Mensagens (Estendido para 8 seg)
         setTimeout(function() {
             let alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
@@ -383,6 +389,42 @@
                 bsAlert.close();
             });
         }, 8000); 
+
+        // 2. Motor Global de Tooltips do Bootstrap (Ativado para TODAS as telas!)
+        document.addEventListener("DOMContentLoaded", function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // 3. Lógica do Menu Mobile (Abre, Fecha e Overlay)
+        const btnOpenSidebar = document.getElementById('btnOpenSidebar');
+        const btnCloseSidebar = document.getElementById('btnCloseSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        if(btnOpenSidebar && sidebar && overlay) {
+            // Abrir Menu
+            btnOpenSidebar.addEventListener('click', () => {
+                sidebar.classList.add('show');
+                overlay.classList.add('show');
+            });
+
+            // Fechar Menu (Pelo X)
+            if(btnCloseSidebar) {
+                btnCloseSidebar.addEventListener('click', () => {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                });
+            }
+
+            // Fechar Menu (Clicando fora / no fundo escuro)
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+        }
     </script>
 </body>
 </html>

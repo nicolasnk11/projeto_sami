@@ -3,28 +3,34 @@
 {% block content %}
 <div class="container-fluid py-4">
     
-    <div class="mb-4">
-        <h3 class="fw-bold text-dark"><i class="bi bi-gear-wide-connected me-2 text-primary"></i>Gestão Acadêmica</h3>
-        <p class="text-muted">Administre as bases de dados e configurações do sistema.</p>
+    <div class="d-flex align-items-center gap-3 mb-5">
+        <a href="javascript:history.back()" class="btn btn-light border border-secondary border-opacity-25 rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center transition-hover" style="width: 45px; height: 45px;" data-bs-toggle="tooltip" data-bs-placement="right" title="Voltar à tela anterior">
+            <i class="bi bi-arrow-left fs-5 text-dark"></i>
+        </a>
+        <div>
+            <h3 class="fw-bold text-dark mb-0"><i class="bi bi-gear-wide-connected me-2" style="color: #0A2619;"></i>Gestão Acadêmica</h3>
+            <p class="text-secondary fw-medium mb-0 small">Administre as bases de dados e configurações do sistema.</p>
+        </div>
     </div>
 
     <div class="row g-4">
         
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden hover-up">
-                <div class="card-body p-4 position-relative">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden transition-hover border-top border-4" style="border-color: #11422b !important;" data-bs-toggle="tooltip" data-bs-placement="top" title="Gerenciar turmas, alunos e anos letivos">
+                <div class="card-body p-4 position-relative bg-white d-flex flex-column">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
-                            <i class="bi bi-people-fill fs-4"></i>
+                        <div class="bg-light border p-3 rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                            <i class="bi bi-people-fill fs-4 text-dark"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0">Turmas</h5>
-                            <small class="text-muted">Estrutura Escolar</small>
+                            <h5 class="fw-bold text-dark mb-0">Turmas</h5>
+                            <small class="text-secondary fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Estrutura Escolar</small>
                         </div>
                     </div>
-                    <h2 class="display-6 fw-bold mb-1">{{ total_turmas }}</h2>
-                    <p class="text-muted small mb-4">Turmas cadastradas no ano letivo.</p>
-                    <a href="{% url 'gerenciar_turmas' %}" class="btn btn-outline-primary w-100 rounded-pill fw-bold stretched-link">
+                    <h2 class="display-6 fw-bold mb-1 text-dark">{{ total_turmas }}</h2>
+                    <p class="text-secondary small mb-4 fw-medium">Turmas cadastradas no ano letivo.</p>
+                    
+                    <a href="{% url 'gerenciar_turmas' %}" class="btn mt-auto w-100 rounded-pill fw-bold stretched-link text-white shadow-sm" style="background-color: #11422b;">
                         Gerenciar Turmas <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -32,20 +38,21 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden hover-up">
-                <div class="card-body p-4 position-relative">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden transition-hover border-top border-4" style="border-color: #0A2619 !important;" data-bs-toggle="tooltip" data-bs-placement="top" title="Acessar o repositório de questões">
+                <div class="card-body p-4 position-relative bg-white d-flex flex-column">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-3">
-                            <i class="bi bi-stack fs-4"></i>
+                        <div class="bg-light border p-3 rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                            <i class="bi bi-stack fs-4 text-dark"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0">Banco de Itens</h5>
-                            <small class="text-muted">Avaliação</small>
+                            <h5 class="fw-bold text-dark mb-0">Banco de Itens</h5>
+                            <small class="text-secondary fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Avaliações</small>
                         </div>
                     </div>
-                    <h2 class="display-6 fw-bold mb-1">{{ total_questoes }}</h2>
-                    <p class="text-muted small mb-4">Questões disponíveis para provas.</p>
-                    <a href="{% url 'listar_questoes' %}" class="btn btn-outline-success w-100 rounded-pill fw-bold stretched-link">
+                    <h2 class="display-6 fw-bold mb-1 text-dark">{{ total_questoes }}</h2>
+                    <p class="text-secondary small mb-4 fw-medium">Questões disponíveis para provas.</p>
+                    
+                    <a href="{% url 'listar_questoes' %}" class="btn btn-dark mt-auto w-100 rounded-pill fw-bold stretched-link shadow-sm">
                         Acessar Banco <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -53,44 +60,47 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden hover-up">
-                <div class="card-body p-4 position-relative">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden transition-hover border-top border-4" style="border-color: #D4AF37 !important;" data-bs-toggle="tooltip" data-bs-placement="top" title="Configurar os descritores e habilidades por disciplina">
+                <div class="card-body p-4 position-relative bg-white d-flex flex-column">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info me-3">
-                            <i class="bi bi-diagram-3-fill fs-4"></i>
+                        <div class="bg-light border p-3 rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                            <i class="bi bi-diagram-3-fill fs-4 text-dark"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0">Matriz Referência</h5>
-                            <small class="text-muted">Pedagógico</small>
+                            <h5 class="fw-bold text-dark mb-0">Matriz Referência</h5>
+                            <small class="text-secondary fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pedagógico</small>
                         </div>
                     </div>
-                    <h2 class="display-6 fw-bold mb-1">{{ total_descritores }}</h2>
-                    <p class="text-muted small mb-4">Descritores/Habilidades mapeados.</p>
-                    <a href="{% url 'gerenciar_descritores' %}" class="btn btn-outline-info w-100 rounded-pill fw-bold stretched-link">
+                    <h2 class="display-6 fw-bold mb-1 text-dark">{{ total_descritores }}</h2>
+                    <p class="text-secondary small mb-4 fw-medium">Descritores/Habilidades mapeados.</p>
+                    
+                    <a href="{% url 'gerenciar_descritores' %}" class="btn btn-light border border-secondary border-opacity-50 mt-auto w-100 rounded-pill fw-bold text-dark stretched-link shadow-sm transition-hover">
                         Ver Matriz <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 bg-dark text-white overflow-hidden">
-                <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="col-12 mt-5">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="background-color: #f8f9fa; border: 1px solid #dee2e6 !important;">
+
+                <div class="card-body p-4 p-md-5 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4 position-relative z-1">
                     <div class="d-flex align-items-center">
-                        <div class="bg-white bg-opacity-10 p-3 rounded-circle me-3">
-                            <i class="bi bi-cloud-arrow-up-fill fs-3 text-warning"></i>
+                        <div class="bg-white border border-secondary border-opacity-25 p-3 rounded-circle me-3 shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 65px; height: 65px;">
+                            <i class="bi bi-cloud-arrow-up-fill fs-2 text-dark"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-1">Importação em Massa</h5>
-                            <p class="mb-0 opacity-75 small">Carregue dados de Alunos e Questões via planilhas Excel/CSV.</p>
+                            <h4 class="fw-bold mb-1 text-dark">Importação em Massa</h4>
+                            <p class="mb-0 text-secondary fw-medium small">Alimente o sistema rapidamente carregando planilhas Excel/CSV.</p>
                         </div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'importar_alunos' %}" class="btn btn-light fw-bold px-4 rounded-pill">
-                            <i class="bi bi-people me-2"></i> Importar Alunos
+                    
+                    <div class="d-flex flex-column flex-sm-row gap-3 w-100 w-lg-auto">
+                        <a href="{% url 'importar_alunos' %}" class="btn btn-dark fw-bold px-4 py-3 rounded-pill w-100 w-sm-auto shadow-sm transition-hover" data-bs-toggle="tooltip" title="Importar lista de alunos para as turmas">
+                            <i class="bi bi-people-fill me-2 text-white"></i> Importar Alunos
                         </a>
-                        <a href="{% url 'importar_questoes' %}" class="btn btn-warning fw-bold px-4 rounded-pill">
-                            <i class="bi bi-file-earmark-text me-2"></i> Importar Questões
+                        <a href="{% url 'importar_questoes' %}" class="btn fw-bold px-4 py-3 rounded-pill w-100 w-sm-auto shadow-sm transition-hover text-dark border border-dark" style="background-color: #D4AF37;" data-bs-toggle="tooltip" title="Importar banco de questões">
+                            <i class="bi bi-file-earmark-text-fill me-2 text-dark"></i> Importar Questões
                         </a>
                     </div>
                 </div>
@@ -101,7 +111,14 @@
 </div>
 
 <style>
-    .hover-up { transition: transform 0.2s ease; }
-    .hover-up:hover { transform: translateY(-5px); }
+    /* Transições Suaves sem prejudicar a leitura */
+    .transition-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    
+    @media (min-width: 768px) {
+        .transition-hover:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,.08) !important;
+        }
+    }
 </style>
 {% endblock %}

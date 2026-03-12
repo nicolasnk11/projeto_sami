@@ -16,6 +16,7 @@
         background-color: var(--sami-green);
         color: white;
         border: 1px solid var(--sami-green);
+        transition: all 0.2s ease;
     }
     .btn-sami:hover {
         background-color: #0d2e1f;
@@ -29,34 +30,55 @@
     }
 
     .ls-1 { letter-spacing: 1px; }
+    .transition-hover { transition: all 0.2s ease; }
     .transition-hover:hover {
         transform: translateY(-2px);
         box-shadow: 0 .5rem 1rem rgba(0,0,0,.1)!important;
-        transition: all 0.2s ease;
+    }
+
+    /* Notificação Toast Customizada */
+    #toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+    #toast-notification.show {
+        display: block;
+        opacity: 1;
     }
 </style>
 
 <div class="container d-flex flex-column align-items-center justify-content-center min-vh-100 py-5" style="background-color: #f8f9fa;">
     
     <div class="card shadow-lg border-0 rounded-4 w-100 overflow-hidden" style="max-width: 700px;">
-        <div class="card-header-sami text-white p-5 text-center position-relative">
+        
+        <div class="card-header-sami text-white p-4 p-md-5 text-center position-relative">
             <div class="position-absolute top-0 start-0 w-100 h-100" style="background-image: radial-gradient(circle, rgba(212, 175, 55, 0.1) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.3;"></div>
             
-            <h2 class="fw-bold mb-1 position-relative">
+            <a href="{% url 'login' %}" class="position-absolute top-0 start-0 m-3 m-md-4 btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; z-index: 10;" data-bs-toggle="tooltip" data-bs-placement="right" title="Voltar para a página de Login">
+                <i class="bi bi-arrow-left text-dark"></i>
+            </a>
+
+            <h2 class="fw-bold mb-1 position-relative mt-3 mt-md-0">
                 <i class="bi bi-person-badge-fill me-2 text-sami-gold"></i>Consultar Acesso
             </h2>
-            <p class="mb-0 opacity-75 position-relative text-light">SAMI - Sistema de Monitoramento Inteligente</p>
+            <p class="mb-0 opacity-75 position-relative text-light small d-none d-sm-block">SAMI - Sistema de Monitoramento Inteligente</p>
         </div>
         
         <div class="card-body p-4 p-md-5">
             <form method="post" class="mb-5 position-relative">
                 {% csrf_token %}
                 <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border border-sami-gold">
-                    <span class="input-group-text bg-white border-0 ps-4"><i class="bi bi-search text-sami-gold"></i></span>
-                    <input type="text" name="nome_busca" class="form-control border-0" 
+                    <span class="input-group-text bg-white border-0 ps-3 ps-md-4"><i class="bi bi-search text-sami-gold"></i></span>
+                    <input type="text" name="nome_busca" class="form-control border-0 px-2" 
                            placeholder="Digite seu nome..." 
-                           value="{{ termo_busca|default:'' }}" required>
-                    <button class="btn btn-sami px-4 fw-bold" type="submit">BUSCAR</button>
+                           value="{{ termo_busca|default:'' }}" required
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="Você pode pesquisar por parte do nome">
+                    <button class="btn btn-sami px-3 px-md-4 fw-bold" type="submit">BUSCAR</button>
                 </div>
             </form>
 
@@ -66,22 +88,22 @@
                     <div class="d-flex flex-column gap-3">
                         {% for mat in matriculas %}
                         <div class="card border-0 shadow-sm transition-hover" style="border-left: 5px solid var(--sami-green) !important;">
-                            <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                            <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3 p-md-4">
                                 
                                 <div class="d-flex align-items-center w-100">
-                                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm" 
+                                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm flex-shrink-0" 
                                          style="width: 50px; height: 50px; background-color: var(--sami-green); color: var(--sami-gold); font-size: 1.2rem; font-weight: bold;">
                                         {{ mat.aluno.nome_completo|slice:":1" }}
                                     </div>
-                                    <div>
-                                        <h6 class="fw-bold text-dark mb-0">{{ mat.aluno.nome_completo }}</h6>
+                                    <div class="text-truncate">
+                                        <h6 class="fw-bold text-dark mb-0 text-truncate" title="{{ mat.aluno.nome_completo }}">{{ mat.aluno.nome_completo }}</h6>
                                         <span class="badge mt-1" style="background-color: var(--sami-gold-light); color: #8a6d1c; border: 1px solid #e0d0a0;">
                                             {{ mat.turma.nome }}
                                         </span>
                                     </div>
                                 </div>
 
-                                <div class="bg-light p-3 rounded-3 border w-100 w-md-auto" style="min-width: 260px;">
+                                <div class="bg-light p-3 rounded-3 border w-100 w-md-auto mt-2 mt-md-0" style="min-width: 260px;">
                                     <div class="mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
                                         <small class="text-muted fw-bold" style="font-size: 0.7rem;">USUÁRIO</small>
                                         <div class="d-flex align-items-center">
@@ -89,11 +111,11 @@
                                                 {% if mat.aluno.usuario %}
                                                     {{ mat.aluno.usuario.username }}
                                                 {% else %}
-                                                    <span class="text-danger">Sem Acesso</span>
+                                                    <span class="text-danger" style="font-size: 0.9rem;">Sem Acesso</span>
                                                 {% endif %}
                                             </span>
                                             {% if mat.aluno.usuario %}
-                                            <button class="btn btn-sm btn-link text-decoration-none p-0 text-sami-gold" onclick="copiarTexto('{{ mat.aluno.usuario.username }}')" title="Copiar">
+                                            <button class="btn btn-sm btn-light border-0 text-sami-gold rounded-circle shadow-sm" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" onclick="copiarTexto('{{ mat.aluno.usuario.username }}')" data-bs-toggle="tooltip" title="Copiar usuário">
                                                 <i class="bi bi-clipboard-check-fill"></i>
                                             </button>
                                             {% endif %}
@@ -101,7 +123,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted fw-bold" style="font-size: 0.7rem;">SENHA PADRÃO</small>
-                                        <span class="fw-bold font-monospace" style="color: var(--sami-green);">Mudar123</span>
+                                        <span class="fw-bold font-monospace bg-white px-2 py-1 rounded border border-light" style="color: var(--sami-green); font-size: 0.9rem;">Mudar123</span>
                                     </div>
                                 </div>
 
@@ -111,18 +133,28 @@
                     </div>
                 {% else %}
                     <div class="text-center py-5">
-                        <i class="bi bi-emoji-frown text-muted" style="font-size: 3rem;"></i>
-                        <h5 class="mt-3 text-muted">Aluno não encontrado.</h5>
-                        <p class="small text-muted">Verifique a grafia ou tente apenas o primeiro nome.</p>
+                        <i class="bi bi-emoji-frown text-muted opacity-50" style="font-size: 4rem;"></i>
+                        <h5 class="mt-3 text-dark fw-bold">Aluno não encontrado.</h5>
+                        <p class="small text-muted">Verifique a grafia do nome ou tente pesquisar apenas pelo primeiro nome.</p>
                     </div>
                 {% endif %}
             {% endif %}
         </div>
         
         <div class="card-footer text-center bg-white p-4 border-top">
-            <a href="{% url 'login' %}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold hover-green">
-                <i class="bi bi-arrow-left me-2"></i>Voltar para Login
+            <a href="{% url 'login' %}" class="btn btn-outline-secondary rounded-pill px-5 fw-bold hover-green transition-hover">
+                <i class="bi bi-box-arrow-in-left me-2"></i>Ir para o Login
             </a>
+        </div>
+    </div>
+</div>
+
+<div id="toast-notification" class="shadow-lg rounded-4 p-3 bg-white border-start border-success border-4">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
+        <div>
+            <h6 class="mb-0 fw-bold text-dark">Copiado!</h6>
+            <small class="text-muted" id="toast-message">Texto copiado para a área de transferência.</small>
         </div>
     </div>
 </div>
@@ -130,8 +162,23 @@
 <script>
     function copiarTexto(texto) {
         navigator.clipboard.writeText(texto).then(function() {
-            // Feedback visual sutil seria ideal, mas o alert funciona
-            alert('Login copiado: ' + texto);
+            // Oculta tooltips abertos (para não poluir a tela)
+            var tooltips = document.querySelectorAll('.tooltip');
+            tooltips.forEach(function(tooltip) {
+                tooltip.remove();
+            });
+
+            // Dispara o Toast Bonito
+            const toast = document.getElementById('toast-notification');
+            const msg = document.getElementById('toast-message');
+            
+            msg.innerText = `O usuário "${texto}" foi copiado.`;
+            toast.classList.add('show');
+            
+            // Some após 3 segundos
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
         });
     }
 </script>

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container-fluid py-4">
 
-    <div class="d-flex justify-content-between align-items-end mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end mb-4 gap-3">
         <div>
             <h6 class="text-uppercase text-muted fw-bold small mb-1">Gestão de Equipe</h6>
             <h2 class="fw-bold text-sami-dark mb-0">
@@ -12,7 +12,7 @@
             <p class="text-muted mt-2 mb-0">O sistema criará o acesso e a senha automaticamente.</p>
         </div>
         <div>
-            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-pill px-4" data-bs-toggle="tooltip" data-bs-placement="left" title="Cancelar e voltar à página anterior">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
@@ -21,7 +21,7 @@
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="card border-0 shadow-sm rounded-4 border-top border-sami-gold border-4">
-                <div class="card-body p-5">
+                <div class="card-body p-4 p-md-5">
                     
                     <form method="POST" action="{% url 'cadastrar_professor' %}">
                         {% csrf_token %}
@@ -33,12 +33,16 @@
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold text-muted small">Nome Completo *</label>
-                                {{ form.nome_completo }}
+                                <div class="django-form-wrapper">
+                                    {{ form.nome_completo }}
+                                </div>
                                 <small class="text-muted" style="font-size: 0.75rem;">O login será gerado a partir deste nome.</small>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold text-muted small">E-mail (Opcional)</label>
-                                {{ form.email }}
+                                <div class="django-form-wrapper">
+                                    {{ form.email }}
+                                </div>
                             </div>
                         </div>
 
@@ -49,18 +53,22 @@
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold text-muted small">Disciplinas Ministradas *</label>
-                                {{ form.disciplinas }}
+                                <div class="django-form-wrapper custom-scrollbar">
+                                    {{ form.disciplinas }}
+                                </div>
                                 <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">{{ form.disciplinas.help_text }}</small>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted small">Turmas Atendidas (2026)</label>
-                                {{ form.turmas }}
+                                <label class="form-label fw-bold text-muted small">Turmas Atendidas ({% now "Y" %})</label>
+                                <div class="django-form-wrapper custom-scrollbar">
+                                    {{ form.turmas }}
+                                </div>
                                 <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">{{ form.turmas.help_text }}</small>
                             </div>
                         </div>
 
                         <div class="text-end border-top pt-4">
-                            <button type="submit" class="btn btn-sami-dark btn-lg px-5 rounded-pill shadow-sm">
+                            <button type="submit" class="btn btn-sami-dark btn-lg px-5 rounded-pill shadow-sm w-100 w-sm-auto" data-bs-toggle="tooltip" data-bs-placement="top" title="Salvar dados e gerar o login deste professor">
                                 <i class="bi bi-check2-circle me-2 text-sami-gold"></i>Gerar Acesso e Salvar
                             </button>
                         </div>
@@ -73,7 +81,7 @@
                 <i class="bi bi-lightbulb-fill fs-3 text-warning me-3"></i>
                 <div>
                     <strong>Como funciona o cadastro?</strong><br>
-                    <span class="text-muted small">Após salvar, o sistema vai gerar um nome de usuário (ex: <i>joao.silva</i>) e a senha padrão <b>Sami@2026</b>. Um aviso verde aparecerá na sua tela com esses dados para você copiar e enviar ao professor.</span>
+                    <span class="text-muted small">Após salvar, o sistema vai gerar um nome de usuário (ex: <i>joao.silva</i>) e a senha padrão <b>Sami@{% now "Y" %}</b>. Um aviso verde aparecerá na sua tela com esses dados para você copiar e enviar ao professor.</span>
                 </div>
             </div>
 
@@ -82,6 +90,7 @@
 </div>
 
 <style>
+    /* As variáveis já existem no base.html, mas mantemos aqui por segurança local */
     :root {
         --sami-dark: #0A2619;
         --sami-green: #11422b;
@@ -105,12 +114,20 @@
         color: var(--sami-gold);
         transform: translateY(-2px);
     }
+
+    /* Força os inputs do Django a ficarem responsivos 100% da caixa */
+    .django-form-wrapper input, 
+    .django-form-wrapper select {
+        width: 100%;
+        max-width: 100%;
+    }
     
     /* Melhorando a aparência das caixas de múltipla escolha */
     select[multiple] {
         border-radius: 12px;
         border: 1px solid #dee2e6;
         padding: 8px;
+        width: 100%; /* Fix para estourar div no mobile */
     }
     select[multiple] option {
         padding: 8px 12px;

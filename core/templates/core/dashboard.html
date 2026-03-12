@@ -1,82 +1,92 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none justify-content-center align-items-center" style="z-index: 9999;">
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none justify-content-center align-items-center" style="z-index: 9999; backdrop-filter: blur(2px);">
     <div class="text-center">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-        <p class="mt-2 fw-bold text-primary">Processando dados...</p>
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem; border-width: 0.3em;"></div>
+        <p class="mt-3 fw-bold text-dark fs-5">Processando dados...</p>
     </div>
 </div>
 
 <div class="container-fluid py-4">
 
-    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-body bg-white p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h5 class="mb-0 text-primary fw-bold text-truncate" title="{{ nome_filtro }}">
-                        <i class="bi bi-sliders2 me-2"></i>{{ nome_filtro }}
-                    </h5>
-                    <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Painel de Controle</small>
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden border-top border-sami-gold border-4">
+        <div class="card-body bg-white p-3 p-md-4">
+            
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="javascript:history.back()" class="btn btn-light rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center transition-hover" style="width: 45px; height: 45px;" data-bs-toggle="tooltip" data-bs-placement="right" title="Voltar à tela anterior">
+                        <i class="bi bi-arrow-left fs-5 text-dark"></i>
+                    </a>
+                    <div class="overflow-hidden">
+                        <h5 class="mb-0 text-primary fw-bold text-truncate" title="{{ nome_filtro }}">
+                            <i class="bi bi-sliders2 me-2 text-sami-gold"></i>{{ nome_filtro }}
+                        </h5>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Painel de Controle</small>
+                    </div>
                 </div>
-                <div class="d-flex gap-2">
+
+                <div class="d-flex gap-2 w-100 w-md-auto">
                     <a href="{% url 'gerar_relatorio_proficiencia' %}?avaliacao={{ avaliacao_selecionada|default:'' }}&turma={{ turma_selecionada|default:'' }}&aluno={{ aluno_selecionado|default:'' }}&disciplina={{ disciplina_selecionada|default:'' }}&serie={{ serie_selecionada|default:'' }}" 
-                       target="_blank" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm">
+                       target="_blank" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm w-100 w-md-auto d-flex justify-content-center align-items-center" data-bs-toggle="tooltip" title="Baixar relatório em PDF">
                        <i class="bi bi-file-earmark-pdf-fill me-2"></i> Relatório
                     </a>
-                    <a href="{% url 'dashboard' %}" class="btn btn-light text-danger border-0 hover-danger rounded-pill px-3 shadow-sm" title="Limpar filtros">
+                    <a href="{% url 'dashboard' %}" class="btn btn-light text-danger border-0 hover-danger rounded-circle shadow-sm flex-shrink-0 d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;" data-bs-toggle="tooltip" title="Limpar todos os filtros">
                         <i class="bi bi-eraser-fill"></i>
                     </a>
                 </div>
             </div>
 
-            <form method="get" class="row g-3" id="filterForm" onsubmit="mostrarLoading()">
-                <div class="col-lg-3 border-end">
+            <form method="get" class="row g-0" id="filterForm" onsubmit="mostrarLoading()">
+                
+                <div class="col-lg-3 p-2 filter-block">
                     <label class="small text-muted fw-bold mb-2">PERÍODO</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-range"></i></span>
-                        <input type="date" name="data_inicio" value="{{ data_inicio|default:'' }}" class="form-control bg-light border-0 fw-bold text-secondary">
-                        <input type="date" name="data_fim" value="{{ data_fim|default:'' }}" class="form-control bg-light border-0 fw-bold text-secondary">
+                    <div class="input-group input-group-sm shadow-sm rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-range text-primary"></i></span>
+                        <input type="date" name="data_inicio" value="{{ data_inicio|default:'' }}" class="form-control bg-light border-0 fw-bold text-secondary" data-bs-toggle="tooltip" title="Data inicial">
+                        <input type="date" name="data_fim" value="{{ data_fim|default:'' }}" class="form-control bg-light border-0 fw-bold text-secondary" data-bs-toggle="tooltip" title="Data final">
                     </div>
                 </div>
-                <div class="col-lg-5 border-end">
+                
+                <div class="col-lg-5 p-2 filter-block">
                     <label class="small text-muted fw-bold mb-2">ENTURMAMENTO</label>
-                    <div class="d-flex gap-2">
-                        <select name="serie" class="form-select form-select-sm bg-light border-0 fw-bold text-dark">
+                    <div class="d-flex flex-column flex-sm-row gap-2">
+                        <select name="serie" class="form-select form-select-sm bg-light border-0 fw-bold text-dark shadow-sm rounded-3">
                             <option value="">Todas Séries</option>
                             <option value="1" {% if serie_selecionada == "1" %}selected{% endif %}>1º Ano</option>
                             <option value="2" {% if serie_selecionada == "2" %}selected{% endif %}>2º Ano</option>
                             <option value="3" {% if serie_selecionada == "3" %}selected{% endif %}>3º Ano</option>
                         </select>
-                        <select name="turma" class="form-select form-select-sm bg-light border-0 fw-bold text-dark">
+                        <select name="turma" class="form-select form-select-sm bg-light border-0 fw-bold text-dark shadow-sm rounded-3">
                             <option value="">Todas Turmas</option>
                             {% for t in turmas_da_serie %}
                                 <option value="{{ t.id }}" {% if turma_selecionada == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>
                             {% endfor %}
                         </select>
-                        <select name="aluno" class="form-select form-select-sm bg-light border-0 fw-bold text-dark">
+                        <select name="aluno" class="form-select form-select-sm bg-light border-0 fw-bold text-dark shadow-sm rounded-3">
                             <option value="">Todos Alunos</option>
                             {% for a in alunos_da_turma %}
-                                <option value="{{ a.id }}" {% if aluno_selecionado == a.id|stringformat:"s" %}selected{% endif %}>{{ a.nome_completo }}</option>
+                                <option value="{{ a.id }}" {% if aluno_selecionado == a.id|stringformat:"s" %}selected{% endif %}>{{ a.nome_completo|truncatechars:20 }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                
+                <div class="col-lg-4 p-2">
                     <label class="small text-muted fw-bold mb-2">CONTEÚDO</label>
-                    <div class="d-flex gap-2">
-                        <select name="disciplina" class="form-select form-select-sm bg-primary bg-opacity-10 border-0 fw-bold text-primary">
+                    <div class="d-flex gap-2 mb-2">
+                        <select name="disciplina" class="form-select form-select-sm bg-primary bg-opacity-10 border-0 fw-bold text-primary shadow-sm rounded-3">
                             <option value="">Todas Matérias</option>
                             {% for d in disciplinas %}
                                 <option value="{{ d.id }}" {% if disciplina_selecionada == d.id|stringformat:"s" %}selected{% endif %}>{{ d.nome }}</option>
                             {% endfor %}
                         </select>
-                        <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold rounded-pill shadow-sm">
+                        <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold rounded-pill shadow-sm transition-hover">
                             <i class="bi bi-filter me-1"></i> Filtrar
                         </button>
                     </div>
-                    <div class="mt-2">
-                         <select name="avaliacao" class="form-select form-select-sm bg-primary bg-opacity-10 border-0 fw-bold text-primary w-100" onchange="mostrarLoading(); this.form.submit()">
+                    <div>
+                         <select name="avaliacao" class="form-select form-select-sm bg-primary bg-opacity-10 border-0 fw-bold text-primary w-100 shadow-sm rounded-3" onchange="mostrarLoading(); this.form.submit()">
                             <option value="">Todas Provas (Selecione para ver o Mapa de Calor)</option>
                             {% for av in avaliacoes_todas %}
                                 <option value="{{ av.id }}" {% if avaliacao_selecionada == av.id|stringformat:"s" %}selected{% endif %}>{{ av.titulo }} - {{ av.turma.nome }}</option>
@@ -89,32 +99,32 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary bg-opacity-10 border-start border-primary border-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary bg-opacity-10 border-start border-primary border-4 transition-hover">
                 <div class="card-body p-3">
                     <h6 class="text-primary fw-bold text-uppercase small mb-1">Avaliados</h6>
                     <h3 class="fw-bold text-dark mb-0">{{ total_avaliacoes_contagem }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-success bg-opacity-10 border-start border-success border-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-success bg-opacity-10 border-start border-success border-4 transition-hover">
                 <div class="card-body p-3">
                     <h6 class="text-success fw-bold text-uppercase small mb-1">Média Geral</h6>
                     <h3 class="fw-bold text-dark mb-0">{{ media_geral|default:"-" }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-warning bg-opacity-10 border-start border-warning border-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-warning bg-opacity-10 border-start border-warning border-4 transition-hover">
                 <div class="card-body p-3">
-                    <h6 class="text-warning fw-bold text-uppercase small mb-1">Nível Predominante</h6>
+                    <h6 class="text-warning text-dark fw-bold text-uppercase small mb-1">Nível Maioria</h6>
                     <h3 class="fw-bold text-dark mb-0 fs-5">{{ nivel_predominante|default:"-" }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-info bg-opacity-10 border-start border-info border-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-info bg-opacity-10 border-start border-info border-4 transition-hover">
                 <div class="card-body p-3">
                     <h6 class="text-info fw-bold text-uppercase small mb-1">Provas Aplicadas</h6>
                     <h3 class="fw-bold text-dark mb-0">{{ qtd_provas }}</h3>
@@ -123,11 +133,25 @@
         </div>
     </div>
 
-    <ul class="nav nav-pills mb-4 gap-2 p-1 bg-white rounded-pill shadow-sm d-inline-flex" id="dashboardTabs" role="tablist">
-        <li class="nav-item"><button class="nav-link active rounded-pill fw-bold px-4" data-bs-toggle="pill" data-bs-target="#visao-geral"><i class="bi bi-speedometer2 me-2"></i>Visão Geral</button></li>
-        <li class="nav-item"><button class="nav-link rounded-pill fw-bold px-4" data-bs-toggle="pill" data-bs-target="#pedagogico"><i class="bi bi-eyeglasses me-2"></i>Pedagógico</button></li>
-        <li class="nav-item"><button class="nav-link rounded-pill fw-bold px-4" data-bs-toggle="pill" data-bs-target="#mapa"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Mapa de Calor</button></li>
-    </ul>
+    <div class="nav-scroll-wrapper mb-4">
+        <ul class="nav nav-pills gap-2 p-1 bg-white rounded-pill shadow-sm d-inline-flex flex-nowrap" id="dashboardTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active rounded-pill fw-bold px-4 white-space-nowrap" data-bs-toggle="pill" data-bs-target="#visao-geral">
+                    <i class="bi bi-speedometer2 me-2"></i>Visão Geral
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-bold px-4 white-space-nowrap" data-bs-toggle="pill" data-bs-target="#pedagogico">
+                    <i class="bi bi-eyeglasses me-2"></i>Pedagógico
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-bold px-4 white-space-nowrap" data-bs-toggle="pill" data-bs-target="#mapa">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i>Mapa de Calor
+                </button>
+            </li>
+        </ul>
+    </div>
 
     <div class="tab-content" id="dashboardTabsContent">
         
@@ -140,7 +164,7 @@
                             <small class="text-muted"><span style="color: #dc3545; font-weight: bold;">---</span> Meta (70%)</small>
                         </div>
                         <div class="card-body">
-                            <div style="height: 300px;"><canvas id="chartEvolucao"></canvas></div>
+                            <div style="height: 300px; width: 100%;"><canvas id="chartEvolucao"></canvas></div>
                         </div>
                     </div>
                 </div>
@@ -150,8 +174,8 @@
                             <h6 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Níveis de Aprendizado</h6>
                         </div>
                         <div class="card-body text-center position-relative">
-                            <div style="height: 250px;"><canvas id="chartPizza" style="cursor: pointer;"></canvas></div>
-                            <small class="text-muted mt-3 d-block"><i class="bi bi-cursor"></i> Clique nas fatias para detalhes</small>
+                            <div style="height: 250px; width: 100%;"><canvas id="chartPizza" style="cursor: pointer;"></canvas></div>
+                            <small class="text-muted mt-3 d-block blink-soft"><i class="bi bi-cursor-fill me-1"></i> Clique nas fatias para detalhes</small>
                         </div>
                     </div>
                 </div>
@@ -160,49 +184,49 @@
 
         <div class="tab-pane fade" id="pedagogico">
             <div class="card shadow-sm border-0 mb-4 rounded-4">
-                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Proficiência por Descritor</h6>
-                    <small class="text-primary fw-bold blink-soft"><i class="bi bi-mouse-fill me-1"></i>Clique nas barras para ver os alunos</small>
+                    <small class="text-primary fw-bold blink-soft"><i class="bi bi-hand-index-fill me-1"></i>Clique nas barras para ver os alunos</small>
                 </div>
                 <div class="card-body">
                     {% if labels_proficiencia %}
-                        <div style="height: 350px;"><canvas id="chartProficiencia" style="cursor: pointer;"></canvas></div>
+                        <div style="height: 350px; width: 100%;"><canvas id="chartProficiencia" style="cursor: pointer;"></canvas></div>
                     {% else %}
-                        <div class="text-center py-5 opacity-50"><i class="bi bi-bar-chart display-4"></i><p class="mt-2">Sem dados para exibir.</p></div>
+                        <div class="text-center py-5 opacity-50"><i class="bi bi-bar-chart display-4"></i><p class="mt-2 fw-bold">Sem dados para exibir.</p></div>
                     {% endif %}
                 </div>
             </div>
 
             <div class="row g-4">
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0 h-100 rounded-4">
-                        <div class="card-header bg-success bg-opacity-10 border-0 py-3"><h6 class="fw-bold text-success mb-0"><i class="bi bi-trophy-fill me-2"></i>Pontos Fortes</h6></div>
+                    <div class="card shadow-sm border-0 h-100 rounded-4 border-start border-primary border-4">
+                        <div class="card-header bg-primary bg-opacity-10 border-0 py-3"><h6 class="fw-bold text-primary mb-0"><i class="bi bi-trophy-fill me-2"></i>Pontos Fortes</h6></div>
                         <ul class="list-group list-group-flush">
                             {% for q in ranking_facil|slice:":5" %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom transition-hover">
                                 <div class="me-3 overflow-hidden">
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 mb-1">{{ q.desc }}</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 mb-1">{{ q.desc }}</span>
                                     <div class="text-muted small text-truncate" title="{{ q.texto }}">{{ q.texto }}</div>
                                 </div>
-                                <span class="badge bg-success rounded-pill">{{ q.percentual_acerto }}%</span>
+                                <span class="badge bg-primary rounded-pill shadow-sm fs-6">{{ q.percentual_acerto }}%</span>
                             </li>
-                            {% empty %}<li class="list-group-item text-center text-muted py-4">Nenhum dado.</li>{% endfor %}
+                            {% empty %}<li class="list-group-item text-center text-muted py-4">Nenhum dado consolidado.</li>{% endfor %}
                         </ul>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0 h-100 rounded-4">
+                    <div class="card shadow-sm border-0 h-100 rounded-4 border-start border-danger border-4">
                         <div class="card-header bg-danger bg-opacity-10 border-0 py-3"><h6 class="fw-bold text-danger mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Pontos de Atenção</h6></div>
                         <ul class="list-group list-group-flush">
                             {% for q in ranking_dificil|slice:":5" %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom transition-hover">
                                 <div class="me-3 overflow-hidden">
                                     <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 mb-1">{{ q.desc }}</span>
                                     <div class="text-muted small text-truncate" title="{{ q.texto }}">{{ q.texto }}</div>
                                 </div>
-                                <span class="badge bg-danger rounded-pill">{{ q.percentual_erro }}%</span>
+                                <span class="badge bg-danger rounded-pill shadow-sm fs-6">{{ q.percentual_erro }}%</span>
                             </li>
-                            {% empty %}<li class="list-group-item text-center text-muted py-4">Nenhum dado.</li>{% endfor %}
+                            {% empty %}<li class="list-group-item text-center text-muted py-4">Nenhum dado consolidado.</li>{% endfor %}
                         </ul>
                     </div>
                 </div>
@@ -213,32 +237,32 @@
             {% if avaliacao_selecionada and itens_heatmap %}
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="card-body p-0">
-                    <div class="table-responsive" style="max-height: 600px;">
-                        <table class="table table-bordered mb-0" style="font-size: 0.85rem;">
-                            <thead class="bg-light text-center align-middle" style="position: sticky; top: 0; z-index: 1020;">
+                    <div class="table-responsive custom-scrollbar" style="max-height: 60vh;">
+                        <table class="table table-bordered table-hover mb-0" style="font-size: 0.85rem;">
+                            <thead class="bg-light text-center align-middle" style="position: sticky; top: 0; z-index: 20;">
                                 <tr>
-                                    <th class="ps-3 text-start bg-light border-0 sticky-col" style="min-width: 250px; left: 0; z-index: 1030;">ALUNO</th>
-                                    <th class="bg-light border-0">NOTA</th>
+                                    <th class="ps-3 text-start bg-light border-0 sticky-col shadow-sm" style="min-width: 200px; max-width: 250px;">ALUNO</th>
+                                    <th class="bg-light border-0 shadow-sm" style="min-width: 70px;">NOTA</th>
                                     {% for item in itens_heatmap %}
-                                    <th class="py-2" style="width: 40px;" data-bs-toggle="tooltip" title="{{ item.descritor.codigo }} - {{ item.descritor.descricao }}">
-                                        <div class="small text-muted fw-bold">Q{{ item.numero }}</div>
-                                        <span class="badge bg-light text-dark border" style="font-size: 0.6rem; cursor: help;">{{ item.descritor.codigo|default:'-' }}</span>
+                                    <th class="py-2 border-0 shadow-sm" style="min-width: 50px;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ item.descritor.codigo }} - {{ item.descritor.descricao }}">
+                                        <div class="small text-dark fw-bold mb-1">Q{{ item.numero }}</div>
+                                        <span class="badge bg-light text-dark border border-secondary border-opacity-25" style="font-size: 0.6rem; cursor: help;">{{ item.descritor.codigo|default:'-' }}</span>
                                     </th>
                                     {% endfor %}
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for linha in matriz_calor %}
-                                <tr>
-                                    <td class="fw-bold ps-3 text-truncate bg-white sticky-col" style="max-width: 250px; left: 0;">{{ linha.aluno.nome_completo }}</td>
-                                    <td class="text-center fw-bold {% if linha.nota >= 6 %}text-success{% else %}text-danger{% endif %}">{{ linha.nota }}</td>
+                                <tr class="transition-hover">
+                                    <td class="fw-bold ps-3 text-truncate bg-white sticky-col border-end" title="{{ linha.aluno.nome_completo }}" style="max-width: 250px;">{{ linha.aluno.nome_completo }}</td>
+                                    <td class="text-center fw-bold bg-white border-end {% if linha.nota >= 6 %}text-success{% else %}text-danger{% endif %}">{{ linha.nota }}</td>
                                     {% for q in linha.questoes %}
-                                    <td class="text-center p-0 position-relative">
-                                        <div class="d-flex align-items-center justify-content-center" style="height: 35px;" title="{% if q.item.descritor %}{{ q.item.descritor.descricao }}{% else %}Sem descritor{% endif %}">
+                                    <td class="text-center p-1 position-relative">
+                                        <div class="d-flex align-items-center justify-content-center h-100 w-100 rounded-2 {% if q.acertou %}bg-success{% else %}bg-danger bg-opacity-75{% endif %} shadow-sm mx-auto" style="min-height: 28px; max-width: 40px;" data-bs-toggle="tooltip" title="{% if q.item.descritor %}{{ q.item.descritor.descricao }}{% else %}Sem descritor{% endif %}">
                                             {% if q.acertou %}
-                                                <div class="bg-success rounded-1 shadow-sm" style="width: 18px; height: 18px;"></div>
+                                                <i class="bi bi-check text-white small"></i>
                                             {% else %}
-                                                <div class="bg-danger bg-opacity-75 rounded-1 shadow-sm" style="width: 18px; height: 18px;"></div>
+                                                <i class="bi bi-x text-white small"></i>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -251,10 +275,10 @@
                 </div>
             </div>
             {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-grid-3x3-gap display-4 text-muted opacity-25"></i>
-                <h4 class="mt-3 text-muted">Selecione uma Prova Específica</h4>
-                <p class="text-muted small">O mapa de calor detalhado exige que você escolha uma "Prova Específica" nos filtros acima.</p>
+            <div class="text-center py-5 bg-white rounded-4 border shadow-sm">
+                <i class="bi bi-grid-3x3-gap display-1 text-primary opacity-25"></i>
+                <h4 class="mt-3 text-dark fw-bold">Selecione uma Prova Específica</h4>
+                <p class="text-muted small px-3">O mapa de calor exige a escolha de uma "Prova" nos filtros acima para desenhar a matriz de acertos.</p>
             </div>
             {% endif %}
         </div>
@@ -263,31 +287,31 @@
 
 <div class="modal fade" id="modalDetalhesPizza" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="modalTitulo">Alunos</h5>
+                <h5 class="modal-title fw-bold text-dark" id="modalTitulo">Alunos</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-2"><ul class="list-group list-group-flush" id="listaAlunosModal"></ul></div>
+            <div class="modal-body pt-2 custom-scrollbar"><ul class="list-group list-group-flush" id="listaAlunosModal"></ul></div>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="modalRaioX" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow rounded-4">
-            <div class="modal-header border-0 pb-0 bg-danger bg-opacity-10">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-3 bg-danger bg-opacity-10 rounded-top-4">
                 <div>
                     <h5 class="modal-title fw-bold text-danger" id="modalTituloRaioX">Ponto de Atenção</h5>
-                    <small class="text-muted">Alunos que erraram este descritor</small>
+                    <small class="text-danger fw-medium opacity-75">Alunos que erraram este descritor</small>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-2">
+            <div class="modal-body pt-2 custom-scrollbar">
                 <ul class="list-group list-group-flush" id="listaAlunosRaioX"></ul>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light rounded-pill btn-sm" data-bs-dismiss="modal">Fechar</button>
+            <div class="modal-footer border-0 pt-0 bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>
@@ -301,99 +325,122 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        const COLORS = { azul: '#0d6efd', verde: '#198754', amarelo: '#ffc107', vermelho: '#dc3545' };
+        
+        // -------------------------------------------------------------
+        // NOVA RÉGUA DE CORES (Adequado, Intermediário, Crítico, Muito Crítico)
+        // -------------------------------------------------------------
+        const COLORS = { 
+            azul: '#0d6efd',       // Adequado
+            verde: '#198754',      // Intermediário
+            amarelo: '#ffc107',    // Crítico
+            vermelho: '#dc3545'    // Muito Crítico
+        };
         const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
         
         const dadosDetalhados = {{ detalhes_pizza_json|default:"{}"|safe }};
-        // NÃO USAMOS MAIS 'dadosRaioX' DO DJANGO AQUI, POIS ERA PESADO DEMAIS.
-        
         let pizzaChart, proficienciaChart, evolucaoChart;
 
-        // --- FUNÇÃO MODAL PIZZA ---
+        // --- FUNÇÃO MODAL PIZZA (Com as novas cores) ---
         window.abrirModalAlunos = function(categoria) {
             const modalEl = document.getElementById('modalDetalhesPizza');
             const modal = new bootstrap.Modal(modalEl);
             const lista = document.getElementById('listaAlunosModal');
-            document.getElementById('modalTitulo').innerText = `Nível: ${categoria}`;
+            document.getElementById('modalTitulo').innerHTML = `<i class="bi bi-people-fill me-2 text-primary"></i>Nível: ${categoria}`;
             lista.innerHTML = '';
             
             const alunos = dadosDetalhados[categoria] || [];
             
             alunos.forEach(aluno => {
-                let badgeClass = 'bg-secondary';
-                if(aluno.nota >= 9) badgeClass = 'bg-primary'; 
-                else if(aluno.nota >= 7) badgeClass = 'bg-success'; 
-                else if(aluno.nota >= 5) badgeClass = 'bg-warning text-dark'; 
-                else badgeClass = 'bg-danger'; 
+                let badgeClass = 'bg-secondary text-white';
+                
+                // Aplicação rígida da nova régua visual nas Badges
+                if (categoria === 'Adequado') badgeClass = 'bg-primary text-white';           // Azul
+                else if (categoria === 'Intermediário') badgeClass = 'bg-success text-white'; // Verde
+                else if (categoria === 'Crítico') badgeClass = 'bg-warning text-dark';        // Amarelo
+                else if (categoria === 'Muito Crítico') badgeClass = 'bg-danger text-white';  // Vermelho
+                else {
+                    // Fallback de segurança se o Backend mandar dados com outras Nomenclaturas
+                    if(aluno.nota >= 8) badgeClass = 'bg-primary text-white'; 
+                    else if(aluno.nota >= 6) badgeClass = 'bg-success text-white'; 
+                    else if(aluno.nota >= 4) badgeClass = 'bg-warning text-dark'; 
+                    else badgeClass = 'bg-danger text-white'; 
+                }
 
                 lista.innerHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-2">
-                        <div><div class="fw-bold text-dark">${aluno.nome}</div><small class="text-muted">${aluno.turma}</small></div>
-                        <span class="badge ${badgeClass} rounded-pill fs-6">${aluno.nota}</span>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3 border-bottom transition-hover">
+                        <div>
+                            <div class="fw-bold text-dark">${aluno.nome}</div>
+                            <small class="text-muted"><i class="bi bi-bookmark me-1"></i>${aluno.turma}</small>
+                        </div>
+                        <span class="badge ${badgeClass} rounded-pill fs-6 shadow-sm">${aluno.nota}</span>
                     </li>`;
             });
-            if (!lista.innerHTML) lista.innerHTML = '<li class="text-muted text-center py-3">Nenhum aluno nesta categoria.</li>';
+            if (!lista.innerHTML) lista.innerHTML = '<li class="text-muted text-center py-5 fw-bold"><i class="bi bi-emoji-neutral display-4 d-block mb-3 opacity-25"></i>Nenhum aluno nesta categoria.</li>';
             modal.show();
         };
 
-        // --- FUNÇÃO MODAL RAIO-X (VIA AJAX - RÁPIDO!) ---
+        // --- FUNÇÃO MODAL RAIO-X ---
         window.abrirModalRaioX = function(descritor) {
             const modalEl = document.getElementById('modalRaioX');
             const modal = new bootstrap.Modal(modalEl);
             const lista = document.getElementById('listaAlunosRaioX');
             const titulo = document.getElementById('modalTituloRaioX');
             
-            titulo.innerText = `Carregando ${descritor}...`;
-            lista.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div></div>';
+            titulo.innerText = `Buscando ${descritor}...`;
+            lista.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-danger" style="width: 3rem; height: 3rem;"></div><p class="mt-3 text-muted">Acessando banco de dados...</p></div>';
             modal.show();
 
-            // Pega os filtros atuais da URL para que o raio-x obedeça (Turma, Série, etc)
             const params = new URLSearchParams(window.location.search);
             params.append('descritor', descritor);
 
-            // Chama a nova API
             fetch(`/api/raio-x/?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
-                    titulo.innerText = `Dificuldade em ${descritor}`;
+                    titulo.innerHTML = `<i class="bi bi-x-octagon-fill me-2"></i>Falhas no ${descritor}`;
                     lista.innerHTML = '';
                     
                     if (data.alunos && data.alunos.length > 0) {
                         data.alunos.forEach(alunoStr => {
                             lista.innerHTML += `
-                                <li class="list-group-item d-flex align-items-center border-0 px-0 py-2">
-                                    <i class="bi bi-person-x-fill text-danger me-3 fs-5"></i>
+                                <li class="list-group-item d-flex align-items-center border-0 px-0 py-3 border-bottom transition-hover">
+                                    <div class="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person-x-fill text-danger fs-5"></i>
+                                    </div>
                                     <div class="fw-bold text-dark">${alunoStr}</div>
                                 </li>`;
                         });
                     } else {
-                        lista.innerHTML = '<li class="text-success text-center py-3 fw-bold"><i class="bi bi-check-circle me-2"></i>Ninguém errou este descritor neste filtro!</li>';
+                        lista.innerHTML = '<li class="text-success text-center py-5 fw-bold"><i class="bi bi-check-circle-fill display-4 d-block mb-3 opacity-50"></i>Todos acertaram este descritor!</li>';
                     }
                 })
                 .catch(err => {
-                    lista.innerHTML = '<li class="text-danger text-center">Erro ao carregar dados. Tente novamente.</li>';
-                    console.error(err);
+                    lista.innerHTML = '<li class="text-danger text-center py-4 fw-bold"><i class="bi bi-wifi-off fs-1 d-block mb-2"></i>Erro de conexão.</li>';
                 });
         };
 
-        // Pizza Chart
+        // --- Gráfico de Pizza (Com Rótulos Corrigidos) ---
         const ctxPizza = document.getElementById('chartPizza');
         if (ctxPizza) {
             pizzaChart = new Chart(ctxPizza, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Avançado', 'Adequado', 'Intermediário', 'Crítico'],
+                    // NOMENCLATURAS EXATAS
+                    labels: ['Adequado', 'Intermediário', 'Crítico', 'Muito Crítico'],
                     datasets: [{
                         data: {{ dados_pizza|default:"[]"|safe }},
+                        // ORDEM DAS CORES: Azul, Verde, Amarelo, Vermelho
                         backgroundColor: [COLORS.azul, COLORS.verde, COLORS.amarelo, COLORS.vermelho],
-                        borderWidth: 0
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 10
                     }]
                 },
                 options: {
-                    ...chartOptions, cutout: '70%',
+                    ...chartOptions, cutout: '65%',
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } } },
                     onClick: (evt, el) => { 
                         if(el.length > 0) {
-                            const cats = ['Avançado', 'Adequado', 'Intermediário', 'Crítico'];
+                            const cats = ['Adequado', 'Intermediário', 'Crítico', 'Muito Crítico'];
                             abrirModalAlunos(cats[el[0].index]); 
                         }
                     }
@@ -401,7 +448,7 @@
             });
         }
 
-        // Proficiência Chart
+        // --- Gráfico de Proficiência (Barras) com a Nova Régua ---
         const ctxProf = document.getElementById('chartProficiencia');
         if (ctxProf) {
             proficienciaChart = new Chart(ctxProf, {
@@ -413,26 +460,36 @@
                         data: {{ dados_proficiencia|default:"[]"|safe }},
                         backgroundColor: function(context) {
                             const val = context.raw;
-                            if (val >= 90) return COLORS.azul;
-                            if (val >= 70) return COLORS.verde;
-                            if (val >= 50) return COLORS.amarelo;
-                            return COLORS.vermelho;
+                            
+                            // LÓGICA DE CORES DA PROFICIÊNCIA
+                            if (val >= 75) return COLORS.azul;      // Azul (Adequado)
+                            if (val >= 50) return COLORS.verde;     // Verde (Intermediário)
+                            if (val >= 25) return COLORS.amarelo;   // Amarelo (Crítico)
+                            return COLORS.vermelho;                 // Vermelho (Muito Crítico)
                         },
-                        borderRadius: 6
+                        borderRadius: 6,
+                        borderSkipped: false
                     }]
                 },
                 options: { 
                     ...chartOptions, 
-                    scales: { y: { beginAtZero: true, max: 100 } }, 
+                    scales: { 
+                        y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }, 
                     plugins: { 
                         legend: { display: false },
-                        tooltip: { callbacks: { footer: () => 'Clique para ver alunos' } } 
+                        tooltip: { 
+                            backgroundColor: '#212529',
+                            titleFont: { size: 14 },
+                            callbacks: { footer: () => '👉 Clique para ver quem errou' } 
+                        } 
                     },
                     onClick: (evt, elements) => {
                         if (elements.length > 0) {
                             const index = elements[0].index;
                             const descritor = proficienciaChart.data.labels[index];
-                            abrirModalRaioX(descritor); // CHAMA A API
+                            abrirModalRaioX(descritor); 
                         }
                     }
                 }
@@ -451,14 +508,43 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Média da Turma (%)', data: dados, borderColor: COLORS.azul, backgroundColor: 'rgba(13, 110, 253, 0.1)', tension: 0.4, fill: true },
-                        { label: 'Meta', data: metaData, borderColor: '#dc3545', borderWidth: 2, borderDash: [5, 5], pointRadius: 0 }
+                        { 
+                            label: 'Média da Turma (%)', 
+                            data: dados, 
+                            borderColor: COLORS.azul, 
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)', 
+                            borderWidth: 3,
+                            pointBackgroundColor: COLORS.azul,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            tension: 0.4, fill: true 
+                        },
+                        { 
+                            label: 'Meta', 
+                            data: metaData, 
+                            borderColor: '#dc3545', 
+                            borderWidth: 2, 
+                            borderDash: [5, 5], 
+                            pointRadius: 0,
+                            fill: false
+                        }
                     ]
                 },
-                options: { ...chartOptions, scales: { y: { beginAtZero: true, max: 100 } } }
+                options: { 
+                    ...chartOptions, 
+                    scales: { 
+                        y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { tooltip: { mode: 'index', intersect: false } },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
             });
         }
 
+        // Corrige renderização dos gráficos ao trocar de aba no celular
         document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(tab => {
             tab.addEventListener('shown.bs.tab', () => {
                 if(pizzaChart) pizzaChart.resize();
@@ -470,9 +556,42 @@
 </script>
 
 <style>
-    .hover-danger:hover { background-color: #dc3545; color: white !important; border-color: #dc3545 !important; }
-    .sticky-col { position: -webkit-sticky; position: sticky; background-color: white; z-index: 5; border-right: 2px solid #dee2e6 !important; }
-    @keyframes pulse-soft { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
-    .blink-soft { animation: pulse-soft 2s infinite; cursor: pointer; }
+    /* Utilitários Premium */
+    .hover-danger:hover { background-color: #dc3545 !important; color: white !important; }
+    .transition-hover { transition: all 0.2s ease; }
+    .transition-hover:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
+    
+    /* Layout Responsivo para Filtros (Resolve a linha vertical feia no celular) */
+    @media (min-width: 992px) {
+        .filter-block { border-right: 1px solid #dee2e6; }
+    }
+    @media (max-width: 991px) {
+        .filter-block { border-bottom: 1px solid #dee2e6; padding-bottom: 1rem !important; margin-bottom: 0.5rem; }
+    }
+
+    /* Scroll Horizontal Nativo nas Abas (Swipe Mobile) */
+    .nav-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 5px;
+    }
+    .nav-scroll-wrapper::-webkit-scrollbar { display: none; }
+    .white-space-nowrap { white-space: nowrap; }
+
+    /* Correção Extrema para Sticky Column no Mapa de Calor do iPhone/Android */
+    .sticky-col { 
+        position: -webkit-sticky !important; 
+        position: sticky !important; 
+        left: 0; 
+        z-index: 10 !important; 
+    }
+    thead .sticky-col { z-index: 30 !important; }
+
+    @keyframes pulse-soft { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+    .blink-soft { animation: pulse-soft 2.5s infinite; cursor: pointer; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
 </style>
 {% endblock %}

@@ -4,15 +4,20 @@
 <div class="container-fluid py-4">
     
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold text-dark mb-0"><i class="bi bi-journal-check me-2"></i>Gerenciar Avaliações</h3>
-            <p class="text-muted small mb-0">Visualize o histórico ou crie novas provas diagnósticas.</p>
+        <div class="d-flex align-items-center gap-3">
+            <a href="javascript:history.back()" class="btn btn-light rounded-circle shadow-sm" data-bs-toggle="tooltip" data-bs-placement="right" title="Voltar para a página anterior" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-arrow-left fs-5 text-dark"></i>
+            </a>
+            <div>
+                <h3 class="fw-bold text-dark mb-0"><i class="bi bi-journal-check me-2"></i>Gerenciar Avaliações</h3>
+                <p class="text-muted small mb-0">Visualize o histórico ou crie novas provas diagnósticas.</p>
+            </div>
         </div>
         <div class="d-flex gap-2">
-            <a href="{% url 'criar_avaliacao' %}" class="btn btn-outline-primary shadow-sm rounded-pill px-4 transition-hover">
+            <a href="{% url 'criar_avaliacao' %}" class="btn btn-outline-primary shadow-sm rounded-pill px-4 transition-hover" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Crie uma avaliação vazia ou use o banco de questões">
                 <i class="bi bi-plus-lg me-2"></i> Criar Manualmente
             </a>
-            <button class="btn btn-primary shadow-sm rounded-pill px-4 transition-hover" data-bs-toggle="modal" data-bs-target="#modalGerarInteligente">
+            <button class="btn btn-primary shadow-sm rounded-pill px-4 transition-hover" data-bs-toggle="modal" data-bs-target="#modalGerarInteligente" data-bs-toggle="tooltip" data-bs-placement="bottom" title="A IA cria a prova focada nas habilidades que os alunos mais erram">
                 <i class="bi bi-cpu-fill me-2"></i> Gerar por Desempenho
             </button>
         </div>
@@ -20,7 +25,7 @@
 
     <div class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 border-start border-primary border-4 rounded-3">
+            <div class="card shadow-sm border-0 h-100 border-start border-primary border-4 rounded-3 transition-hover">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted small fw-bold text-uppercase mb-1">Total de Provas</h6>
@@ -33,7 +38,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 border-start border-success border-4 rounded-3">
+            <div class="card shadow-sm border-0 h-100 border-start border-success border-4 rounded-3 transition-hover">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted small fw-bold text-uppercase mb-1">Disciplinas Ativas</h6>
@@ -46,7 +51,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 border-start border-info border-4 rounded-3">
+            <div class="card shadow-sm border-0 h-100 border-start border-info border-4 rounded-3 transition-hover">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted small fw-bold text-uppercase mb-1">Turmas Atendidas</h6>
@@ -69,7 +74,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <select name="turma" class="form-select border-0 shadow-sm" onchange="this.form.submit()">
+                    <select name="turma" class="form-select border-0 shadow-sm" onchange="this.form.submit()" data-bs-toggle="tooltip" title="Filtrar por turma">
                         <option value="">Todas as Turmas</option>
                         {% for t in turmas %}
                             <option value="{{ t.id }}" {% if filtro_turma == t.id %}selected{% endif %}>
@@ -80,7 +85,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <select name="disciplina" class="form-select border-0 shadow-sm" onchange="this.form.submit()">
+                    <select name="disciplina" class="form-select border-0 shadow-sm" onchange="this.form.submit()" data-bs-toggle="tooltip" title="Filtrar por disciplina">
                         <option value="">Todas as Disciplinas</option>
                         {% for d in disciplinas %}
                             <option value="{{ d.id }}" {% if filtro_disciplina == d.id %}selected{% endif %}>
@@ -91,12 +96,12 @@
                 </div>
 
                 <div class="col-md-auto">
-                    <input type="date" name="data" class="form-control border-0 shadow-sm" value="{{ filtro_data|default:'' }}" onchange="this.form.submit()">
+                    <input type="date" name="data" class="form-control border-0 shadow-sm" value="{{ filtro_data|default:'' }}" onchange="this.form.submit()" data-bs-toggle="tooltip" title="Filtrar por data exata">
                 </div>
 
                 {% if filtro_turma or filtro_disciplina or filtro_data %}
                 <div class="col-md-auto ms-auto">
-                    <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
+                    <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="tooltip" title="Remover todos os filtros">
                         <i class="bi bi-x-circle me-1"></i> Limpar
                     </a>
                 </div>
@@ -136,48 +141,48 @@
                             </td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a href="{% url 'dashboard' %}?avaliacao={{ av.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Ver Resultados">
+                                    <a href="{% url 'dashboard' %}?avaliacao={{ av.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="tooltip" title="Ver painel de notas desta prova">
                                         <i class="bi bi-bar-chart-fill me-1"></i> Painel
                                     </a>
 
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-light border rounded-pill px-3 dropdown-toggle fw-bold text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">
+                                        <button class="btn btn-sm btn-light border rounded-pill px-3 dropdown-toggle fw-bold text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport" data-bs-toggle="tooltip" title="Mais opções">
                                             <i class="bi bi-gear-fill me-1"></i> Gerenciar
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2" style="z-index: 1050;">
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Edição</h6></li>
                                             <li>
-                                                <a class="dropdown-item rounded-2" href="{% url 'editar_avaliacao' av.id %}">
+                                                <a class="dropdown-item rounded-2 py-2" href="{% url 'editar_avaliacao' av.id %}">
                                                     <i class="bi bi-pencil-square me-2 text-primary"></i> Editar Prova
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item rounded-2" href="{% url 'definir_gabarito' av.id %}">
+                                                <a class="dropdown-item rounded-2 py-2" href="{% url 'definir_gabarito' av.id %}">
                                                     <i class="bi bi-key-fill me-2 text-warning"></i> Definir Gabarito
                                                 </a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Análise</h6></li>
                                             <li>
-                                                <a class="dropdown-item rounded-2" href="{% url 'mapa_calor' av.id %}">
+                                                <a class="dropdown-item rounded-2 py-2" href="{% url 'mapa_calor' av.id %}">
                                                     <i class="bi bi-grid-3x3-gap-fill me-2 text-danger"></i> Mapa de Calor
                                                 </a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Impressão</h6></li>
                                             <li>
-                                                <a class="dropdown-item rounded-2" href="{% url 'baixar_prova_existente' av.id %}">
-                                                    <i class="bi bi-file-earmark-pdf-fill me-2 text-dark"></i> Baixar Prova
+                                                <a class="dropdown-item rounded-2 py-2" href="{% url 'baixar_prova_existente' av.id %}">
+                                                    <i class="bi bi-file-earmark-pdf-fill me-2 text-dark"></i> Baixar Prova PDF
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item rounded-2" href="{% url 'gerar_cartoes_pdf' av.id %}">
+                                                <a class="dropdown-item rounded-2 py-2" href="{% url 'gerar_cartoes_pdf' av.id %}">
                                                     <i class="bi bi-ticket-perforated-fill me-2 text-success"></i> Cartões Resposta
                                                 </a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
-                                                <button class="dropdown-item rounded-2 text-danger fw-bold" type="button" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ av.id }}">
+                                                <button class="dropdown-item rounded-2 py-2 text-danger fw-bold hover-danger" type="button" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ av.id }}">
                                                     <i class="bi bi-trash-fill me-2"></i> Excluir
                                                 </button>
                                             </li>
@@ -204,24 +209,24 @@
 {% for av in avaliacoes %}
 <div class="modal fade" id="modalExcluir{{ av.id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-danger text-white border-0">
                 <h5 class="modal-title fw-bold">Confirmar Exclusão</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center py-4">
+            <div class="modal-body text-center py-5">
                 <div class="mb-3">
-                    <i class="bi bi-exclamation-octagon text-danger display-1"></i>
+                    <i class="bi bi-exclamation-octagon text-danger pulse-warning" style="font-size: 4rem;"></i>
                 </div>
-                <p class="mb-1 fs-5">Deseja apagar a prova <strong>"{{ av.titulo }}"</strong>?</p>
-                <p class="text-danger small fw-bold mb-0">ISSO APAGARÁ TODAS AS NOTAS LANÇADAS!</p>
+                <p class="mb-2 fs-5">Deseja apagar a prova <br><strong class="text-danger fs-4">{{ av.titulo }}</strong>?</p>
+                <p class="text-muted small fw-bold mb-0 bg-light p-2 rounded">Essa ação destruirá todas as notas lançadas e não pode ser desfeita!</p>
             </div>
-            <div class="modal-footer justify-content-center bg-light border-0">
+            <div class="modal-footer justify-content-center bg-light border-0 rounded-bottom-4 py-3">
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="delete_id" value="{{ av.id }}">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger px-4 fw-bold">Sim, Excluir</button>
+                    <button type="button" class="btn btn-secondary px-4 fw-bold rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger px-4 fw-bold rounded-pill">Sim, Excluir Definitivamente</button>
                 </form>
             </div>
         </div>
@@ -231,32 +236,32 @@
 
 <div class="modal fade" id="modalGerarInteligente" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <form method="post" action="{% url 'gerar_prova_pdf' %}" class="modal-content border-0 shadow-lg">
+        <form method="post" action="{% url 'gerar_prova_pdf' %}" class="modal-content border-0 shadow-lg rounded-4">
             {% csrf_token %}
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-primary text-white border-0">
                 <h5 class="modal-title fw-bold"><i class="bi bi-magic me-2"></i>Gerador Inteligente</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             
             <div class="modal-body bg-light p-4">
-                <div class="alert alert-primary border-0 small mb-4 shadow-sm">
-                    <div class="d-flex">
+                <div class="alert alert-primary border-0 small mb-4 shadow-sm rounded-3">
+                    <div class="d-flex align-items-center">
                         <i class="bi bi-info-circle-fill fs-4 me-3"></i>
                         <div>
-                            <strong>Automação:</strong> Selecione "Escola Toda" ou "Série" para criar provas para todas as turmas de uma só vez.
+                            <strong>Automação Ativada:</strong> O sistema criará a prova focando nos descritores que os alunos possuem maior defasagem.
                         </div>
                     </div>
                 </div>
 
-                <div class="row g-3">
+                <div class="row g-4">
                     <div class="col-md-12">
                         <label class="form-label fw-bold small text-muted">TÍTULO DA PROVA</label>
-                        <input type="text" name="titulo" class="form-control form-control-lg" placeholder="Ex: Avaliação Diagnóstica 1" required>
+                        <input type="text" name="titulo" class="form-control form-control-lg border-0 shadow-sm" placeholder="Ex: Avaliação Diagnóstica 1" required data-bs-toggle="tooltip" title="Nome que aparecerá no boletim">
                     </div>
                     
                     <div class="col-md-6">
                         <label class="form-label fw-bold small text-muted">DISCIPLINA</label>
-                        <select name="disciplina" class="form-select" required>
+                        <select name="disciplina" class="form-select border-0 shadow-sm" required>
                             {% for d in disciplinas %}
                                 <option value="{{ d.id }}">{{ d.nome }}</option>
                             {% endfor %}
@@ -265,7 +270,7 @@
                     
                     <div class="col-md-6">
                         <label class="form-label fw-bold small text-muted">PÚBLICO ALVO</label>
-                        <select name="tipo_foco" class="form-select" id="selectFoco" onchange="toggleFiltros()">
+                        <select name="tipo_foco" class="form-select border-0 shadow-sm" id="selectFoco" onchange="toggleFiltros()">
                             <option value="turma">Turma Específica</option>
                             <option value="serie" class="fw-bold">★ Por Série (Todos os 1º Anos...)</option>
                             <option value="escola" class="fw-bold">★ Toda a Escola (Todas as Turmas)</option>
@@ -275,7 +280,7 @@
 
                     <div class="col-md-12" id="divTurma">
                         <label class="form-label fw-bold small text-muted">SELECIONE A TURMA</label>
-                        <select name="turma_id" class="form-select">
+                        <select name="turma_id" class="form-select border-0 shadow-sm">
                             <option value="">--- Selecione ---</option>
                             {% for t in turmas_ativas %}
                                 <option value="{{ t.id }}">{{ t.nome }}</option>
@@ -285,7 +290,7 @@
 
                     <div class="col-md-12 d-none" id="divSerie">
                         <label class="form-label fw-bold small text-muted">SELECIONE A SÉRIE</label>
-                        <select name="serie_alvo" class="form-select">
+                        <select name="serie_alvo" class="form-select border-0 shadow-sm">
                             <option value="1">1º Anos</option>
                             <option value="2">2º Anos</option>
                             <option value="3">3º Anos</option>
@@ -293,43 +298,45 @@
                     </div>
                     
                     <div class="col-md-12 d-none" id="divAluno">
-                        <label class="form-label fw-bold small text-muted">1. FILTRE A TURMA</label>
-                        <select id="filtroTurmaAluno" class="form-select mb-2" onchange="carregarAlunos(this.value)">
-                            <option value="">-- Selecione a Turma do Aluno --</option>
-                            {% for t in turmas_ativas %}
-                                <option value="{{ t.id }}">{{ t.nome }}</option>
-                            {% endfor %}
-                        </select>
-                        
-                        <label class="form-label fw-bold small text-muted mt-2">2. SELECIONE O ALUNO</label>
-                        <select name="aluno_id" id="selectAluno" class="form-select bg-white" disabled>
-                            <option value="">Aguardando seleção da turma...</option>
-                        </select>
+                        <div class="bg-white p-3 rounded-3 shadow-sm border border-light">
+                            <label class="form-label fw-bold small text-muted">1. FILTRE A TURMA</label>
+                            <select id="filtroTurmaAluno" class="form-select border-0 shadow-sm mb-3" onchange="carregarAlunos(this.value)">
+                                <option value="">-- Selecione a Turma do Aluno --</option>
+                                {% for t in turmas_ativas %}
+                                    <option value="{{ t.id }}">{{ t.nome }}</option>
+                                {% endfor %}
+                            </select>
+                            
+                            <label class="form-label fw-bold small text-muted">2. SELECIONE O ALUNO</label>
+                            <select name="aluno_id" id="selectAluno" class="form-select border-0 shadow-sm" disabled>
+                                <option value="">Aguardando seleção da turma...</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <hr class="my-4">
+                <hr class="my-4 text-muted">
 
-                <div class="row align-items-center bg-white p-3 rounded border shadow-sm">
+                <div class="row align-items-center bg-white p-3 rounded-4 border shadow-sm">
                     <div class="col-md-5 border-end">
                         <label class="form-label fw-bold small text-muted">QTD. QUESTÕES</label>
-                        <input type="number" name="qtd_questoes" class="form-control text-center fw-bold" value="10" min="1" max="50">
+                        <input type="number" name="qtd_questoes" class="form-control form-control-lg text-center fw-bold border-0 bg-light" value="10" min="1" max="50" data-bs-toggle="tooltip" title="Máximo de 50 questões no papel">
                     </div>
                     <div class="col-md-7 ps-4">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="salvar_sistema" id="checkSalvar" checked>
-                            <label class="form-check-label fw-bold text-dark" for="checkSalvar">Salvar no Sistema</label>
+                            <input class="form-check-input" style="width: 2.5em; height: 1.25em; cursor: pointer;" type="checkbox" name="salvar_sistema" id="checkSalvar" checked>
+                            <label class="form-check-label fw-bold text-dark ms-2 pt-1" for="checkSalvar" style="cursor: pointer;">Salvar no Sistema</label>
                         </div>
-                        <small class="text-muted d-block mt-1">Cria a prova e o gabarito automaticamente.</small>
+                        <small class="text-muted d-block mt-1">Cria a prova e vincula o gabarito automaticamente para leitura.</small>
                     </div>
                 </div>
 
             </div>
             
-            <div class="modal-footer bg-light border-top-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm hover-up">
-                    <i class="bi bi-wand-magic-sparkles me-2"></i>Gerar Prova
+            <div class="modal-footer bg-light border-top-0 rounded-bottom-4 py-3">
+                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm hover-up rounded-pill">
+                    <i class="bi bi-wand-magic-sparkles me-2"></i>Gerar Prova PDF
                 </button>
             </div>
         </form>
@@ -337,6 +344,17 @@
 </div>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function(){
+        // Ativa Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Força a leitura do Select ao carregar a página (Evita erro de tela)
+        toggleFiltros();
+    });
+
     function toggleFiltros() {
         const foco = document.getElementById('selectFoco').value;
         const divTurma = document.getElementById('divTurma');
@@ -346,7 +364,7 @@
         // Esconde tudo primeiro
         divTurma.classList.add('d-none');
         divAluno.classList.add('d-none');
-        if(divSerie) divSerie.classList.add('d-none'); // Proteção se divSerie não existir
+        if(divSerie) divSerie.classList.add('d-none'); 
         
         if (foco === 'turma') {
             divTurma.classList.remove('d-none');
@@ -355,12 +373,11 @@
         } else if (foco === 'serie') {
             if(divSerie) divSerie.classList.remove('d-none');
         }
-        // 'escola' não mostra nada extra
     }
 
     function carregarAlunos(turmaId) {
         const selectAluno = document.getElementById('selectAluno');
-        selectAluno.innerHTML = '<option>Carregando...</option>';
+        selectAluno.innerHTML = '<option>Buscando na base de dados...</option>';
         selectAluno.disabled = true;
 
         if (!turmaId) {
@@ -372,24 +389,37 @@
             .then(response => response.json())
             .then(data => {
                 if(data.length > 0) {
-                    selectAluno.innerHTML = '<option value="">Selecione o Aluno...</option>';
+                    selectAluno.innerHTML = '<option value="">--- Clique e selecione o Aluno ---</option>';
                     data.forEach(aluno => {
                         selectAluno.innerHTML += `<option value="${aluno.id}">${aluno.nome}</option>`;
                     });
                     selectAluno.disabled = false;
                 } else {
-                    selectAluno.innerHTML = '<option>Nenhum aluno nesta turma.</option>';
+                    selectAluno.innerHTML = '<option>Turma vazia ou sem alunos cursando.</option>';
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                selectAluno.innerHTML = '<option>Erro ao carregar</option>';
+                selectAluno.innerHTML = '<option>Erro de conexão ao carregar alunos</option>';
             });
     }
 </script>
 
 <style>
+    .transition-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+    .transition-hover:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; z-index: 10; }
     .hover-up:hover { transform: translateY(-2px); transition: transform 0.2s; }
+    .hover-danger:hover { background-color: #f8d7da !important; color: #842029 !important; }
+    
+    @keyframes pulse-red {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.15); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .pulse-warning {
+        display: inline-block;
+        animation: pulse-red 1.5s infinite;
+    }
 </style>
 
 {% endblock %}

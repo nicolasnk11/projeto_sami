@@ -3,267 +3,343 @@
 {% block content %}
 <div class="container-fluid py-4">
 
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill text-primary me-2"></i>Gestão de Alunos</h4>
-            <p class="text-muted small mb-0">Gerencie matrículas e visualize o histórico individual.</p>
+    <div class="d-flex justify-content-between align-items-end mb-5">
+        <div>
+            <h6 class="text-uppercase text-muted fw-bold small mb-1">Painel do Docente</h6>
+            <h2 class="fw-bold text-sami-dark mb-0">
+                Olá, <span class="text-sami-gold">{{ nome_professor }}</span>! 👋
+            </h2>
+            <p class="text-muted mt-2 mb-0">Aqui está o resumo das suas atividades hoje.</p>
         </div>
-        <div class="col-md-6 text-end">
-            <a href="{% url 'importar_alunos' %}" class="btn btn-outline-success btn-sm shadow-sm">
-                <i class="bi bi-file-earmark-spreadsheet"></i> Importar em Massa
-            </a>
-            <button type="button" class="btn btn-primary btn-sm shadow-sm ms-2" data-bs-toggle="modal" data-bs-target="#modalNovoAluno">
-                <i class="bi bi-plus-lg"></i> Novo Aluno
-            </button>
+        <div class="text-end d-none d-md-block">
+            <div class="h1 fw-bold text-sami-dark mb-0">{{ hoje|date:"d" }}</div>
+            <div class="text-uppercase text-sami-gold fw-bold">{{ hoje|date:"F, Y" }}</div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4 rounded-4">
-        <div class="card-body py-3">
-            <form method="get" class="row g-2 align-items-center">
-                
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="busca" class="form-control border-start-0 ps-0" placeholder="Buscar aluno por nome..." value="{{ busca_atual|default:'' }}">
+    <div class="row g-3 mb-5">
+        
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'gerenciar_avaliacoes' %}" class="card border-0 shadow-sm h-100 bg-sami-dark text-white text-decoration-none card-hover position-relative overflow-hidden">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-white bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-file-earmark-plus-fill fs-4 text-sami-gold"></i>
                     </div>
+                    <h5 class="fw-bold">Avaliações</h5>
+                    <p class="text-white-50 small mb-0">Criar provas e gerenciar as antigas.</p>
                 </div>
+                <i class="bi bi-file-earmark-plus position-absolute text-white opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
+            </a>
+        </div>
 
-                <div class="col-md-2">
-                    <select name="serie" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">🏫 Série Geral</option>
-                        <option value="1" {% if serie_selecionada == "1" %}selected{% endif %}>1º Anos (Todos)</option>
-                        <option value="2" {% if serie_selecionada == "2" %}selected{% endif %}>2º Anos (Todos)</option>
-                        <option value="3" {% if serie_selecionada == "3" %}selected{% endif %}>3º Anos (Todos)</option>
-                    </select>
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'painel_gestao' %}" class="card border-0 shadow-sm h-100 bg-sami-green text-white text-decoration-none card-hover position-relative overflow-hidden">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-white bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-collection-fill fs-4 text-white"></i>
+                    </div>
+                    <h5 class="fw-bold">Matriz e Questões</h5>
+                    <p class="text-white-50 small mb-0">Acessar banco de questões ou criar próprias.</p>
                 </div>
+                <i class="bi bi-collection position-absolute text-white opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
+            </a>
+        </div>
 
-                <div class="col-md-2">
-                    <select name="turma" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">👥 Turma Específica</option>
-                        {% for t in turmas %}
-                            <option value="{{ t.id }}" {% if turma_selecionada == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>
-                        {% endfor %}
-                    </select>
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'lancar_nota' %}" class="card border-0 shadow-sm h-100 bg-sami-gold text-sami-dark text-decoration-none card-hover position-relative overflow-hidden">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-white bg-opacity-50 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-qr-code-scan fs-4 text-sami-dark"></i>
+                    </div>
+                    <h5 class="fw-bold">Scanner</h5>
+                    <p class="text-sami-dark opacity-75 small mb-0">Corrigir cartões via câmera ou lançar notas.</p>
                 </div>
+                <i class="bi bi-qr-code position-absolute text-sami-dark opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
+            </a>
+        </div>
 
-                <div class="col-md-2">
-                    <select name="ordem" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="nome" {% if ordem_atual == "nome" %}selected{% endif %}>🔤 Nome (A-Z)</option>
-                        <option value="melhores" {% if ordem_atual == "melhores" %}selected{% endif %}>🏆 Melhores Notas</option>
-                        <option value="criticos" {% if ordem_atual == "criticos" %}selected{% endif %}>🚨 Menores Notas</option>
-                    </select>
+        <div class="col-sm-6 col-xl-3">
+            <a href="{% url 'dashboard' %}" class="card border-0 shadow-sm h-100 bg-white text-sami-dark text-decoration-none card-hover position-relative overflow-hidden border-bottom border-sami-dark border-4">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="icon-box bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;">
+                        <i class="bi bi-bar-chart-line-fill fs-4 text-sami-green"></i>
+                    </div>
+                    <h5 class="fw-bold text-sami-dark">Estatísticas</h5>
+                    <p class="text-muted small mb-0">Relatórios e mapa de calor das turmas.</p>
                 </div>
-
-                <div class="col-md-2">
-                    <a href="{% url 'gerenciar_alunos' %}" class="btn btn-outline-secondary btn-sm w-100">Limpar</a>
-                </div>
-            </form>
+                <div class="position-absolute bg-sami-gold opacity-10 rounded-circle" style="width: 150px; height: 150px; right: -40px; top: -40px;"></div>
+            </a>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-        <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4">Aluno</th>
-                        <th>Turma</th>
-                        <th>Média Geral</th>
-                        <th>Situação</th>
-                        <th class="text-end pe-4">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for mat in matriculas %}
-                    <tr>
-                        <td class="ps-4">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold me-3 border" style="width: 40px; height: 40px;">
-                                    {{ mat.aluno.nome_completo|slice:":1" }}
-                                </div>
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-sami-gold border-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-sami-dark mb-0"><i class="bi bi-exclamation-triangle-fill text-sami-gold me-2"></i>Avisos e Pendências</h5>
+                </div>
+                <div class="card-body">
+                    {% if provas_pendentes %}
+                        <p class="text-muted small mb-3">Você tem provas aplicadas sem notas lançadas:</p>
+                        <div class="list-group list-group-flush">
+                            {% for pendencia in provas_pendentes %}
+                            <div class="list-group-item px-0 py-3 border-light d-flex justify-content-between align-items-center transition-hover">
                                 <div>
-                                    <h6 class="mb-0 fw-bold text-dark small text-uppercase">{{ mat.aluno.nome_completo }}</h6>
-                                    <small class="text-muted cursor-pointer" style="font-size: 11px;" 
-                                           onclick="preencherModalEditar('{{ mat.id }}', '{{ mat.aluno.nome_completo }}', '{{ mat.turma.id }}', '{{ mat.status }}')">
-                                           <i class="bi bi-pencil-square"></i> Editar Rápido
-                                    </small>
+                                    <div class="fw-bold text-sami-dark">{{ pendencia.titulo }}</div>
+                                    <small class="text-muted">{{ pendencia.turma.nome }} | <i class="bi bi-calendar-event"></i> {{ pendencia.data_aplicacao|date:"d/m/Y" }}</small>
+                                </div>
+                                <a href="{% url 'lancar_nota' %}?avaliacao_id={{ pendencia.id }}" class="btn btn-sm btn-sami-gold rounded-pill px-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Lançar notas desta prova">
+                                    Corrigir
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-check-circle-fill text-success fs-2"></i>
+                            </div>
+                            <p class="text-dark mt-2 fw-bold mb-1">Tudo em dia!</p>
+                            <small class="text-muted">Nenhuma prova pendente de correção.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-danger border-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-sami-dark mb-0">
+                        <i class="bi bi-radar text-danger me-2 {% if alunos_alerta %}radar-pulse{% endif %}"></i>Radar de Atenção
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if alunos_alerta %}
+                        <p class="text-muted small mb-3">Alunos das suas turmas com desempenho crítico (Média < 6):</p>
+                        <div class="table-responsive custom-scrollbar">
+                            <table class="table table-borderless align-middle mb-0">
+                                <tbody>
+                                    {% for alerta in alunos_alerta %}
+                                    <tr class="border-bottom border-light transition-hover">
+                                        <td class="ps-0 py-2">
+                                            <div class="fw-bold text-sami-dark">{{ alerta.aluno.nome_completo|truncatechars:25 }}</div>
+                                            <small class="text-muted"><i class="bi bi-people me-1"></i>{{ alerta.turma.nome }}</small>
+                                        </td>
+                                        <td class="text-end pe-0 py-2">
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-2" style="font-size: 0.85rem;">
+                                                Média: {{ alerta.media_geral|default_if_none:"0"|floatformat:1 }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-emoji-sunglasses-fill text-success fs-2"></i>
+                            </div>
+                            <p class="text-dark mt-2 fw-bold mb-1">Turma voando!</p>
+                            <small class="text-muted">Nenhum aluno em estado crítico.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-sami-dark mb-0"><i class="bi bi-people-fill me-2 text-sami-green"></i>Minhas Turmas</h5>
+            </div>
+            
+            <div class="row g-3">
+                {% for turma in turmas %}
+                <div class="col-md-6" style="z-index: {{ forloop.revcounter }}; position: relative;">
+                    <div class="card border-0 shadow-sm h-100 rounded-4 border-start border-sami-green border-4 transition-hover">
+                        <div class="card-body d-flex align-items-center justify-content-between p-3">
+                            
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-turma bg-sami-green bg-opacity-10 text-sami-green fw-bold rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; font-size: 1rem; border: 1px solid rgba(17, 66, 43, 0.2);">
+                                    {{ turma.nome|slice:":2" }}
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="fw-bold mb-0 text-sami-dark">{{ turma.nome }}</h6>
+                                    <small class="text-muted">{{ turma.qtd_alunos }} alunos</small>
                                 </div>
                             </div>
-                        </td>
-                        <td><span class="badge bg-white text-dark border">{{ mat.turma.nome }}</span></td>
-                        <td>
-                            {% if mat.media_geral %}
-                                <span class="fw-bold {% if mat.media_geral >= 70 %}text-success{% elif mat.media_geral >= 50 %}text-warning{% else %}text-danger{% endif %}">
-                                    {{ mat.media_geral|floatformat:1 }}%
-                                </span>
-                            {% else %}
-                                <span class="text-muted small">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if mat.media_geral %}
-                                {% if mat.media_geral >= 70 %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Adequado</span>
-                                {% elif mat.media_geral >= 50 %}
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">Atenção</span>
-                                {% else %}
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Crítico</span>
-                                {% endif %}
-                            {% else %}
-                                <span class="badge bg-light text-muted border rounded-pill">Sem notas</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end pe-4">
+                            
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-light border shadow-sm" type="button" data-bs-toggle="dropdown">
+                                <button class="btn btn-sm btn-light border-0 shadow-none text-sami-green rounded-circle" style="width: 35px; height: 35px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{% url 'dashboard' %}?aluno={{ mat.aluno.id }}"><i class="bi bi-bar-chart me-2"></i>Ver Desempenho</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 rounded-3">
+                                    <li><a class="dropdown-item py-2 text-sami-dark fw-medium" href="{% url 'gerenciar_alunos' %}?turma={{ turma.id }}"><i class="bi bi-person me-2 text-sami-gold"></i>Ver Alunos</a></li>
+                                    <li><a class="dropdown-item py-2 text-sami-dark fw-medium" href="{% url 'gerenciar_ndi' %}?turma={{ turma.id }}"><i class="bi bi-journal-check me-2 text-sami-gold"></i>Diário (NDI)</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <button class="dropdown-item text-danger" onclick="confirmarExclusao('{{ mat.id }}')">
-                                            <i class="bi bi-trash me-2"></i>Excluir
-                                        </button>
-                                    </li>
+                                    <li><a class="dropdown-item py-2 text-sami-dark fw-medium" href="{% url 'plano_anual' %}?turma={{ turma.id }}"><i class="bi bi-calendar3 me-2 text-sami-gold"></i>Plano Anual</a></li>
                                 </ul>
                             </div>
-                        </td>
-                    </tr>
+
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted py-5 bg-white rounded-4 shadow-sm border border-light">
+                    <i class="bi bi-inbox fs-1 mb-2 d-block opacity-50"></i>
+                    Você ainda não possui turmas atribuídas para este ano.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <h5 class="fw-bold text-sami-dark mb-3"><i class="bi bi-clock-history me-2 text-sami-green"></i>Últimas Provas</h5>
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="list-group list-group-flush rounded-4">
+                    {% for prova in provas_recentes %}
+                    <div class="list-group-item border-light py-3 px-4 d-flex align-items-center justify-content-between transition-hover">
+                        <div class="overflow-hidden me-3">
+                            <div class="fw-bold text-sami-dark text-truncate" title="{{ prova.titulo }}">{{ prova.titulo }}</div>
+                            <div class="small text-muted mt-1">
+                                <span class="badge bg-sami-dark bg-opacity-10 text-sami-dark border-0 me-1">{{ prova.turma.nome }}</span>
+                                {{ prova.data_aplicacao|date:"d/m" }}
+                            </div>
+                        </div>
+                        <a href="{% url 'lancar_nota' %}?avaliacao_id={{ prova.id }}" class="btn btn-sm btn-outline-sami-green rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;" data-bs-toggle="tooltip" data-bs-placement="left" title="Corrigir no Scanner">
+                            <i class="bi bi-qr-code"></i>
+                        </a>
+                    </div>
                     {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="bi bi-emoji-frown fs-1 d-block mb-3 opacity-25"></i>
-                            <p>Nenhum aluno encontrado.</p>
-                        </td>
-                    </tr>
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-journal-x fs-2 opacity-50 mb-2 d-block"></i>
+                        Nenhuma prova recente.
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        {% if matriculas.has_other_pages %}
-        <div class="card-footer bg-white py-3">
-            <nav>
-                <ul class="pagination justify-content-center mb-0 pagination-sm">
-                    {% if matriculas.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ matriculas.previous_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Anterior</a></li>
-                    {% endif %}
-                    <li class="page-item disabled"><span class="page-link text-dark fw-bold">{{ matriculas.number }}</span></li>
-                    {% if matriculas.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ matriculas.next_page_number }}&busca={{ busca_atual }}&turma={{ turma_selecionada }}&serie={{ serie_selecionada }}&ordem={{ ordem_atual }}">Próxima</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<div class="modal fade" id="modalNovoAluno" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow rounded-4">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Novo Aluno</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                {% if provas_recentes %}
+                <div class="card-footer bg-light border-0 text-center py-3 rounded-bottom-4">
+                    <a href="{% url 'gerenciar_avaliacoes' %}" class="text-decoration-none fw-bold small text-sami-green hover-underline">Ver histórico completo <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+                {% endif %}
             </div>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="acao" value="criar">
-                <div class="modal-body bg-light p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">Nome Completo</label>
-                        <input type="text" name="nome" class="form-control" placeholder="Ex: João da Silva" required>
+
+            <a href="{% url 'central_ajuda' %}" class="card border-0 shadow-sm rounded-4 bg-sami-dark text-decoration-none card-hover">
+                <div class="card-body d-flex align-items-center p-3">
+                    <div class="bg-sami-gold rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="bi bi-question-circle-fill text-sami-dark fs-4"></i>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">Turma</label>
-                        <select name="turma" class="form-select" required>
-                            <option value="">Selecione...</option>
-                            {% for t in turmas %}
-                                <option value="{{ t.id }}">{{ t.nome }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="ms-3">
+                        <h6 class="fw-bold text-white mb-0">Central de Ajuda</h6>
+                        <small class="text-white-50">Tutoriais e manuais do SAMI</small>
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary fw-bold px-4">Salvar</button>
-                </div>
-            </form>
+            </a>
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="modalEditarAluno" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow rounded-4">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Aluno</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="acao" value="editar">
-                <input type="hidden" name="matricula_id" id="edit_id">
-                
-                <div class="modal-body bg-light p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">Nome Completo</label>
-                        <input type="text" name="nome" id="edit_nome" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">Turma</label>
-                        <select name="turma" id="edit_turma" class="form-select" required>
-                            {% for t in turmas %}
-                                <option value="{{ t.id }}">{{ t.nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">Status</label>
-                        <select name="status" id="edit_status" class="form-select">
-                            <option value="CURSANDO">Cursando</option>
-                            <option value="APROVADO">Aprovado</option>
-                            <option value="REPROVADO">Reprovado</option>
-                            <option value="TRANSFERIDO">Transferido</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer bg-white border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning fw-bold px-4">Salvar Alterações</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<form id="formExcluir" method="post" style="display: none;">
-    {% csrf_token %}
-    <input type="hidden" name="acao" value="excluir">
-    <input type="hidden" name="matricula_id" id="delete_id">
-</form>
 
 <script>
-    // Função para abrir o modal de edição já preenchido
-    function preencherModalEditar(id, nome, turmaId, status) {
-        document.getElementById('edit_id').value = id;
-        document.getElementById('edit_nome').value = nome;
-        document.getElementById('edit_turma').value = turmaId;
-        document.getElementById('edit_status').value = status;
-        
-        var myModal = new bootstrap.Modal(document.getElementById('modalEditarAluno'));
-        myModal.show();
-    }
-
-    // Função para confirmar exclusão
-    function confirmarExclusao(id) {
-        if(confirm("Tem certeza? Isso apagará o aluno e todas as notas dele.")) {
-            document.getElementById('delete_id').value = id;
-            document.getElementById('formExcluir').submit();
-        }
-    }
+    document.addEventListener("DOMContentLoaded", function(){
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
 </script>
 
+<style>
+    :root {
+        /* Paleta Oficial do Sistema */
+        --sami-dark: #0A2619;     /* Verde Escuro Principal */
+        --sami-green: #11422b;    /* Verde Secundário (Apoio) */
+        --sami-gold: #D4AF37;     /* Dourado Oficial */
+        --sami-gold-hover: #b8972e;
+    }
+
+    /* Classes Utilitárias */
+    .bg-sami-dark { background-color: var(--sami-dark) !important; }
+    .text-sami-dark { color: var(--sami-dark) !important; }
+    
+    .bg-sami-green { background-color: var(--sami-green) !important; }
+    .text-sami-green { color: var(--sami-green) !important; }
+    
+    .bg-sami-gold { background-color: var(--sami-gold) !important; }
+    .text-sami-gold { color: var(--sami-gold) !important; }
+
+    .border-sami-dark { border-color: var(--sami-dark) !important; }
+    .border-sami-green { border-color: var(--sami-green) !important; }
+    .border-sami-gold { border-color: var(--sami-gold) !important; }
+
+    /* Botão Dourado Personalizado */
+    .btn-sami-gold {
+        background-color: var(--sami-gold);
+        color: var(--sami-dark);
+        font-weight: bold;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-sami-gold:hover {
+        background-color: var(--sami-gold-hover);
+        color: var(--sami-dark);
+    }
+
+    /* Botão Verde Vazado Personalizado */
+    .btn-outline-sami-green {
+        color: var(--sami-dark);
+        border-color: var(--sami-dark);
+        background-color: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-sami-green:hover {
+        color: white;
+        background-color: var(--sami-dark);
+        border-color: var(--sami-dark);
+    }
+
+    /* Efeito Suave nos Cards Superiores */
+    .card-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 .5rem 1rem rgba(10, 38, 25, 0.15) !important;
+    }
+    
+    /* Efeito de Hover nas linhas da tabela e listas */
+    .transition-hover {
+        transition: background-color 0.2s, padding-left 0.2s;
+    }
+    .transition-hover:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Animação do Radar de Atenção */
+    @keyframes pulse-danger {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .radar-pulse {
+        display: inline-block;
+        animation: pulse-danger 1.5s infinite;
+    }
+
+    /* Customização da Barra de Rolagem Interna */
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #dee2e6; border-radius: 4px; }
+
+    .avatar-turma {
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: -1px;
+    }
+    
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+</style>
 {% endblock %}
