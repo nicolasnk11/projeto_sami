@@ -3,154 +3,163 @@
 {% block content %}
 <div class="container-fluid py-4">
     
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div>
-            <h4 class="fw-bold mb-1" style="color: var(--primary-bg);"><i class="bi bi-calculator-fill me-2"></i>Lançamento de NDI</h4>
-            <p class="text-muted mb-0 small">
-                Preencha todos os campos. Use as setas <i class="bi bi-arrows-move"></i> para navegar.
-            </p>
+    {% now "Y" as ano_atual %}
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="javascript:history.back()" class="btn btn-light border border-secondary border-opacity-25 rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center transition-hover" style="width: 45px; height: 45px;" data-bs-toggle="tooltip" data-bs-placement="right" title="Voltar ao Painel">
+                <i class="bi bi-arrow-left fs-5 text-dark"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-calculator-fill me-2" style="color: #0A2619;"></i>Lançamento de NDI</h4>
+                <p class="text-secondary fw-medium mb-0 small">
+                    Preencha todos os campos. Use as setas <i class="bi bi-arrows-move"></i> para navegar rápido.
+                </p>
+            </div>
         </div>
         
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2 w-100 w-md-auto">
             {% if turma_selecionada %}
-            <a href="{% url 'relatorio_ndi_print' turma_selecionada.id bimestre_atual %}" target="_blank" class="btn btn-outline-secondary border-0 shadow-sm fw-bold hover-scale">
-                <i class="bi bi-printer-fill me-2"></i> Relatório
+            <a href="{% url 'relatorio_ndi_print' turma_selecionada.id bimestre_atual %}" target="_blank" class="btn btn-light border border-secondary border-opacity-50 shadow-sm fw-bold text-dark transition-hover w-100 w-sm-auto">
+                <i class="bi bi-printer-fill me-2 text-secondary"></i> Imprimir Relatório
             </a>
             {% endif %}
             
-            <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-sm d-flex align-items-center">
-                <i class="bi bi-calendar-event me-1"></i> Ano: 2026
+            <span class="badge bg-white text-dark border border-secondary border-opacity-25 px-3 py-2 rounded-pill shadow-sm d-flex align-items-center w-100 w-sm-auto justify-content-center" style="font-size: 0.9rem;">
+                <i class="bi bi-calendar-event me-2 text-secondary"></i> Ano Letivo: {{ ano_atual }}
             </span>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-4 bg-white rounded-4">
+    <div class="card border border-secondary border-opacity-25 shadow-sm mb-4 bg-white rounded-4">
         <div class="card-body p-4">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-5">
-                    <label class="fw-bold small text-muted text-uppercase mb-1">Turma</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-people-fill text-primary"></i></span>
-                        <select name="turma" class="form-select border-0 bg-light fw-bold py-2" onchange="this.form.submit()">
-                            <option value="">-- Selecione --</option>
-                            {% for t in turmas_ativas %}
-                            <option value="{{ t.id }}" {% if turma_selecionada.id == t.id %}selected{% endif %}>{{ t.nome }}</option>
+                    <label class="fw-bold small text-secondary text-uppercase mb-1">Turma Ativa</label>
+                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-light border-secondary border-opacity-25 border-end-0"><i class="bi bi-people-fill text-dark"></i></span>
+                        <select name="turma" class="form-select border-secondary border-opacity-25 border-start-0 bg-light fw-bold text-dark py-2" onchange="this.form.submit()">
+                            <option value="">-- Selecione a Turma --</option>
+                            {% for t in turmas %}
+                                {% if t.ano_letivo|stringformat:"s" == ano_atual %}
+                                    <option value="{{ t.id }}" {% if turma_selecionada.id == t.id %}selected{% endif %}>{{ t.nome }}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <label class="fw-bold small text-muted text-uppercase mb-1">Bimestre</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-range text-primary"></i></span>
-                        <select name="bimestre" class="form-select border-0 bg-light fw-bold py-2" onchange="this.form.submit()">
+                    <label class="fw-bold small text-secondary text-uppercase mb-1">Bimestre</label>
+                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-light border-secondary border-opacity-25 border-end-0"><i class="bi bi-calendar-range text-dark"></i></span>
+                        <select name="bimestre" class="form-select border-secondary border-opacity-25 border-start-0 bg-light fw-bold text-dark py-2" onchange="this.form.submit()">
                             {% for b in bimestres_opts %}
                             <option value="{{ b }}" {% if bimestre_atual == b %}selected{% endif %}>{{ b }}º Bimestre</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4 text-end">
+                <div class="col-md-4 text-start text-md-end pt-3 pt-md-0">
                     {% if turma_selecionada %}
-                    <span class="text-muted small">Alunos listados: <strong>{{ alunos_data|length }}</strong></span>
+                    <span class="text-secondary fw-medium small border rounded-pill px-3 py-2 bg-light shadow-sm">
+                        Alunos na pauta: <strong class="text-dark">{{ alunos_data|length }}</strong>
+                    </span>
                     {% endif %}
                 </div>
             </form>
         </div>
     </div>
 
+    <div id="alertaValidacao" class="alert alert-danger d-none border-0 shadow-sm rounded-3 fw-bold d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+        <div>
+            Existem alunos com notas incompletas! Se você começou a lançar a nota de um aluno, preencha todos os campos. As pendências estão marcadas em vermelho.
+        </div>
+    </div>
+
     {% if turma_selecionada %}
     <form method="post" id="formNotas" onsubmit="return validarFormulario()">
         {% csrf_token %}
-        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card border border-secondary border-opacity-25 shadow-lg rounded-4 overflow-hidden border-top border-4" style="border-color: #0A2619 !important;">
             <div class="table-responsive custom-scrollbar" style="max-height: 65vh;">
                 <table class="table table-hover align-middle mb-0 text-center" style="border-collapse: separate; border-spacing: 0;">
                     <thead class="sticky-top bg-white shadow-sm" style="z-index: 10;">
                         <tr>
-                            <th class="text-start ps-4 py-3 bg-white sticky-col" style="min-width: 280px; left: 0; z-index: 20;">ALUNO</th>
-                            <th colspan="3" class="text-primary bg-primary bg-opacity-10 py-1 small fw-bold border-bottom border-primary">CONTÍNUA</th>
-                            <th class="bg-white border-bottom" style="width: 10px;"></th>
-                            <th colspan="2" class="text-purple bg-purple bg-opacity-10 py-1 small fw-bold border-bottom border-purple">PROVAS</th>
-                            <th class="bg-success text-white py-3" style="min-width: 100px; border-top-left-radius: 10px;">MÉDIA</th>
+                            <th class="text-start ps-4 py-3 bg-white sticky-col border-bottom" style="min-width: 280px; left: 0; z-index: 20;">ALUNO</th>
+                            <th colspan="3" class="text-dark bg-light py-2 small fw-bold border-bottom border-end border-secondary border-opacity-25">CONTÍNUA</th>
+                            <th colspan="2" class="text-dark bg-white py-2 small fw-bold border-bottom border-end border-secondary border-opacity-25" style="background-color: #fcfcfc !important;">PROVAS</th>
+                            <th class="text-white py-3 border-bottom" style="min-width: 100px; background-color: #0A2619;">MÉDIA FINAL</th>
                         </tr>
                         <tr>
-                            <th class="bg-white sticky-col border-bottom" style="left:0; top: 28px; z-index: 20;"></th> 
-                            <th class="small text-muted bg-light border-bottom" style="width: 80px;" title="Frequência">FREQ.</th>
-                            <th class="small text-muted bg-light border-bottom" style="width: 80px;" title="Atividade">ATIV.</th>
-                            <th class="small text-muted bg-light border-bottom" style="width: 80px;" title="Comportamento">COMP.</th>
+                            <th class="bg-white sticky-col border-bottom border-secondary border-opacity-25" style="left:0; top: 40px; z-index: 20;"></th> 
                             
-                            <th class="bg-primary text-white small fw-bold border-bottom" style="width: 90px; border-radius: 8px 8px 0 0;">PARCIAL</th>
+                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold" style="width: 80px;" title="Frequência">FREQ.</th>
+                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold" style="width: 80px;" title="Atividade">ATIV.</th>
+                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold border-end" style="width: 80px;" title="Comportamento">COMP.</th>
                             
-                            <th class="small text-muted bg-light border-bottom" style="width: 90px;" title="Prova Parcial">AV. PARC.</th>
-                            <th class="small text-muted bg-light border-bottom" style="width: 90px;" title="Prova Bimestral">AV. BIMEST.</th>
+                            <th class="small text-dark border-bottom border-secondary border-opacity-25 fw-bold" style="width: 90px; background-color: #fcfcfc !important;" title="Prova Parcial">AV. PARC.</th>
+                            <th class="small text-dark border-bottom border-secondary border-opacity-25 fw-bold border-end" style="width: 90px; background-color: #fcfcfc !important;" title="Prova Bimestral">AV. BIMEST.</th>
                             
-                            <th class="bg-success bg-opacity-75 text-white small border-bottom">NDI FINAL</th>
+                            <th class="text-white small border-bottom" style="background-color: #11422b;">NDI FINAL</th>
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
                         {% for item in alunos_data %}
-                        <tr class="aluno-row" id="row-{{ item.obj.id }}">
-                            <td class="text-start ps-4 fw-bold text-dark sticky-col bg-white border-end shadow-sm-right" style="left: 0;">
+                        <tr class="aluno-row transition-hover-row" id="row-{{ item.obj.id }}">
+                            <td class="text-start ps-4 fw-bold text-dark sticky-col bg-white border-end border-secondary border-opacity-25 shadow-sm-right" style="left: 0;">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" 
-                                         style="width: 38px; height: 38px; min-width: 38px; 
-                                                background-color: var(--accent-color); color: var(--primary-bg); 
-                                                font-size: 1rem; border: 2px solid white;">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" 
+                                         style="width: 38px; height: 38px; min-width: 38px; background-color: #f8f9fa; color: #0A2619; border: 1px solid #dee2e6;">
                                         {{ item.obj.aluno.nome_completo|slice:":1" }}
                                     </div>
                                     <div class="d-flex flex-column" style="line-height: 1.2;">
-                                        <span class="text-truncate" style="max-width: 220px;">
+                                        <span class="text-truncate text-dark" style="max-width: 220px;">
                                             {{ item.obj.aluno.nome_completo }}
                                         </span>
-                                        <span class="text-muted" style="font-size: 0.7rem;">Mat: {{ item.obj.aluno.id }}</span>
+                                        <span class="text-secondary fw-medium" style="font-size: 0.75rem;">Mat: {{ item.obj.aluno.id }}</span>
                                     </div>
                                 </div>
                             </td>
                             
-                            <td class="bg-light bg-opacity-50">
+                            <td class="bg-light">
                                 <input type="number" step="0.1" min="0" max="10" name="freq_{{ item.obj.id }}" 
-                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input" placeholder="-"
+                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
                                        value="{{ item.ndi.nota_frequencia|default:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
-                            <td class="bg-light bg-opacity-50">
+                            <td class="bg-light">
                                 <input type="number" step="0.1" min="0" max="10" name="atv_{{ item.obj.id }}" 
-                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input" placeholder="-"
+                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
                                        value="{{ item.ndi.nota_atividade|default:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
-                            <td class="bg-light bg-opacity-50">
+                            <td class="bg-light border-end border-secondary border-opacity-25">
                                 <input type="number" step="0.1" min="0" max="10" name="comp_{{ item.obj.id }}" 
-                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input" placeholder="-"
+                                       class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
                                        value="{{ item.ndi.nota_comportamento|default:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
 
-                            <td class="bg-primary bg-opacity-10 fw-bold text-primary position-relative">
-                                <span id="res-parcial-{{ item.obj.id }}" class="fs-6">0.0</span>
-                                <div class="position-absolute top-0 start-0 h-100 border-end border-primary opacity-25"></div>
-                            </td>
-
                             <td class="bg-white">
                                 <input type="number" step="0.1" min="0" max="10" name="pp_{{ item.obj.id }}" 
-                                       class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners nav-input" placeholder="-"
+                                       class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
                                        value="{{ item.ndi.nota_prova_parcial|default:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
-                            <td class="bg-white">
+                            <td class="bg-white border-end border-secondary border-opacity-25">
                                 <input type="number" step="0.1" min="0" max="10" name="pb_{{ item.obj.id }}" 
-                                       class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners nav-input" placeholder="-"
+                                       class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
                                        value="{{ item.ndi.nota_prova_bimestral|default:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
 
-                            <td class="bg-success bg-opacity-10 fw-bold align-middle border-start border-success border-opacity-25">
-                                <span id="res-final-{{ item.obj.id }}" class="badge bg-secondary px-3 py-2 rounded-pill fs-6 shadow-sm">0.0</span>
+                            <td class="bg-light align-middle">
+                                <span id="res-final-{{ item.obj.id }}" class="badge bg-secondary px-3 py-2 rounded-pill fs-6 shadow-sm border">0.0</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -158,50 +167,69 @@
                 </table>
             </div>
             
-            <div class="card-footer bg-white p-4 border-top sticky-bottom">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="small text-muted d-none d-md-block">
-                        <i class="bi bi-info-circle me-1"></i> Dica: Pressione <strong>Enter</strong> ou <strong>Setas</strong> para navegar.
+            <div class="card-footer bg-white p-4 border-top border-secondary border-opacity-25 sticky-bottom z-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="small text-secondary fw-medium">
+                        <i class="bi bi-info-circle-fill me-1 text-dark"></i> Dica: Pressione <strong>Enter</strong> ou <strong>Setas do Teclado</strong> para pular entre as células rapidamente.
                     </div>
-                    <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow-lg hover-scale" style="background-color: #0A2619; border-color: var(--sami-primary);">
-                        <i class="bi bi-check-lg me-2"></i> SALVAR NOTAS
+                    <button type="submit" class="btn btn-dark btn-lg px-5 fw-bold shadow-sm transition-hover w-100 w-md-auto">
+                        <i class="bi bi-check-lg me-2" style="color: #D4AF37;"></i> SALVAR NOTAS NO DIÁRIO
                     </button>
                 </div>
             </div>
         </div>
     </form>
     {% else %}
-    <div class="text-center py-5">
-        <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
-            <i class="bi bi-person-workspace fs-1 opacity-50" style="color: var(--sami-primary);"></i>
+    <div class="text-center py-5 mt-4 bg-white rounded-4 border shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="bg-light border rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+            <i class="bi bi-journal-check fs-1 text-dark"></i>
         </div>
-        <h4 class="fw-bold text-dark">Área do Professor</h4>
-        <p class="text-muted">Selecione uma turma e um bimestre acima para começar.</p>
+        <h4 class="fw-bold text-dark">Diário de Classe</h4>
+        <p class="text-secondary fw-medium px-4">Selecione uma turma ativa no filtro acima para visualizar a lista de alunos e lançar as notas do bimestre.</p>
     </div>
     {% endif %}
 </div>
 
 <style>
-    /* CSS PERSONALIZADO */
+    /* CSS PERSONALIZADO - ALTO CONTRASTE */
     .no-spinners::-webkit-outer-spin-button, .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .no-spinners { -moz-appearance: textfield; }
 
     .input-nota { 
-        border: 1px solid transparent; background: transparent; font-size: 0.95rem; color: #475569; 
-        border-radius: 4px; padding: 4px;
+        background: transparent; 
+        font-size: 1.05rem; 
+        border-radius: 4px; 
+        padding: 6px;
+        transition: all 0.2s ease;
     }
+    
     .input-nota:focus { 
-        background: #fff; border-color: var(--sami-primary); box-shadow: 0 0 0 3px rgba(20, 69, 47, 0.1); 
-        color: #000; transform: scale(1.05); z-index: 5;
+        background: #fff; 
+        border-color: #0A2619 !important; 
+        box-shadow: 0 0 0 3px rgba(10, 38, 25, 0.2); 
+        color: #000 !important; 
+        transform: scale(1.05); 
+        z-index: 5;
     }
+    
     .input-nota.is-invalid {
-        border-color: #dc3545 !important; background-color: #fff0f0;
+        border-color: #dc3545 !important; 
+        background-color: #fff5f5;
+        color: #dc3545 !important;
+        box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
     }
     
     .sticky-col { position: sticky; left: 0; z-index: 5; background: #fff; }
-    .shadow-sm-right { box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); }
-    .text-purple { color: #6b21a8; } .bg-purple { background-color: #a855f7; } .border-purple { border-color: #d8b4fe; }
-    .hover-scale { transition: transform 0.2s; } .hover-scale:hover { transform: translateY(-2px); }
+    .shadow-sm-right { box-shadow: 4px 0 8px -4px rgba(0,0,0,0.1); }
+    
+    .transition-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    @media (min-width: 768px) {
+        .transition-hover:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important; }
+    }
+    .transition-hover-row:hover td { background-color: #f8f9fa !important; }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; border: 2px solid transparent; background-clip: padding-box; }
 </style>
 
 <script>
@@ -218,7 +246,7 @@
         if (val < 0) input.value = 0;
     }
 
-    // --- 2. CÁLCULO AUTOMÁTICO ---
+    // --- 2. CÁLCULO AUTOMÁTICO DO RESULTADO ---
     function calcularNDI(id) {
         const row = document.getElementById(`row-${id}`);
         if (!row) return;
@@ -235,23 +263,30 @@
         const pp = getVal('pp');
         const pb = getVal('pb');
 
+        // Cálculo exato: ( (Freq + Ativ + Comp)/3 + PP + PB ) / 3
         const ndiParcial = (fre + atv + comp) / 3;
-        const elParcial = document.getElementById(`res-parcial-${id}`);
-        if(elParcial) elParcial.innerText = ndiParcial.toFixed(1);
-
         const ndiFinal = (ndiParcial + pp + pb) / 3;
+        
         const elFinal = document.getElementById(`res-final-${id}`);
         
         if (elFinal) {
             elFinal.innerText = ndiFinal.toFixed(1);
-            elFinal.className = "badge px-3 py-2 rounded-pill fs-6 shadow-sm";
-            if(ndiFinal >= 6) { elFinal.classList.add("bg-success"); }
-            else if (ndiFinal >= 4) { elFinal.classList.add("bg-warning", "text-dark"); }
-            else { elFinal.classList.add("bg-danger"); }
+            elFinal.className = "badge px-3 py-2 rounded-pill fs-6 shadow-sm border";
+            
+            // Lógica de Cores da Nota
+            if(ndiFinal >= 6) { 
+                elFinal.classList.add("bg-success", "text-white", "border-success"); 
+            }
+            else if (ndiFinal >= 4) { 
+                elFinal.classList.add("bg-warning", "text-dark", "border-warning"); 
+            }
+            else { 
+                elFinal.classList.add("bg-danger", "text-white", "border-danger"); 
+            }
         }
     }
 
-    // --- 3. VALIDAÇÃO AO SALVAR (TUDO OU NADA) ---
+    // --- 3. VALIDAÇÃO AO SALVAR (SEM ALERT NATIVO) ---
     function validarFormulario() {
         let formValido = true;
         const rows = document.querySelectorAll('.aluno-row');
@@ -267,7 +302,7 @@
                 else vazios++;
             });
 
-            // Regra: Se preencheu ALGUM, tem que preencher TODOS
+            // Regra: Se preencheu ALGUM campo na linha, tem que preencher TODOS
             if (preenchidos > 0 && vazios > 0) {
                 formValido = false;
                 inputs.forEach(inp => {
@@ -278,39 +313,36 @@
         });
 
         if (!formValido) {
-            alert("Atenção: Existem alunos com notas incompletas!\n\nSe você começou a lançar a nota de um aluno, deve preencher os 5 campos (Freq, Ativ, Comp, P.Parcial, P.Bimestral).\n\nOs campos obrigatórios estão marcados em vermelho.");
+            // Exibe a div de erro linda no topo da tabela
+            const alerta = document.getElementById('alertaValidacao');
+            alerta.classList.remove('d-none');
+            
+            // Rola a tela suavemente para a primeira linha incompleta
             if (primeiroErro) primeiroErro.scrollIntoView({behavior: "smooth", block: "center"});
             return false;
         }
         return true;
     }
 
-    // --- 4. NAVEGAÇÃO COM SETAS (FEATURE EXCEL) ---
+    // --- 4. NAVEGAÇÃO VELOZ ESTILO EXCEL ---
     document.addEventListener('keydown', function(e) {
         if (!e.target.classList.contains('nav-input')) return;
 
         const inputs = Array.from(document.querySelectorAll('.nav-input'));
         const currentIdx = inputs.indexOf(e.target);
-        const colCount = 5; // 5 inputs por linha
+        const colCount = 5; // 5 inputs por aluno
         
         let nextIdx = null;
 
-        // Enter ou Seta Direita -> Próxima Célula
         if (e.key === 'Enter' || e.key === 'ArrowRight') {
             e.preventDefault();
             nextIdx = currentIdx + 1;
-        }
-        // Seta Esquerda
-        else if (e.key === 'ArrowLeft') {
+        } else if (e.key === 'ArrowLeft') {
             nextIdx = currentIdx - 1;
-        }
-        // Seta Baixo (Mesma coluna, linha de baixo)
-        else if (e.key === 'ArrowDown') {
-            e.preventDefault(); // Evita scroll
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault(); 
             nextIdx = currentIdx + colCount;
-        }
-        // Seta Cima
-        else if (e.key === 'ArrowUp') {
+        } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             nextIdx = currentIdx - colCount;
         }
