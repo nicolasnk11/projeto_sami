@@ -318,6 +318,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script>
     function mostrarLoading() {
         document.getElementById('loadingOverlay').classList.remove('d-none');
@@ -418,17 +419,18 @@
                 });
         };
 
-        // --- Gráfico de Pizza (Com Rótulos Corrigidos) ---
+        // Pizza Chart
         const ctxPizza = document.getElementById('chartPizza');
         if (ctxPizza) {
+            // REGISTRA O PLUGIN DA PORCENTAGEM
+            Chart.register(ChartDataLabels);
+
             pizzaChart = new Chart(ctxPizza, {
                 type: 'doughnut',
                 data: {
-                    // NOMENCLATURAS EXATAS
                     labels: ['Adequado', 'Intermediário', 'Crítico', 'Muito Crítico'],
                     datasets: [{
                         data: {{ dados_pizza|default:"[]"|safe }},
-                        // ORDEM DAS CORES: Azul, Verde, Amarelo, Vermelho
                         backgroundColor: [COLORS.azul, COLORS.verde, COLORS.amarelo, COLORS.vermelho],
                         borderWidth: 2,
                         borderColor: '#ffffff',
@@ -437,7 +439,22 @@
                 },
                 options: {
                     ...chartOptions, cutout: '65%',
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } } },
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } },
+                        // MÁGICA DA PORCENTAGEM AQUI:
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (value, ctx) => {
+                                let sum = 0;
+                                let dataArr = ctx.chart.data.datasets[0].data;
+                                dataArr.map(data => { sum += data; });
+                                if (sum === 0 || value === 0) return ''; // Esconde se for 0%
+                                let percentage = (value * 100 / sum).toFixed(0) + "%";
+                                return percentage;
+                            }
+                        }
+                    },
                     onClick: (evt, el) => { 
                         if(el.length > 0) {
                             const cats = ['Adequado', 'Intermediário', 'Crítico', 'Muito Crítico'];

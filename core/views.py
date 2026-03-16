@@ -189,25 +189,26 @@ def dashboard(request):
 
     # --- 2. PROCESSAMENTO OTIMIZADO ---
 
-    # A. KPI & PIZZA
+    # A. KPI & PIZZA (MATEMÁTICA CORRIGIDA)
+    # Adequado (>= 75%), Intermediário (50 a 74%), Crítico (25 a 49%), Muito Crítico (< 25%)
     kpis = resultados.aggregate(
         total=Count('id'),
         media=Avg('percentual'),
-        avancado=Count('id', filter=Q(percentual__gte=90)),
-        adequado=Count('id', filter=Q(percentual__gte=70, percentual__lt=90)),
-        intermediario=Count('id', filter=Q(percentual__gte=50, percentual__lt=70)),
-        critico=Count('id', filter=Q(percentual__lt=50))
+        adequado=Count('id', filter=Q(percentual__gte=75)),
+        intermediario=Count('id', filter=Q(percentual__gte=50, percentual__lt=75)),
+        critico=Count('id', filter=Q(percentual__gte=25, percentual__lt=50)),
+        muito_critico=Count('id', filter=Q(percentual__lt=25))
     )
 
     count_avaliados = kpis['total']
     media_geral = round((kpis['media'] or 0) / 10, 1)
     
-    dados_pizza = [kpis['avancado'], kpis['adequado'], kpis['intermediario'], kpis['critico']]
+    dados_pizza = [kpis['adequado'], kpis['intermediario'], kpis['critico'], kpis['muito_critico']]
 
     nivel_predominante = "-"
     if count_avaliados > 0:
         idx_max = dados_pizza.index(max(dados_pizza))
-        nomes = ["Avançado 🚀", "Adequado ✅", "Intermediário ⚠️", "Crítico 🚨"]
+        nomes = ["Adequado 🔵", "Intermediário 🟢", "Crítico 🟡", "Muito Crítico 🔴"]
         nivel_predominante = nomes[idx_max]
 
     qtd_provas = resultados.values('avaliacao').distinct().count()
@@ -217,18 +218,20 @@ def dashboard(request):
         'percentual', 'matricula__aluno__nome_completo', 'matricula__turma__nome'
     )[:500]
 
-    detalhes_pizza = {'Avançado': [], 'Adequado': [], 'Intermediário': [], 'Crítico': []}
+    # MODAIS CORRIGIDOS
+    detalhes_pizza = {'Adequado': [], 'Intermediário': [], 'Crítico': [], 'Muito Crítico': []}
     for res in detalhes_qs:
         p = float(res.percentual or 0)
         info = {'nome': res.matricula.aluno.nome_completo, 'turma': res.matricula.turma.nome, 'nota': round(p/10, 1)}
-        if p >= 90: detalhes_pizza['Avançado'].append(info)
-        elif p >= 70: detalhes_pizza['Adequado'].append(info)
+        
+        if p >= 75: detalhes_pizza['Adequado'].append(info)
         elif p >= 50: detalhes_pizza['Intermediário'].append(info)
-        else: detalhes_pizza['Crítico'].append(info)
+        elif p >= 25: detalhes_pizza['Crítico'].append(info)
+        else: detalhes_pizza['Muito Crítico'].append(info)
     
     detalhes_pizza_json = json.dumps(detalhes_pizza)
 
-    # B. PROFICIÊNCIA POR DESCRITOR (A CORREÇÃO ESTÁ AQUI)
+    # B. PROFICIÊNCIA POR DESCRITOR
     respostas_base = RespostaDetalhada.objects.filter(resultado__in=resultados)
     
     # Coalesce: Pega do ItemGabarito. Se for nulo, pega da Questao.
@@ -249,7 +252,7 @@ def dashboard(request):
             labels_proficiencia.append(cod)
             dados_proficiencia.append(round(perc, 1))
 
-    # C. RANKING DE QUESTÕES (CORRIGIDO TAMBÉM)
+    # C. RANKING DE QUESTÕES
     ranking_q = respostas_base.annotate(
         desc_final=Coalesce('item_gabarito__descritor__codigo', 'questao__descritor__codigo')
     ).values(
@@ -1634,14 +1637,20 @@ def gerar_relatorio_proficiencia(request):
     import io
     from reportlab.lib import colors
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.platypus import Image as RLImage
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from datetime import datetime
+    
+    # Importante: Configura o matplotlib para rodar em servidores sem interface gráfica
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
 
     # 1. Recupera Filtros
     serie_id = request.GET.get('serie')
     turma_id = request.GET.get('turma')
-    aluno_id = request.GET.get('aluno')  # <--- AGORA VAI RECEBER O ID
+    aluno_id = request.GET.get('aluno')  
     avaliacao_id = request.GET.get('avaliacao')
     disciplina_id = request.GET.get('disciplina')
     data_inicio = request.GET.get('data_inicio')
@@ -1650,7 +1659,7 @@ def gerar_relatorio_proficiencia(request):
     # Configs Gerais
     config = ConfiguracaoSistema.objects.first()
     nome_escola = config.nome_escola if config else "SAMI EDUCACIONAL"
-    cor_pri = colors.HexColor(config.cor_primaria) if config else colors.HexColor("#1e293b")
+    cor_pri = colors.HexColor(config.cor_primaria) if config else colors.HexColor("#0A2619")
     
     # 2. Filtra Dados
     resultados = Resultado.objects.select_related('avaliacao', 'matricula__aluno', 'matricula__turma')
@@ -1671,7 +1680,6 @@ def gerar_relatorio_proficiencia(request):
             filtros_texto.append(f"Turma: {turma.nome}")
         except: pass
 
-    # LÓGICA DO ALUNO (O pulo do gato)
     if aluno_id:
         try:
             aluno = Aluno.objects.get(id=aluno_id)
@@ -1732,7 +1740,6 @@ def gerar_relatorio_proficiencia(request):
     contexto_texto = " | ".join(filtros_texto)
     data_geracao = datetime.now().strftime('%d/%m/%Y às %H:%M')
     
-    # Calcula Média Geral dos resultados filtrados para exibir no topo
     media_filtrada = resultados.aggregate(Avg('percentual'))['percentual__avg'] or 0
     media_formatada = str(round(media_filtrada/10, 1)).replace('.', ',')
 
@@ -1752,23 +1759,67 @@ def gerar_relatorio_proficiencia(request):
     elements.append(t_ctx)
     elements.append(Spacer(1, 20))
 
-    # Tabela de Dados
     if not dados_ordenados:
         elements.append(Paragraph("Nenhum dado encontrado para os filtros selecionados.", styles['Normal']))
     else:
-        # Cabeçalho da Tabela
+        # --- 5. MÁGICA DO GRÁFICO (MATPLOTLIB) ---
+        grafico_labels = []
+        grafico_valores = []
+        grafico_cores = []
+
+        for cod, d in dados_ordenados:
+            perc = (d['acertos'] / d['total']) * 100 if d['total'] > 0 else 0
+            grafico_labels.append(cod)
+            grafico_valores.append(perc)
+            
+            # Régua de Cores SAMI (Alto Contraste)
+            if perc >= 75: grafico_cores.append('#0d6efd')     # Azul (Adequado)
+            elif perc >= 50: grafico_cores.append('#198754')   # Verde (Intermediário)
+            elif perc >= 25: grafico_cores.append('#ffc107')   # Amarelo (Crítico)
+            else: grafico_cores.append('#dc3545')              # Vermelho (Muito Crítico)
+
+        if grafico_labels:
+            # Cria a figura
+            plt.figure(figsize=(8, 3.5))
+            plt.bar(grafico_labels, grafico_valores, color=grafico_cores, width=0.6)
+            
+            plt.ylim(0, 100)
+            plt.ylabel('Proficiência (%)', fontsize=10, fontweight='bold')
+            plt.title('Desempenho por Descritor', fontsize=12, fontweight='bold')
+            plt.grid(axis='y', linestyle='--', alpha=0.7)
+            
+            # Estilização
+            plt.gca().spines['top'].set_visible(False)
+            plt.gca().spines['right'].set_visible(False)
+            plt.xticks(rotation=45, ha='right', fontsize=8)
+
+            # Salva o gráfico na memória
+            img_buffer = io.BytesIO()
+            plt.savefig(img_buffer, format='png', bbox_inches='tight', dpi=150)
+            plt.close()
+            img_buffer.seek(0)
+
+            # Adiciona a imagem no PDF
+            img_pdf = RLImage(img_buffer, width=450, height=190)
+            elements.append(img_pdf)
+            elements.append(Spacer(1, 20))
+
+
+        # --- 6. TABELA DE DADOS ---
         data_table = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'QTD', '% ACERTO', 'NÍVEL']]
 
         for cod, d in dados_ordenados:
             perc = (d['acertos'] / d['total']) * 100 if d['total'] > 0 else 0
             
-            # Cores de Nível
-            cor_nivel = colors.red
-            nivel_txt = "CRÍTICO"
-            if perc >= 80: 
-                cor_nivel = colors.green; nivel_txt = "ADEQUADO"
-            elif perc >= 60: 
-                cor_nivel = colors.orange; nivel_txt = "INTERMED."
+            # Cores de Nível (Nova Régua SAMI)
+            cor_nivel = colors.HexColor('#dc3545')
+            nivel_txt = "MUITO CRÍTICO"
+            if perc >= 75: 
+                cor_nivel = colors.HexColor('#0d6efd'); nivel_txt = "ADEQUADO"
+            elif perc >= 50: 
+                cor_nivel = colors.HexColor('#198754'); nivel_txt = "INTERMED."
+            elif perc >= 25:
+                cor_nivel = colors.HexColor('#d97706'); nivel_txt = "CRÍTICO" # Laranja escuro para contraste no papel
             
             desc_para = Paragraph(d['desc'], ParagraphStyle('d', fontSize=8, leading=9))
             nivel_para = Paragraph(f"<font color='{cor_nivel.hexval()}'><b>{nivel_txt}</b></font>", ParagraphStyle('n', alignment=1))
