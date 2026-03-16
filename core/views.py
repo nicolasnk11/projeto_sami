@@ -1820,7 +1820,7 @@ def gerar_relatorio_proficiencia(request):
             plt.ylabel('Proficiência (%)', fontsize=10, fontweight='bold', color='#333333')
             
             # Título do Gráfico usando a cor Primária do seu sistema
-            cor_hex_grafico = cor_pri.hexval() if cor_pri else '#0A2619'
+            cor_hex_grafico = cor_pri.hexval().replace('0x', '#') if cor_pri else '#0A2619'
             plt.title('Análise de Desempenho por Descritor', fontsize=12, fontweight='bold', color=cor_hex_grafico, pad=15)
             
             plt.grid(axis='y', linestyle='--', alpha=0.4)
