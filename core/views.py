@@ -1635,6 +1635,8 @@ def editar_avaliacao(request, avaliacao_id):
 @login_required
 def gerar_relatorio_proficiencia(request):
     import io
+    import os
+    from django.conf import settings
     from reportlab.lib import colors
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.platypus import Image as RLImage
@@ -1656,7 +1658,7 @@ def gerar_relatorio_proficiencia(request):
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
 
-    # Configs Gerais
+    # Configs Gerais da Escola
     config = ConfiguracaoSistema.objects.first()
     nome_escola = config.nome_escola if config else "SAMI EDUCACIONAL"
     cor_pri = colors.HexColor(config.cor_primaria) if config else colors.HexColor("#0A2619")
@@ -1722,21 +1724,51 @@ def gerar_relatorio_proficiencia(request):
 
     dados_ordenados = sorted(stats.items())
 
-    # --- 4. GERA O PDF ---
+    # --- 4. SETUP DO PDF ---
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
     elements = []
     styles = getSampleStyleSheet()
 
-    # Cabeçalho
+    # Estilos de Texto do Cabeçalho
     header_style = ParagraphStyle('Header', parent=styles['Normal'], fontSize=16, textColor=cor_pri, spaceAfter=2, fontName='Helvetica-Bold')
-    sub_style = ParagraphStyle('Sub', parent=styles['Normal'], fontSize=10, textColor=colors.grey, spaceAfter=12)
+    sub_style = ParagraphStyle('Sub', parent=styles['Normal'], fontSize=10, textColor=colors.grey, spaceAfter=0)
     
-    elements.append(Paragraph(f"{nome_escola.upper()}", header_style))
-    elements.append(Paragraph(titulo_relatorio, sub_style))
-    elements.append(Spacer(1, 10))
+    # LÓGICA DE INJEÇÃO DO LOGO DA ESCOLA BLINDADA
+    logo_img = None
+    if config and config.logo:
+        try:
+            # Constrói o caminho absoluto à prova de falhas (Windows e Linux)
+            caminho_imagem = os.path.join(settings.MEDIA_ROOT, str(config.logo))
+            
+            # Checa se o arquivo existe fisicamente no disco antes de mandar pro ReportLab
+            if os.path.exists(caminho_imagem):
+                logo_img = RLImage(caminho_imagem, width=50, height=50)
+            else:
+                print(f"Alerta: Arquivo de logo não encontrado no caminho físico: {caminho_imagem}")
+        except Exception as e:
+            print(f"Erro ao tentar ler o logo para o PDF: {e}")
+            pass # Segue o jogo sem o logo
+
+    # Monta o Cabeçalho Responsivo (Com ou Sem Logo)
+    if logo_img:
+        tbl_header = Table([
+            [logo_img, Paragraph(f"{nome_escola.upper()}", header_style)],
+            ['', Paragraph(titulo_relatorio, sub_style)]
+        ], colWidths=[60, 480])
+        tbl_header.setStyle(TableStyle([
+            ('SPAN', (0,0), (0,1)), # Mescla as células da esquerda para a logo ocupar duas linhas
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+        ]))
+        elements.append(tbl_header)
+    else:
+        elements.append(Paragraph(f"{nome_escola.upper()}", header_style))
+        elements.append(Paragraph(titulo_relatorio, sub_style))
+        
+    elements.append(Spacer(1, 15))
     
-    # Caixa de Contexto
+    # Caixa de Contexto (Filtros Aplicados)
     contexto_texto = " | ".join(filtros_texto)
     data_geracao = datetime.now().strftime('%d/%m/%Y às %H:%M')
     
@@ -1762,64 +1794,75 @@ def gerar_relatorio_proficiencia(request):
     if not dados_ordenados:
         elements.append(Paragraph("Nenhum dado encontrado para os filtros selecionados.", styles['Normal']))
     else:
-        # --- 5. MÁGICA DO GRÁFICO (MATPLOTLIB) ---
+        # --- 5. MÁGICA DO GRÁFICO (MATPLOTLIB) VIP ---
         grafico_labels = []
         grafico_valores = []
         grafico_cores = []
 
         for cod, d in dados_ordenados:
-            perc = (d['acertos'] / d['total']) * 100 if d['total'] > 0 else 0
+            # Força o arredondamento idêntico ao Frontend
+            perc = round((d['acertos'] / d['total']) * 100, 1) if d['total'] > 0 else 0.0
+            
             grafico_labels.append(cod)
             grafico_valores.append(perc)
             
-            # Régua de Cores SAMI (Alto Contraste)
+            # Sincronia Absoluta: Régua de Cores SAMI
             if perc >= 75: grafico_cores.append('#0d6efd')     # Azul (Adequado)
             elif perc >= 50: grafico_cores.append('#198754')   # Verde (Intermediário)
             elif perc >= 25: grafico_cores.append('#ffc107')   # Amarelo (Crítico)
             else: grafico_cores.append('#dc3545')              # Vermelho (Muito Crítico)
 
         if grafico_labels:
-            # Cria a figura
             plt.figure(figsize=(8, 3.5))
-            plt.bar(grafico_labels, grafico_valores, color=grafico_cores, width=0.6)
+            bars = plt.bar(grafico_labels, grafico_valores, color=grafico_cores, width=0.6)
             
-            plt.ylim(0, 100)
-            plt.ylabel('Proficiência (%)', fontsize=10, fontweight='bold')
-            plt.title('Desempenho por Descritor', fontsize=12, fontweight='bold')
-            plt.grid(axis='y', linestyle='--', alpha=0.7)
+            plt.ylim(0, 115) # Abre espaço extra no teto para o número não cortar
+            plt.ylabel('Proficiência (%)', fontsize=10, fontweight='bold', color='#333333')
             
-            # Estilização
+            # Título do Gráfico usando a cor Primária do seu sistema
+            cor_hex_grafico = cor_pri.hexval() if cor_pri else '#0A2619'
+            plt.title('Análise de Desempenho por Descritor', fontsize=12, fontweight='bold', color=cor_hex_grafico, pad=15)
+            
+            plt.grid(axis='y', linestyle='--', alpha=0.4)
+            
+            # Coloca a % flutuando em cima de cada barra
+            for bar in bars:
+                yval = bar.get_height()
+                plt.text(bar.get_x() + bar.get_width()/2.0, yval + 2, f'{yval:.1f}%', ha='center', va='bottom', fontsize=8, fontweight='bold', color='#333333')
+            
+            # Limpeza das bordas (Estilo Dashboard Moderno)
             plt.gca().spines['top'].set_visible(False)
             plt.gca().spines['right'].set_visible(False)
+            plt.gca().spines['left'].set_color('#cccccc')
+            plt.gca().spines['bottom'].set_color('#cccccc')
             plt.xticks(rotation=45, ha='right', fontsize=8)
 
-            # Salva o gráfico na memória
             img_buffer = io.BytesIO()
             plt.savefig(img_buffer, format='png', bbox_inches='tight', dpi=150)
             plt.close()
             img_buffer.seek(0)
 
-            # Adiciona a imagem no PDF
             img_pdf = RLImage(img_buffer, width=450, height=190)
             elements.append(img_pdf)
             elements.append(Spacer(1, 20))
 
 
-        # --- 6. TABELA DE DADOS ---
+        # --- 6. TABELA DE DADOS (Sincronizada com o Gráfico) ---
         data_table = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'QTD', '% ACERTO', 'NÍVEL']]
 
         for cod, d in dados_ordenados:
-            perc = (d['acertos'] / d['total']) * 100 if d['total'] > 0 else 0
+            # Mesmo arredondamento
+            perc = round((d['acertos'] / d['total']) * 100, 1) if d['total'] > 0 else 0.0
             
-            # Cores de Nível (Nova Régua SAMI)
-            cor_nivel = colors.HexColor('#dc3545')
-            nivel_txt = "MUITO CRÍTICO"
+            # Régua de Textos SAMI Sincronizada
             if perc >= 75: 
                 cor_nivel = colors.HexColor('#0d6efd'); nivel_txt = "ADEQUADO"
             elif perc >= 50: 
                 cor_nivel = colors.HexColor('#198754'); nivel_txt = "INTERMED."
             elif perc >= 25:
                 cor_nivel = colors.HexColor('#d97706'); nivel_txt = "CRÍTICO" # Laranja escuro para contraste no papel
+            else:
+                cor_nivel = colors.HexColor('#dc3545'); nivel_txt = "MUITO CRÍTICO"
             
             desc_para = Paragraph(d['desc'], ParagraphStyle('d', fontSize=8, leading=9))
             nivel_para = Paragraph(f"<font color='{cor_nivel.hexval()}'><b>{nivel_txt}</b></font>", ParagraphStyle('n', alignment=1))
@@ -1855,7 +1898,7 @@ def gerar_relatorio_proficiencia(request):
     doc.build(elements)
     buffer.seek(0)
     
-    filename = "Relatorio_Geral.pdf"
+    filename = "Relatorio_Proficiencia.pdf"
     if aluno_id and resultados.exists():
         filename = f"Relatorio_{resultados.first().matricula.aluno.nome_completo.split()[0]}.pdf"
         
