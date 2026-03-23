@@ -112,6 +112,19 @@ class Professor(models.Model):
 
     def __str__(self):
         return f"Prof. {self.nome_completo}"
+    
+class Alocacao(models.Model):
+    professor = models.ForeignKey(Professor, on_delete=models.CASCADE, related_name='alocacoes')
+    disciplina = models.ForeignKey(Disciplina, on_delete=models.CASCADE, related_name='alocacoes')
+    turma = models.ForeignKey(Turma, on_delete=models.CASCADE, related_name='alocacoes')
+
+    class Meta:
+        unique_together = ('professor', 'disciplina', 'turma')
+        verbose_name = "Alocação de Aula"
+        verbose_name_plural = "Alocações de Aulas"
+
+    def __str__(self):
+        return f"{self.professor.nome_completo} | {self.disciplina.nome} - {self.turma.nome}"
 
 
 class Matricula(models.Model):
@@ -213,6 +226,7 @@ class Avaliacao(models.Model):
     data_aplicacao = models.DateField()
     disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
     turma = models.ForeignKey(Turma, on_delete=models.PROTECT)
+    alocacao = models.ForeignKey(Alocacao, on_delete=models.SET_NULL, null=True, blank=True, related_name='avaliacoes')
     questoes = models.ManyToManyField(Questao, related_name='avaliacoes', blank=True)
     matricula = models.ForeignKey('Matricula', on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -291,6 +305,7 @@ class NDI(models.Model):
 class PlanoEnsino(models.Model):
     turma = models.ForeignKey(Turma, on_delete=models.CASCADE)
     disciplina_nome = models.CharField(max_length=100)
+    alocacao = models.ForeignKey(Alocacao, on_delete=models.SET_NULL, null=True, blank=True, related_name='planos_ensino')
     ano_letivo = models.IntegerField(default=2026)
     criado_em = models.DateTimeField(auto_now_add=True)
     arquivo = models.FileField(upload_to='planos_ensino/', blank=True, null=True)
