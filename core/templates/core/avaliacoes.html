@@ -131,10 +131,10 @@
                                 {{ av.titulo }}
                             </td>
                             <td>
-                                <span class="badge bg-white text-dark border shadow-sm">{{ av.turma.nome }}</span>
+                                <span class="badge bg-white text-dark border shadow-sm">{{ av.alocacao.turma.nome }}</span>
                             </td>
                             <td>
-                                <span class="text-muted fw-medium">{{ av.disciplina.nome }}</span>
+                                <span class="text-muted fw-medium">{{ av.alocacao.disciplina.nome }}</span>
                             </td>
                             <td class="text-muted small fw-bold">
                                 <i class="bi bi-calendar-event me-1"></i> {{ av.data_aplicacao|date:"d/m/Y" }}
@@ -345,13 +345,11 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function(){
-        // Ativa Tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
 
-        // Força a leitura do Select ao carregar a página (Evita erro de tela)
         toggleFiltros();
     });
 
@@ -361,7 +359,6 @@
         const divAluno = document.getElementById('divAluno');
         const divSerie = document.getElementById('divSerie');
         
-        // Esconde tudo primeiro
         divTurma.classList.add('d-none');
         divAluno.classList.add('d-none');
         if(divSerie) divSerie.classList.add('d-none'); 
@@ -421,5 +418,4 @@
         animation: pulse-red 1.5s infinite;
     }
 </style>
-
 {% endblock %}
