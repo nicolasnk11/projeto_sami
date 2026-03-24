@@ -172,10 +172,6 @@ def scanner_dificuldade(valor):
 # 📊 DASHBOARD OTIMIZADO 2.0 
 # ==============================================================================
 
-# ==============================================================================
-# 📊 DASHBOARD OTIMIZADO 2.0 (COM CADEADO DE SEGURANÇA 🔒)
-# ==============================================================================
-
 @login_required
 def dashboard(request):
     import json
@@ -194,10 +190,10 @@ def dashboard(request):
     # Base: Resultados
     resultados = Resultado.objects.all()
 
-    # Listas para os filtros na tela (Dropdowns)
+    # Listas para os filtros na tela (Dropdowns) - SEM O [:50] AINDA!
     turmas_dropdown = Turma.objects.all().order_by('nome')
     disciplinas_dropdown = Disciplina.objects.all().order_by('nome')
-    avaliacoes_dropdown = Avaliacao.objects.all().order_by('-data_aplicacao')[:50]
+    avaliacoes_dropdown = Avaliacao.objects.all().order_by('-data_aplicacao')
 
     # 🔥 A MÁGICA DA SEGURANÇA (O CADEADO) 🔥
     if hasattr(request.user, 'professor_perfil'):
@@ -210,6 +206,9 @@ def dashboard(request):
         turmas_dropdown = turmas_dropdown.filter(alocacoes__professor=perfil).distinct()
         disciplinas_dropdown = disciplinas_dropdown.filter(alocacoes__professor=perfil).distinct()
         avaliacoes_dropdown = avaliacoes_dropdown.filter(alocacao__professor=perfil)
+
+    # 🔥 AGORA SIM, DEPOIS DE FILTRAR TUDO, NÓS CORTAMOS OS 50 PRIMEIROS 🔥
+    avaliacoes_dropdown = avaliacoes_dropdown[:50]
 
     # Aplica os filtros escolhidos pelo usuário
     if disciplina_id: resultados = resultados.filter(avaliacao__alocacao__disciplina_id=disciplina_id)
