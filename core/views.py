@@ -172,6 +172,10 @@ def scanner_dificuldade(valor):
 # 📊 DASHBOARD OTIMIZADO 2.0 
 # ==============================================================================
 
+# ==============================================================================
+# 📊 DASHBOARD OTIMIZADO 2.0 (COM CADEADO DE SEGURANÇA 🔒)
+# ==============================================================================
+
 @login_required
 def dashboard(request):
     import json
@@ -190,6 +194,24 @@ def dashboard(request):
     # Base: Resultados
     resultados = Resultado.objects.all()
 
+    # Listas para os filtros na tela (Dropdowns)
+    turmas_dropdown = Turma.objects.all().order_by('nome')
+    disciplinas_dropdown = Disciplina.objects.all().order_by('nome')
+    avaliacoes_dropdown = Avaliacao.objects.all().order_by('-data_aplicacao')[:50]
+
+    # 🔥 A MÁGICA DA SEGURANÇA (O CADEADO) 🔥
+    if hasattr(request.user, 'professor_perfil'):
+        perfil = request.user.professor_perfil
+        
+        # 1. Filtra os Resultados: O professor SÓ vê os resultados das provas DELE
+        resultados = resultados.filter(avaliacao__alocacao__professor=perfil)
+        
+        # 2. Filtra os Filtros: Os menus suspensos só mostram o que é dele
+        turmas_dropdown = turmas_dropdown.filter(alocacoes__professor=perfil).distinct()
+        disciplinas_dropdown = disciplinas_dropdown.filter(alocacoes__professor=perfil).distinct()
+        avaliacoes_dropdown = avaliacoes_dropdown.filter(alocacao__professor=perfil)
+
+    # Aplica os filtros escolhidos pelo usuário
     if disciplina_id: resultados = resultados.filter(avaliacao__alocacao__disciplina_id=disciplina_id)
     if serie_id: resultados = resultados.filter(avaliacao__alocacao__turma__nome__startswith=serie_id)
     if turma_id: resultados = resultados.filter(avaliacao__alocacao__turma_id=turma_id)
@@ -320,8 +342,6 @@ def dashboard(request):
         except: pass
 
     # Contexto
-    turmas_filtro = Turma.objects.all().order_by('nome')
-    if serie_id: turmas_filtro = turmas_filtro.filter(nome__startswith=serie_id)
     alunos_filtro = Aluno.objects.none()
     if turma_id: alunos_filtro = Aluno.objects.filter(matriculas__turma_id=turma_id, matriculas__status='CURSANDO')
 
@@ -333,9 +353,9 @@ def dashboard(request):
         'serie_selecionada': serie_id, 'turma_selecionada': turma_id, 
         'aluno_selecionado': aluno_id, 'disciplina_selecionada': disciplina_id, 
         'avaliacao_selecionada': avaliacao_id, 'data_inicio': data_inicio, 'data_fim': data_fim,
-        'turmas_da_serie': turmas_filtro, 'alunos_da_turma': alunos_filtro, 
-        'disciplinas': Disciplina.objects.all().order_by('nome'), 
-        'avaliacoes_todas': Avaliacao.objects.all().order_by('-data_aplicacao')[:50],
+        'turmas_da_serie': turmas_dropdown, 'alunos_da_turma': alunos_filtro, 
+        'disciplinas': disciplinas_dropdown, 
+        'avaliacoes_todas': avaliacoes_dropdown,
         'nome_filtro': nome_filtro,
         'total_avaliacoes_contagem': count_avaliados,
         'media_geral': media_geral, 'nivel_predominante': nivel_predominante, 'qtd_provas': qtd_provas,
@@ -569,7 +589,7 @@ def baixar_modelo(request, formato):
         return response
 
 # ==============================================================================
-# 📝 GESTÃO DE AVALIAÇÕES E PROVAS (COM CADEADO DE SEGURANÇA 🔥)
+# 📝 GESTÃO DE AVALIAÇÕES E PROVAS 
 # ==============================================================================
 
 @login_required
@@ -584,28 +604,22 @@ def gerenciar_avaliacoes(request):
     disciplina_id = request.GET.get('disciplina')
     data_filtro = request.GET.get('data')
 
-    # Base da busca 
     avaliacoes = Avaliacao.objects.select_related('alocacao__turma', 'alocacao__disciplina').order_by('-data_aplicacao')
     
-    # Listas para os filtros (Botões Select)
     ano_atual = timezone.now().year
     turmas_dropdown = Turma.objects.all().order_by('nome')
     turmas_ativas = Turma.objects.filter(ano_letivo=ano_atual).order_by('nome')
     disciplinas_dropdown = Disciplina.objects.all().order_by('nome')
 
-    # 🔥 A MÁGICA DA SEGURANÇA (O CADEADO) 🔥
     if hasattr(request.user, 'professor_perfil'):
         perfil = request.user.professor_perfil
         
-        # 1. Filtra a tabela para ele ver SÓ as provas dele
         avaliacoes = avaliacoes.filter(alocacao__professor=perfil)
         
-        # 2. Filtra os botões Select para ele não poder pesquisar turmas de outros
         turmas_dropdown = turmas_dropdown.filter(alocacoes__professor=perfil).distinct()
         turmas_ativas = turmas_ativas.filter(alocacoes__professor=perfil).distinct()
         disciplinas_dropdown = disciplinas_dropdown.filter(alocacoes__professor=perfil).distinct()
 
-    # Aplica os filtros escolhidos pelo usuário na tela
     if turma_id:
         avaliacoes = avaliacoes.filter(alocacao__turma_id=turma_id)
     if disciplina_id:
@@ -661,7 +675,6 @@ def criar_avaliacao(request):
                 count = 0
                 ultimo_id = None
                 
-                # 🔥 SEGURANÇA: Garante que a prova saia no nome do Professor Logado
                 if hasattr(request.user, 'professor_perfil'):
                     dono_prova = request.user.professor_perfil
                 else:
@@ -669,7 +682,6 @@ def criar_avaliacao(request):
                 
                 with transaction.atomic():
                     for turma in turmas_alvo:
-                        # 🔥 SOLUÇÃO BLINDADA CONTRA DUPLICATAS NO BANCO 🔥
                         aloc = Alocacao.objects.filter(
                             turma=turma,
                             disciplina_id=disciplina_id,
@@ -706,11 +718,9 @@ def criar_avaliacao(request):
         else:
             messages.error(request, 'Erro: Preencha título, disciplina e data.')
 
-    # Listas para o GET (Quando o usuário entra na tela)
     turmas_qs = Turma.objects.filter(ano_letivo=timezone.now().year).order_by('nome')
     disciplinas_qs = Disciplina.objects.all().order_by('nome')
     
-    # 🔥 Filtra os Dropdowns de criar prova se for professor
     if hasattr(request.user, 'professor_perfil'):
         perfil = request.user.professor_perfil
         turmas_qs = turmas_qs.filter(alocacoes__professor=perfil).distinct()
@@ -803,7 +813,6 @@ def gerar_prova_pdf(request):
 
         if salvar_sistema:
             try:
-                # 🔥 SEGURANÇA: Garante que a prova saia no nome do Professor Logado
                 if hasattr(request.user, 'professor_perfil'):
                     dono_prova = request.user.professor_perfil
                 else:
@@ -814,9 +823,9 @@ def gerar_prova_pdf(request):
                     for turma in turmas_alvo:
                         titulo_final = f"RECUPERAÇÃO: {titulo}" if matricula_alvo else titulo
                         
-                        aloc, _ = Alocacao.objects.get_or_create(
-                            turma=turma, disciplina=disciplina_obj, defaults={'professor': dono_prova}
-                        )
+                        aloc = Alocacao.objects.filter(turma=turma, disciplina=disciplina_obj, professor=dono_prova).first()
+                        if not aloc:
+                            aloc = Alocacao.objects.create(turma=turma, disciplina=disciplina_obj, professor=dono_prova)
 
                         nova_av = Avaliacao.objects.create(
                             titulo=titulo_final,
@@ -1554,9 +1563,10 @@ def editar_avaliacao(request, avaliacao_id):
         d_id = request.POST.get('disciplina')
         prof_sis = avaliacao.alocacao.professor
         
-        nova_aloc, _ = Alocacao.objects.get_or_create(
-            turma_id=t_id, disciplina_id=d_id, defaults={'professor': prof_sis}
-        )
+        nova_aloc = Alocacao.objects.filter(turma_id=t_id, disciplina_id=d_id, professor=prof_sis).first()
+        if not nova_aloc:
+            nova_aloc = Alocacao.objects.create(turma_id=t_id, disciplina_id=d_id, professor=prof_sis)
+            
         avaliacao.alocacao = nova_aloc
         avaliacao.save()
         
@@ -1886,7 +1896,7 @@ def perfil_aluno(request, aluno_id):
         'total_provas': resultados.count(),
         'labels_evo': json.dumps(labels_evo),
         'dados_evo': json.dumps(dados_evo),
-        'habilidades_fortes': habilidades_fortes,
+        'habilidades_fortes':abilidades_fortes,
         'habilidades_fracas': habilidades_fracas,
         'historico': resultados.order_by('-avaliacao__data_aplicacao')
     }
@@ -2473,13 +2483,14 @@ def plano_anual(request):
     if turma_id:
         turma = get_object_or_404(Turma, id=turma_id)
         disciplina_obj = Disciplina.objects.filter(nome=disciplina_selecionada).first()
-        prof_sis = get_professor_sistema()
         
-        aloc, _ = Alocacao.objects.get_or_create(
-            turma=turma, 
-            disciplina=disciplina_obj, 
-            defaults={'professor': prof_sis}
-        )
+        prof_sis = get_professor_sistema()
+        if hasattr(request.user, 'professor_perfil'):
+            prof_sis = request.user.professor_perfil
+        
+        aloc = Alocacao.objects.filter(turma=turma, disciplina=disciplina_obj, professor=prof_sis).first()
+        if not aloc:
+            aloc = Alocacao.objects.create(turma=turma, disciplina=disciplina_obj, professor=prof_sis)
 
         plano, created = PlanoEnsino.objects.get_or_create(
             alocacao=aloc, 
@@ -3025,7 +3036,12 @@ def api_lancar_nota_ajax(request):
             is_ausente = data.get('ausente', False)
 
             avaliacao = Avaliacao.objects.get(id=avaliacao_id)
-            matricula = Matricula.objects.get(aluno_id=aluno_id, turma=avaliacao.alocacao.turma, status='CURSANDO')
+            
+            # 🔥 BLINDAGEM: O uso de .first() garante que o código não vai quebrar se a escola tiver 
+            # cadastrado o aluno duas vezes sem querer na mesma turma (Matricula duplicada).
+            matricula = Matricula.objects.filter(aluno_id=aluno_id, turma=avaliacao.alocacao.turma, status='CURSANDO').first()
+            if not matricula:
+                return JsonResponse({'sucesso': False, 'erro': 'Matrícula ativa não encontrada para este aluno nesta turma.'})
             
             gabarito = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
             qtd_questoes = gabarito.count()
@@ -3105,22 +3121,17 @@ def area_professor(request):
     try:
         perfil = request.user.professor_perfil
         
-        # 1. Nome Inteligente
         if perfil.nome_completo: nome_exibicao = perfil.nome_completo.split()[0]
         elif request.user.first_name: nome_exibicao = request.user.first_name
         else: nome_exibicao = request.user.username
 
-        # 2. 🔥 A MÁGICA DA ALOCAÇÃO (FILTRO EXTREMO)
-        # O professor SÓ enxerga turmas que estão vinculadas a ele na tabela Alocacao
         turmas = Turma.objects.filter(alocacoes__professor=perfil).distinct().annotate(
             qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'), distinct=True)
         ).order_by('nome')
         
-        # Provas atreladas exclusivamente às alocações dele
         avaliacoes_base = Avaliacao.objects.filter(alocacao__professor=perfil)
         provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
 
-        # 3. Alunos em Alerta (APENAS NAS TURMAS DELE)
         matriculas_prof = Matricula.objects.filter(turma__in=turmas, status='CURSANDO').distinct()
         
         alunos_alerta = matriculas_prof.annotate(
@@ -3129,7 +3140,6 @@ def area_professor(request):
             media_geral__lt=60
         ).select_related('aluno', 'turma').order_by('media_geral')[:5]
 
-        # 4. Quadro de Pendências das provas DELE
         provas_pendentes_qs = avaliacoes_base.annotate(
             qtd_resultados=Count('resultado')
         ).filter(
@@ -3141,7 +3151,6 @@ def area_professor(request):
         kpi_pendencias = provas_pendentes_qs.count()
 
     except AttributeError:
-        # FALLBACK ADMIN
         turmas = Turma.objects.annotate(
             qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'))
         ).order_by('nome')
@@ -3355,7 +3364,10 @@ def cadastrar_professor(request):
             turmas = form.cleaned_data.get('turmas', [])
             for t in turmas:
                 for d in disciplinas:
-                    Alocacao.objects.get_or_create(professor=professor, turma=t, disciplina=d)
+                    # 🔥 SOLUÇÃO BLINDADA: Filtra antes para evitar duplicação por falha de banco
+                    aloc = Alocacao.objects.filter(professor=professor, turma=t, disciplina=d).first()
+                    if not aloc:
+                        Alocacao.objects.create(professor=professor, turma=t, disciplina=d)
             
             mensagem = f"Sucesso! Professor cadastrado. Entregue este acesso: Login: <b>{username}</b> | Senha: <b>{senha_padrao}</b>"
             messages.success(request, mensagem)
