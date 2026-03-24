@@ -25,7 +25,6 @@ class Disciplina(models.Model):
 
 class Turma(models.Model):
     nome = models.CharField(max_length=50, help_text="Ex: 3º Ano B")
-    # O ano letivo é crucial para a "Virada de Ano"
     ano_letivo = models.IntegerField(default=2026) 
     
     def __str__(self): return f"{self.nome} ({self.ano_letivo})"
@@ -35,16 +34,13 @@ class Aluno(models.Model):
     Representa a PESSOA. Contém dados perenes (que não mudam a cada ano).
     INCLUI: Perfil Socioeconômico e Dados de Inclusão (AEE).
     """
-    # --- DADOS PESSOAIS BÁSICOS ---
     nome_completo = models.CharField(max_length=100)
     data_nascimento = models.DateField(null=True, blank=True)
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
     
-    # CORREÇÃO DE SEGURANÇA: SET_NULL impede que apagar o login apague o aluno
     usuario = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     foto = models.ImageField(upload_to='alunos/', null=True, blank=True)
 
-    # --- PERFIL SOCIOECONÔMICO (Censo Escolar) ---
     COR_RACA_CHOICES = [
         ('BRANCA', 'Branca'),
         ('PRETA', 'Preta'),
@@ -77,7 +73,6 @@ class Aluno(models.Model):
     tipo_acesso_internet = models.CharField(max_length=10, choices=INTERNET_CHOICES, default='FIXA', verbose_name="Acesso Digital")
     possui_computador = models.BooleanField(default=False, verbose_name="Possui Computador/Tablet?")
 
-    # --- INCLUSÃO E AEE (Atendimento Educacional Especializado) ---
     is_pcd = models.BooleanField(default=False, verbose_name="É PcD / Inclusão?")
     
     DEFICIENCIA_CHOICES = [
@@ -92,7 +87,6 @@ class Aluno(models.Model):
     ]
     tipo_deficiencia = models.CharField(max_length=10, choices=DEFICIENCIA_CHOICES, blank=True, null=True, verbose_name="Tipo de Condição")
     
-    # PEI: Plano de Ensino Individualizado (Arquivo PDF ou Imagem)
     arquivo_pei = models.FileField(upload_to='pei_alunos/', blank=True, null=True, verbose_name="Documento PEI/Laudo")
     observacoes_clinicas = models.TextField(blank=True, null=True, help_text="Cuidados específicos, medicação, suporte necessário.")
 
@@ -100,15 +94,12 @@ class Aluno(models.Model):
 
     @property
     def tem_icone_inclusao(self):
-        """Helper para o template saber se mostra o ícone de acessibilidade"""
         return self.is_pcd
-
 
 class Professor(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professor_perfil')
     nome_completo = models.CharField(max_length=150)
-    disciplinas = models.ManyToManyField(Disciplina, related_name='professores')
-    turmas = models.ManyToManyField(Turma, related_name='professores')
+    # 🔥 REMOVIDO: disciplinas e turmas
 
     def __str__(self):
         return f"Prof. {self.nome_completo}"
@@ -126,12 +117,7 @@ class Alocacao(models.Model):
     def __str__(self):
         return f"{self.professor.nome_completo} | {self.disciplina.nome} - {self.turma.nome}"
 
-
 class Matricula(models.Model):
-    """
-    Liga o Aluno à Turma em um Ano específico.
-    Guardamos aqui o resultado final para histórico.
-    """
     STATUS_CHOICES = [
         ('CURSANDO', 'Cursando'), 
         ('APROVADO', 'Aprovado'),
@@ -142,17 +128,11 @@ class Matricula(models.Model):
     ]
     
     aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name='matriculas')
-    
-    # CORREÇÃO DE SEGURANÇA: PROTECT impede apagar a turma se tiver alunos
     turma = models.ForeignKey(Turma, on_delete=models.PROTECT, related_name='alunos_matriculados') 
     
     data_matricula = models.DateField(auto_now_add=True)
     numero_chamada = models.IntegerField(null=True, blank=True)
-    
-    # Status Atual (Mudará durante a "Virada de Ano")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='CURSANDO')
-    
-    # Campo Novo: Para congelar a média final do ano (importante para histórico 2025 -> 2026)
     media_final = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
 
     class Meta:
@@ -177,18 +157,11 @@ class Descritor(models.Model):
     descricao = models.TextField()
     disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
     
-    # NOVOS CAMPOS PARA HIERARQUIA E ORGANIZAÇÃO
     matriz = models.CharField(max_length=15, choices=MATRIZ_CHOICES, default='SPAECE')
-    
-    # Campo mágico: Auto-referência. Permite que um descritor seja filho de outro.
-    # Ex: S01H01 (filho) aponta para S01 (pai). Se for nulo, é um descritor Pai.
     descritor_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='habilidades_filhas')
-    
-    # Mantido por compatibilidade com sistema antigo, mas pode ser ignorado no novo fluxo
     tema = models.CharField(max_length=100, null=True, blank=True) 
     
     def __str__(self): 
-        # Se tem pai, mostra de quem ele é filho para facilitar a leitura no Admin
         prefixo = f"[{self.matriz}] "
         if self.descritor_pai:
             return f"{prefixo}{self.descritor_pai.codigo} > {self.codigo} - {self.descricao[:40]}..."
@@ -224,13 +197,17 @@ class Questao(models.Model):
 class Avaliacao(models.Model):
     titulo = models.CharField(max_length=100)
     data_aplicacao = models.DateField()
-    disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
-    turma = models.ForeignKey(Turma, on_delete=models.PROTECT)
-    alocacao = models.ForeignKey(Alocacao, on_delete=models.SET_NULL, null=True, blank=True, related_name='avaliacoes')
+    
+    # 🔥 REMOVIDO: disciplina e turma
+    # 🔥 ATUALIZADO: alocacao agora é obrigatória (sem null=True, blank=True)
+    alocacao = models.ForeignKey(Alocacao, on_delete=models.PROTECT, related_name='avaliacoes')
+    
     questoes = models.ManyToManyField(Questao, related_name='avaliacoes', blank=True)
     matricula = models.ForeignKey('Matricula', on_delete=models.SET_NULL, null=True, blank=True)
 
-    def __str__(self): return f"{self.titulo} - {self.turma}"
+    def __str__(self): 
+        # Ajustado o __str__ para refletir a nova estrutura
+        return f"{self.titulo} - {self.alocacao.turma.nome} ({self.alocacao.disciplina.nome})"
 
 class ItemGabarito(models.Model):
     avaliacao = models.ForeignKey(Avaliacao, on_delete=models.CASCADE, related_name='itens_gabarito')
@@ -241,7 +218,6 @@ class ItemGabarito(models.Model):
     
     class Meta: ordering = ['numero']
 
-    # NOVO STR
     def __str__(self):
         return f"Q{self.numero} - {self.avaliacao.titulo}"
 
@@ -263,7 +239,6 @@ class Resultado(models.Model):
         else: self.status = 'MCR'
         super().save(*args, **kwargs)
 
-    # NOVO STR
     def __str__(self):
         return f"Resultado: {self.matricula.aluno.nome_completo[:15]} - {self.avaliacao.titulo[:15]}"
 
@@ -294,7 +269,6 @@ class NDI(models.Model):
         parcial = (self.nota_frequencia + self.nota_atividade + self.nota_comportamento) / 3
         return (parcial + self.nota_prova_parcial + self.nota_prova_bimestral) / 3
 
-    # NOVO STR
     def __str__(self):
         return f"Boletim {self.bimestre}º Bim - {self.matricula.aluno.nome_completo[:20]}"
 
@@ -303,14 +277,17 @@ class NDI(models.Model):
 # ==============================================================================
 
 class PlanoEnsino(models.Model):
-    turma = models.ForeignKey(Turma, on_delete=models.CASCADE)
-    disciplina_nome = models.CharField(max_length=100)
-    alocacao = models.ForeignKey(Alocacao, on_delete=models.SET_NULL, null=True, blank=True, related_name='planos_ensino')
+    # 🔥 REMOVIDO: turma e disciplina_nome
+    # 🔥 ATUALIZADO: alocacao agora é obrigatória
+    alocacao = models.ForeignKey(Alocacao, on_delete=models.CASCADE, related_name='planos_ensino')
+    
     ano_letivo = models.IntegerField(default=2026)
     criado_em = models.DateTimeField(auto_now_add=True)
     arquivo = models.FileField(upload_to='planos_ensino/', blank=True, null=True)
 
-    class Meta: unique_together = ('turma', 'disciplina_nome', 'ano_letivo')
+    class Meta: 
+        # 🔥 ATUALIZADO: unique_together refletindo a nova estrutura
+        unique_together = ('alocacao', 'ano_letivo')
 
     def progresso(self):
         total = self.topicos.count()
@@ -318,9 +295,9 @@ class PlanoEnsino(models.Model):
         concluidos = self.topicos.filter(status='DONE').count()
         return int((concluidos / total) * 100)
 
-    # NOVO STR
     def __str__(self):
-        return f"Plano {self.disciplina_nome} - {self.turma.nome}"
+        # Ajustado o __str__ para refletir a nova estrutura
+        return f"Plano {self.alocacao.disciplina.nome} - {self.alocacao.turma.nome}"
 
 class TopicoPlano(models.Model):
     BIMESTRES = [(1, '1º'), (2, '2º'), (3, '3º'), (4, '4º')]
@@ -332,7 +309,6 @@ class TopicoPlano(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='TODO')
     data_prevista = models.DateField(null=True, blank=True)
 
-    # NOVO STR
     def __str__(self):
         return f"{self.bimestre}ºB: {self.conteudo[:30]}..."
 

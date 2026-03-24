@@ -3,7 +3,7 @@ from .models import (
     Turma, Aluno, Disciplina, Avaliacao, Resultado, Questao, 
     RespostaDetalhada, ConfiguracaoSistema, ItemGabarito, 
     Descritor, NDI, PlanoEnsino, TopicoPlano, CategoriaAjuda, Tutorial,
-    Matricula, Professor # <--- Importante: Adicionei Matrícula
+    Matricula, Professor, Alocacao 
 )
 
 # --- CLASSES PERSONALIZADAS ---
@@ -17,17 +17,20 @@ class TurmaAdmin(admin.ModelAdmin):
 @admin.register(Professor)
 class ProfessorAdmin(admin.ModelAdmin):
     list_display = ('nome_completo', 'usuario')
-    filter_horizontal = ('disciplinas', 'turmas') # Cria uma caixinha fácil de selecionar
+
+@admin.register(Alocacao)
+class AlocacaoAdmin(admin.ModelAdmin):
+    list_display = ('professor', 'disciplina', 'turma')
+    list_filter = ('turma', 'disciplina', 'professor')
+    search_fields = ('professor__nome_completo',)
 
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):
-    # CORREÇÃO: Removemos 'turma' e 'ativo' daqui, pois agora pertencem à Matrícula
     list_display = ('nome_completo', 'cpf', 'data_nascimento')
     search_fields = ('nome_completo', 'cpf')
 
 @admin.register(Matricula)
 class MatriculaAdmin(admin.ModelAdmin):
-    # NOVA CLASSE: Aqui é onde você vê a Turma e se o aluno está Ativo/Aprovado
     list_display = ('get_aluno', 'turma', 'status', 'numero_chamada')
     list_filter = ('turma', 'status', 'turma__ano_letivo')
     search_fields = ('aluno__nome_completo',)
@@ -44,15 +47,14 @@ class DisciplinaAdmin(admin.ModelAdmin):
 
 @admin.register(Avaliacao)
 class AvaliacaoAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'disciplina', 'turma', 'data_aplicacao')
-    list_filter = ('turma', 'disciplina', 'data_aplicacao')
+    list_display = ('titulo', 'alocacao', 'data_aplicacao')
+    list_filter = ('alocacao__turma', 'alocacao__disciplina', 'data_aplicacao')
     search_fields = ('titulo',)
 
 @admin.register(Resultado)
 class ResultadoAdmin(admin.ModelAdmin):
-    # CORREÇÃO: 'aluno' virou um método que busca através da matrícula
     list_display = ('get_aluno', 'get_turma', 'avaliacao', 'acertos', 'percentual', 'status')
-    list_filter = ('status', 'avaliacao__disciplina')
+    list_filter = ('status', 'avaliacao__alocacao__disciplina')
     readonly_fields = ('percentual', 'status')
 
     def get_aluno(self, obj):
@@ -79,10 +81,9 @@ class QuestaoAdmin(admin.ModelAdmin):
 @admin.register(RespostaDetalhada)
 class RespostaDetalhadaAdmin(admin.ModelAdmin):
     list_display = ('get_aluno', 'get_prova', 'get_descritor', 'acertou')
-    list_filter = ('acertou', 'questao__descritor', 'resultado__avaliacao__turma')
+    list_filter = ('acertou', 'questao__descritor', 'resultado__avaliacao__alocacao__turma')
     
     def get_aluno(self, obj):
-        # CORREÇÃO: Caminho atualizado (Resultado -> Matrícula -> Aluno)
         return obj.resultado.matricula.aluno.nome_completo
     get_aluno.short_description = 'Aluno' 
     
@@ -109,7 +110,6 @@ class ConfiguracaoSistemaAdmin(admin.ModelAdmin):
 
 @admin.register(NDI)
 class NDIAdmin(admin.ModelAdmin):
-    # CORREÇÃO: Exibição ajustada para Matrícula
     list_display = ('get_aluno', 'bimestre', 'ndi_final')
     list_filter = ('bimestre', 'matricula__turma')
 
@@ -119,7 +119,8 @@ class NDIAdmin(admin.ModelAdmin):
 
 @admin.register(PlanoEnsino)
 class PlanoEnsinoAdmin(admin.ModelAdmin):
-    list_display = ('disciplina_nome', 'turma', 'ano_letivo')
+    list_display = ('alocacao', 'ano_letivo')
+    list_filter = ('alocacao__turma', 'alocacao__disciplina', 'ano_letivo')
 
 # --- REGISTROS SIMPLES ---
 
