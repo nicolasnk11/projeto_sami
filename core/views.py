@@ -42,7 +42,7 @@ from .models import (
     Turma, Resultado, Avaliacao, Questao, Aluno, Disciplina, 
     RespostaDetalhada, ItemGabarito, Descritor, NDI, PlanoEnsino,
     TopicoPlano, ConfiguracaoSistema, Tutorial, CategoriaAjuda, Matricula,
-    Professor, Alocacao # 🔥 ALOCACAO IMPORTADA AQUI
+    Professor, Alocacao 
 )
 from .forms import (
     AvaliacaoForm, ResultadoForm, GerarProvaForm, ImportarQuestoesForm, 
@@ -117,7 +117,6 @@ def desenhar_cabecalho_prova(p, titulo, turma_nome, disciplina_nome):
 # ==============================================================================
 
 def ler_planilha_inteligente(arquivo):
-    """Lê Excel ou CSV detectando separadores e encoding automaticamente."""
     arquivo.seek(0)
     nome = arquivo.name.lower()
     
@@ -170,7 +169,7 @@ def scanner_dificuldade(valor):
     return 'M'
 
 # ==============================================================================
-# 📊 DASHBOARD OTIMIZADO 2.0 (JÁ CORRIGIDO ANTERIORMENTE)
+# 📊 DASHBOARD OTIMIZADO 2.0 
 # ==============================================================================
 
 @login_required
@@ -191,7 +190,6 @@ def dashboard(request):
     # Base: Resultados
     resultados = Resultado.objects.all()
 
-    # 🔥 CORREÇÃO: Filtros apontando para a Alocação
     if disciplina_id: resultados = resultados.filter(avaliacao__alocacao__disciplina_id=disciplina_id)
     if serie_id: resultados = resultados.filter(avaliacao__alocacao__turma__nome__startswith=serie_id)
     if turma_id: resultados = resultados.filter(avaliacao__alocacao__turma_id=turma_id)
@@ -225,7 +223,6 @@ def dashboard(request):
 
     qtd_provas = resultados.values('avaliacao').distinct().count()
 
-    # Detalhes Pizza
     detalhes_qs = resultados.select_related('matricula__aluno', 'matricula__turma').only(
         'percentual', 'matricula__aluno__nome_completo', 'matricula__turma__nome'
     )[:500]
@@ -360,7 +357,6 @@ def api_raio_x(request):
     if descritor_cod: 
         filtros &= (Q(item_gabarito__descritor__codigo=descritor_cod) | Q(questao__descritor__codigo=descritor_cod))
     
-    # 🔥 CORREÇÃO: Caminhos usando Alocação
     if request.GET.get('avaliacao'): filtros &= Q(resultado__avaliacao_id=request.GET.get('avaliacao'))
     if request.GET.get('turma'): filtros &= Q(resultado__avaliacao__alocacao__turma_id=request.GET.get('turma'))
     if request.GET.get('serie'): filtros &= Q(resultado__avaliacao__alocacao__turma__nome__startswith=request.GET.get('serie'))
@@ -378,7 +374,6 @@ def api_raio_x(request):
     
     return JsonResponse({'alunos': lista_alunos})
 
-
 @login_required
 def painel_gestao(request):
     total_turmas = Turma.objects.count()
@@ -386,6 +381,7 @@ def painel_gestao(request):
     total_descritores = Descritor.objects.count()
     context = {'total_turmas': total_turmas, 'total_questoes': total_questoes, 'total_descritores': total_descritores}
     return render(request, 'core/painel_gestao.html', context)
+
 
 # ==============================================================================
 # 📥 IMPORTAÇÕES
@@ -573,8 +569,63 @@ def baixar_modelo(request, formato):
         return response
 
 # ==============================================================================
-# 📝 GESTÃO DE AVALIAÇÕES E PROVAS
+# 📝 GESTÃO DE AVALIAÇÕES E PROVAS (COM CADEADO DE SEGURANÇA 🔥)
 # ==============================================================================
+
+@login_required
+def gerenciar_avaliacoes(request):
+    if request.method == 'POST' and 'delete_id' in request.POST:
+        av = get_object_or_404(Avaliacao, id=request.POST.get('delete_id'))
+        av.delete()
+        messages.success(request, 'Avaliação removida com sucesso!')
+        return redirect('gerenciar_avaliacoes')
+
+    turma_id = request.GET.get('turma')
+    disciplina_id = request.GET.get('disciplina')
+    data_filtro = request.GET.get('data')
+
+    # Base da busca 
+    avaliacoes = Avaliacao.objects.select_related('alocacao__turma', 'alocacao__disciplina').order_by('-data_aplicacao')
+    
+    # Listas para os filtros (Botões Select)
+    ano_atual = timezone.now().year
+    turmas_dropdown = Turma.objects.all().order_by('nome')
+    turmas_ativas = Turma.objects.filter(ano_letivo=ano_atual).order_by('nome')
+    disciplinas_dropdown = Disciplina.objects.all().order_by('nome')
+
+    # 🔥 A MÁGICA DA SEGURANÇA (O CADEADO) 🔥
+    if hasattr(request.user, 'professor_perfil'):
+        perfil = request.user.professor_perfil
+        
+        # 1. Filtra a tabela para ele ver SÓ as provas dele
+        avaliacoes = avaliacoes.filter(alocacao__professor=perfil)
+        
+        # 2. Filtra os botões Select para ele não poder pesquisar turmas de outros
+        turmas_dropdown = turmas_dropdown.filter(alocacoes__professor=perfil).distinct()
+        turmas_ativas = turmas_ativas.filter(alocacoes__professor=perfil).distinct()
+        disciplinas_dropdown = disciplinas_dropdown.filter(alocacoes__professor=perfil).distinct()
+
+    # Aplica os filtros escolhidos pelo usuário na tela
+    if turma_id:
+        avaliacoes = avaliacoes.filter(alocacao__turma_id=turma_id)
+    if disciplina_id:
+        avaliacoes = avaliacoes.filter(alocacao__disciplina_id=disciplina_id)
+    if data_filtro:
+        avaliacoes = avaliacoes.filter(data_aplicacao=data_filtro)
+
+    context = {
+        'avaliacoes': avaliacoes,
+        'turmas': turmas_dropdown,
+        'turmas_ativas': turmas_ativas,
+        'disciplinas': disciplinas_dropdown,
+        'total_avaliacoes': avaliacoes.count(),
+        'filtro_turma': int(turma_id) if turma_id else None,
+        'filtro_disciplina': int(disciplina_id) if disciplina_id else None,
+        'filtro_data': data_filtro
+    }
+    
+    return render(request, 'core/avaliacoes.html', context)
+
 
 @login_required
 def criar_avaliacao(request):
@@ -610,16 +661,19 @@ def criar_avaliacao(request):
                 count = 0
                 ultimo_id = None
                 
-                # 🔥 CORREÇÃO: Cria a Avaliação já atrelada à Alocação
-                prof_sis = get_professor_sistema()
+                # 🔥 SEGURANÇA: Garante que a prova saia no nome do Professor Logado
+                if hasattr(request.user, 'professor_perfil'):
+                    dono_prova = request.user.professor_perfil
+                else:
+                    dono_prova = get_professor_sistema()
                 
                 with transaction.atomic():
                     for turma in turmas_alvo:
-                        # Garante que existe a alocação
+                        # Cria a alocação amarrada ao professor dono da prova
                         aloc, _ = Alocacao.objects.get_or_create(
                             turma=turma,
                             disciplina_id=disciplina_id,
-                            defaults={'professor': prof_sis}
+                            defaults={'professor': dono_prova}
                         )
                         
                         av = Avaliacao.objects.create(
@@ -645,9 +699,19 @@ def criar_avaliacao(request):
         else:
             messages.error(request, 'Erro: Preencha título, disciplina e data.')
 
+    # Listas para o GET (Quando o usuário entra na tela)
+    turmas_qs = Turma.objects.filter(ano_letivo=timezone.now().year).order_by('nome')
+    disciplinas_qs = Disciplina.objects.all().order_by('nome')
+    
+    # 🔥 Filtra os Dropdowns de criar prova se for professor
+    if hasattr(request.user, 'professor_perfil'):
+        perfil = request.user.professor_perfil
+        turmas_qs = turmas_qs.filter(alocacoes__professor=perfil).distinct()
+        disciplinas_qs = disciplinas_qs.filter(alocacoes__professor=perfil).distinct()
+
     context = {
-        'turmas': Turma.objects.filter(ano_letivo=timezone.now().year).order_by('nome'),
-        'disciplinas': Disciplina.objects.all().order_by('nome')
+        'turmas': turmas_qs,
+        'disciplinas': disciplinas_qs
     }
     return render(request, 'core/criar_avaliacao.html', context)
 
@@ -732,15 +796,19 @@ def gerar_prova_pdf(request):
 
         if salvar_sistema:
             try:
-                prof_sis = get_professor_sistema()
+                # 🔥 SEGURANÇA: Garante que a prova saia no nome do Professor Logado
+                if hasattr(request.user, 'professor_perfil'):
+                    dono_prova = request.user.professor_perfil
+                else:
+                    dono_prova = get_professor_sistema()
+                
                 with transaction.atomic():
                     count = 0
                     for turma in turmas_alvo:
                         titulo_final = f"RECUPERAÇÃO: {titulo}" if matricula_alvo else titulo
                         
-                        # 🔥 CORREÇÃO: Usa Alocacao
                         aloc, _ = Alocacao.objects.get_or_create(
-                            turma=turma, disciplina=disciplina_obj, defaults={'professor': prof_sis}
+                            turma=turma, disciplina=disciplina_obj, defaults={'professor': dono_prova}
                         )
 
                         nova_av = Avaliacao.objects.create(
@@ -888,7 +956,6 @@ def baixar_prova_existente(request, avaliacao_id):
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     
-    # 🔥 CORREÇÃO: Busca da alocacao
     desenhar_cabecalho_prova(p, avaliacao.titulo, avaliacao.alocacao.turma.nome, avaliacao.alocacao.disciplina.nome)
     
     y = 730 
@@ -1013,7 +1080,6 @@ def montar_prova(request, avaliacao_id):
         else:
             messages.warning(request, "Nenhuma questão foi selecionada.")
 
-    # 🔥 CORREÇÃO: Busca por Alocacao
     questoes = Questao.objects.filter(disciplina=avaliacao.alocacao.disciplina).order_by('-id')
     
     f_dificuldade = request.GET.get('dificuldade')
@@ -1062,7 +1128,6 @@ def definir_gabarito(request, avaliacao_id):
         if 'qtd_questoes' in request.POST:
             qtd = int(request.POST.get('qtd_questoes'))
             ItemGabarito.objects.filter(avaliacao=avaliacao).delete()
-            # 🔥 CORREÇÃO: Busca por Alocacao
             desc_padrao = Descritor.objects.filter(disciplina=avaliacao.alocacao.disciplina).first()
             
             for i in range(1, qtd + 1):
@@ -1083,7 +1148,6 @@ def definir_gabarito(request, avaliacao_id):
                         item.save()
 
                     if request.POST.get('replicar_para_todos') == 'on':
-                        # 🔥 CORREÇÃO: Busca por Alocacao
                         provas_irmas = Avaliacao.objects.filter(
                             titulo=avaliacao.titulo, 
                             alocacao__disciplina=avaliacao.alocacao.disciplina,
@@ -1140,7 +1204,6 @@ def lancar_nota(request):
         if avaliacao_obj.matricula:
             matriculas_turma = Matricula.objects.filter(id=avaliacao_obj.matricula.id)
         else:
-            # 🔥 CORREÇÃO: Busca turma na Alocacao
             matriculas_turma = Matricula.objects.filter(
                 turma=avaliacao_obj.alocacao.turma, 
                 status='CURSANDO'
@@ -1350,47 +1413,6 @@ def gerenciar_alunos(request):
     })
 
 @login_required
-def gerenciar_avaliacoes(request):
-    if request.method == 'POST' and 'delete_id' in request.POST:
-        av = get_object_or_404(Avaliacao, id=request.POST.get('delete_id'))
-        av.delete()
-        messages.success(request, 'Avaliação removida com sucesso!')
-        return redirect('gerenciar_avaliacoes')
-
-    turma_id = request.GET.get('turma')
-    disciplina_id = request.GET.get('disciplina')
-    data_filtro = request.GET.get('data')
-
-    # 🔥 CORREÇÃO: Caminhos ajustados para Alocacao
-    avaliacoes = Avaliacao.objects.select_related('alocacao__turma', 'alocacao__disciplina').order_by('-data_aplicacao')
-    
-    if turma_id:
-        avaliacoes = avaliacoes.filter(alocacao__turma_id=turma_id)
-    
-    if disciplina_id:
-        avaliacoes = avaliacoes.filter(alocacao__disciplina_id=disciplina_id)
-        
-    if data_filtro:
-        avaliacoes = avaliacoes.filter(data_aplicacao=data_filtro)
-
-    ano_atual = timezone.now().year
-
-    context = {
-        'avaliacoes': avaliacoes,
-        'turmas': Turma.objects.all().order_by('nome'),
-        'turmas_ativas': Turma.objects.filter(ano_letivo=ano_atual).order_by('nome'),
-        'disciplinas': Disciplina.objects.all().order_by('nome'),
-        'total_avaliacoes': avaliacoes.count(),
-        
-        'filtro_turma': int(turma_id) if turma_id else None,
-        'filtro_disciplina': int(disciplina_id) if disciplina_id else None,
-        'filtro_data': data_filtro
-    }
-    
-    return render(request, 'core/avaliacoes.html', context)
-
-
-@login_required
 def gerenciar_turmas(request):
     if request.method == 'POST':
         acao = request.POST.get('acao')
@@ -1518,7 +1540,6 @@ def listar_questoes(request):
 def editar_avaliacao(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     if request.method == 'POST':
-        # 🔥 CORREÇÃO: Cria nova Alocação se mudar turma/disc
         avaliacao.titulo = request.POST.get('titulo')
         avaliacao.data_aplicacao = request.POST.get('data_aplicacao')
         
@@ -1578,7 +1599,6 @@ def gerar_relatorio_proficiencia(request):
     filtros_texto = []
     titulo_relatorio = "RELATÓRIO PEDAGÓGICO DE PROFICIÊNCIA"
 
-    # 🔥 CORREÇÃO: Filtros pela Alocação
     if disciplina_id:
         try:
             disc = Disciplina.objects.get(id=disciplina_id)
@@ -1814,7 +1834,6 @@ def api_filtrar_alunos(request):
 def perfil_aluno(request, aluno_id):
     aluno = get_object_or_404(Aluno, id=aluno_id)
     
-    # 🔥 CORREÇÃO: Busca avaliacao__alocacao__disciplina
     resultados = Resultado.objects.filter(matricula__aluno=aluno).select_related('avaliacao', 'avaliacao__alocacao__disciplina').order_by('avaliacao__data_aplicacao')
     
     labels_evo = [res.avaliacao.titulo[:15] + '...' for res in resultados] 
@@ -1921,7 +1940,6 @@ def mapa_calor(request, avaliacao_id):
 # BOLETIM PDF
 def gerar_boletim_pdf(request, aluno_id):
     aluno = get_object_or_404(Aluno, id=aluno_id)
-    # 🔥 CORREÇÃO: Busca via avaliacao__alocacao__disciplina
     resultados = Resultado.objects.filter(matricula__aluno=aluno).select_related('avaliacao', 'avaliacao__alocacao__disciplina').order_by('avaliacao__data_aplicacao')
     
     matricula_atual = Matricula.objects.filter(aluno=aluno, status='CURSANDO').last()
@@ -2244,7 +2262,6 @@ def gerar_cartoes_pdf(request, avaliacao_id):
     if avaliacao.matricula: 
         matriculas = [avaliacao.matricula]
     else:
-        # 🔥 CORREÇÃO: Busca por Alocacao
         matriculas = Matricula.objects.filter(
             turma=avaliacao.alocacao.turma, 
             status='CURSANDO'
@@ -2451,7 +2468,6 @@ def plano_anual(request):
         disciplina_obj = Disciplina.objects.filter(nome=disciplina_selecionada).first()
         prof_sis = get_professor_sistema()
         
-        # 🔥 CORREÇÃO: Garante a alocacao
         aloc, _ = Alocacao.objects.get_or_create(
             turma=turma, 
             disciplina=disciplina_obj, 
@@ -2674,7 +2690,6 @@ def upload_correcao_cartao(request, avaliacao_id):
                 destination.write(chunk)
         pass 
 
-    # 🔥 CORREÇÃO: Busca por Alocacao
     matriculas = Matricula.objects.filter(turma=avaliacao.alocacao.turma, status='CURSANDO')
     return render(request, 'core/professor/upload_cartao.html', {'avaliacao': avaliacao, 'matriculas': matriculas})
 
@@ -2968,7 +2983,6 @@ def api_lancar_nota_ajax(request):
         avaliacao_id = request.GET.get('avaliacao_id')
         
         try:
-            # 🔥 CORREÇÃO: Busca do resultado simplificada
             resultado = Resultado.objects.filter(
                 matricula__aluno_id=aluno_id, 
                 avaliacao_id=avaliacao_id
@@ -3004,7 +3018,6 @@ def api_lancar_nota_ajax(request):
             is_ausente = data.get('ausente', False)
 
             avaliacao = Avaliacao.objects.get(id=avaliacao_id)
-            # 🔥 CORREÇÃO: Busca por Alocacao
             matricula = Matricula.objects.get(aluno_id=aluno_id, turma=avaliacao.alocacao.turma, status='CURSANDO')
             
             gabarito = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
