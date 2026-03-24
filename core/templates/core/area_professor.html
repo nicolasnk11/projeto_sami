@@ -25,7 +25,7 @@
                     <div class="icon-box bg-white bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mb-md-4" style="width: 50px; height: 50px;">
                         <i class="bi bi-file-earmark-plus-fill fs-4 text-sami-gold"></i>
                     </div>
-                    <h5 class="fw-bold">Avaliações</h5>
+                    <h5 class="fw-bold text-white">Avaliações</h5>
                     <p class="text-white-50 small mb-0">Criar provas e gerenciar as antigas.</p>
                 </div>
                 <i class="bi bi-file-earmark-plus position-absolute text-white opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
@@ -38,7 +38,7 @@
                     <div class="icon-box bg-white bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mb-md-4" style="width: 50px; height: 50px;">
                         <i class="bi bi-collection-fill fs-4 text-white"></i>
                     </div>
-                    <h5 class="fw-bold">Matriz e Questões</h5>
+                    <h5 class="fw-bold text-white">Matriz e Questões</h5>
                     <p class="text-white-50 small mb-0">Acessar banco de questões ou criar próprias.</p>
                 </div>
                 <i class="bi bi-collection position-absolute text-white opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
@@ -51,7 +51,7 @@
                     <div class="icon-box bg-white bg-opacity-50 rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mb-md-4" style="width: 50px; height: 50px;">
                         <i class="bi bi-qr-code-scan fs-4 text-sami-dark"></i>
                     </div>
-                    <h5 class="fw-bold">Scanner</h5>
+                    <h5 class="fw-bold text-sami-dark">Scanner</h5>
                     <p class="text-sami-dark opacity-75 small mb-0">Corrigir cartões via câmera ou lançar notas.</p>
                 </div>
                 <i class="bi bi-qr-code position-absolute text-sami-dark opacity-10" style="font-size: 8rem; right: -15px; bottom: -30px;"></i>
@@ -75,7 +75,7 @@
     <div class="row g-4 mb-5">
         
         <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-sami-gold border-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-sami-gold border-4 bg-white">
                 <div class="card-header bg-white border-0 pt-4 pb-0">
                     <h5 class="fw-bold text-sami-dark mb-0"><i class="bi bi-exclamation-triangle-fill text-sami-gold me-2"></i>Avisos e Pendências</h5>
                 </div>
@@ -87,9 +87,9 @@
                             <div class="list-group-item px-0 py-3 border-light d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center transition-hover gap-2">
                                 <div>
                                     <div class="fw-bold text-sami-dark">{{ pendencia.titulo }}</div>
-                                    <small class="text-muted">{{ pendencia.alocacao.turma.nome }} | <i class="bi bi-calendar-event"></i> {{ pendencia.data_aplicacao|date:"d/m/Y" }}</small>
+                                    <small class="text-sami-green fw-medium">{{ pendencia.alocacao.turma.nome }} | <i class="bi bi-calendar-event"></i> {{ pendencia.data_aplicacao|date:"d/m/Y" }}</small>
                                 </div>
-                                <a href="{% url 'lancar_nota' %}?avaliacao_id={{ pendencia.id }}" class="btn btn-sm btn-sami-gold rounded-pill px-4 py-2 mt-2 mt-sm-0 w-100 w-sm-auto text-center" data-bs-toggle="tooltip" title="Lançar notas agora">Corrigir</a>
+                                <a href="{% url 'lancar_nota' %}?avaliacao_id={{ pendencia.id }}" class="btn btn-sm btn-sami-gold rounded-pill px-4 py-2 mt-2 mt-sm-0 w-100 w-sm-auto text-center text-dark" data-bs-toggle="tooltip" title="Lançar notas agora">Corrigir</a>
                             </div>
                             {% endfor %}
                         </div>
@@ -107,7 +107,7 @@
         </div>
 
         <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-danger border-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-danger border-4 bg-white">
                 <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold text-sami-dark mb-0">
                         <i class="bi bi-radar text-danger me-2 {% if alunos_alerta %}radar-pulse{% endif %}"></i>Radar de Atenção
@@ -123,10 +123,10 @@
                                     <tr class="border-bottom border-light transition-hover">
                                         <td class="ps-0 py-2">
                                             <div class="fw-bold text-sami-dark">{{ alerta.aluno.nome_completo|truncatechars:35 }}</div>
-                                            <small class="text-muted"><i class="bi bi-people me-1"></i>{{ alerta.turma.nome }}</small>
+                                            <small class="text-sami-green fw-medium"><i class="bi bi-people me-1"></i>{{ alerta.turma.nome }}</small>
                                         </td>
                                         <td class="text-end pe-0 py-2">
-                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-2" style="font-size: 0.85rem;" data-bs-toggle="tooltip" title="Este aluno precisa de acompanhamento">
+                                            <span class="badge bg-danger text-white rounded-pill px-3 py-2 shadow-sm" style="font-size: 0.85rem;" data-bs-toggle="tooltip" title="Este aluno precisa de acompanhamento">
                                                 Média: {{ alerta.media_geral|default_if_none:"0"|floatformat:1 }}
                                             </span>
                                         </td>
@@ -159,11 +159,11 @@
             <div class="row g-3">
                 {% for turma in turmas %}
                 <div class="col-12 col-md-6" style="z-index: {{ forloop.revcounter }}; position: relative;">
-                    <div class="card border-0 shadow-sm h-100 rounded-4 border-start border-sami-green border-4 transition-hover">
+                    <div class="card border-0 shadow-sm h-100 rounded-4 border-start border-sami-green border-4 transition-hover bg-white">
                         <div class="card-body d-flex align-items-center justify-content-between p-3">
                             
                             <div class="d-flex align-items-center overflow-hidden">
-                                <div class="avatar-turma bg-sami-green bg-opacity-10 text-sami-green fw-bold rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 45px; height: 45px; font-size: 1rem; border: 1px solid rgba(17, 66, 43, 0.2);">
+                                <div class="avatar-turma bg-sami-green text-white fw-bold rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 45px; height: 45px; font-size: 1rem;">
                                     {{ turma.nome|slice:":2" }}
                                 </div>
                                 <div class="ms-3 text-truncate">
@@ -173,7 +173,7 @@
                             </div>
                             
                             <div class="dropdown ms-2 flex-shrink-0">
-                                <button class="btn btn-light border-0 shadow-none text-sami-green rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" data-bs-toggle="tooltip" title="Ações da Turma">
+                                <button class="btn btn-light border shadow-sm text-sami-green rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" data-bs-toggle="tooltip" title="Ações da Turma">
                                     <i class="bi bi-three-dots-vertical fs-5"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 rounded-3">
@@ -198,18 +198,18 @@
 
         <div class="col-lg-4">
             <h5 class="fw-bold text-sami-dark mb-3 mt-4 mt-lg-0"><i class="bi bi-clock-history me-2 text-sami-green"></i>Últimas Provas</h5>
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="list-group list-group-flush rounded-4">
                     {% for prova in provas_recentes %}
                     <div class="list-group-item border-light py-3 px-3 px-md-4 d-flex align-items-center justify-content-between transition-hover">
                         <div class="overflow-hidden me-3">
                             <div class="fw-bold text-sami-dark text-truncate" title="{{ prova.titulo }}">{{ prova.titulo }}</div>
                             <div class="small text-muted mt-1 text-truncate">
-                                <span class="badge bg-sami-dark bg-opacity-10 text-sami-dark border-0 me-1">{{ prova.alocacao.turma.nome }} ({{ prova.alocacao.disciplina.nome }})</span>
-                                {{ prova.data_aplicacao|date:"d/m" }}
+                                <span class="badge bg-sami-dark text-white border-0 me-1">{{ prova.alocacao.turma.nome }}</span>
+                                <span class="text-sami-green fw-medium">{{ prova.alocacao.disciplina.nome }}</span> | {{ prova.data_aplicacao|date:"d/m" }}
                             </div>
                         </div>
-                        <a href="{% url 'lancar_nota' %}?avaliacao_id={{ prova.id }}" class="btn btn-light btn-sm rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; border: 1px solid #dee2e6;" data-bs-toggle="tooltip" data-bs-placement="left" title="Abrir Scanner para Lançar Notas">
+                        <a href="{% url 'lancar_nota' %}?avaliacao_id={{ prova.id }}" class="btn btn-light btn-sm rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 40px; height: 40px; border: 1px solid #dee2e6;" data-bs-toggle="tooltip" data-bs-placement="left" title="Abrir Scanner para Lançar Notas">
                             <i class="bi bi-qr-code text-sami-green fs-5"></i>
                         </a>
                     </div>
@@ -268,14 +268,14 @@
     /* Botão Dourado Personalizado */
     .btn-sami-gold {
         background-color: var(--sami-gold);
-        color: var(--sami-dark);
+        color: var(--sami-dark) !important;
         font-weight: bold;
         border: none;
         transition: all 0.2s;
     }
     .btn-sami-gold:hover {
         background-color: var(--sami-gold-hover);
-        color: var(--sami-dark);
+        color: var(--sami-dark) !important;
     }
 
     /* Efeito Suave nos Cards Superiores */
