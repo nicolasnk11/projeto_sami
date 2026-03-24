@@ -669,12 +669,19 @@ def criar_avaliacao(request):
                 
                 with transaction.atomic():
                     for turma in turmas_alvo:
-                        # Cria a alocação amarrada ao professor dono da prova
-                        aloc, _ = Alocacao.objects.get_or_create(
+                        # 🔥 SOLUÇÃO BLINDADA CONTRA DUPLICATAS NO BANCO 🔥
+                        aloc = Alocacao.objects.filter(
                             turma=turma,
                             disciplina_id=disciplina_id,
-                            defaults={'professor': dono_prova}
-                        )
+                            professor=dono_prova
+                        ).first()
+                        
+                        if not aloc:
+                            aloc = Alocacao.objects.create(
+                                turma=turma,
+                                disciplina_id=disciplina_id,
+                                professor=dono_prova
+                            )
                         
                         av = Avaliacao.objects.create(
                             titulo=titulo, 
