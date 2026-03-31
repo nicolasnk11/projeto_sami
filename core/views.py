@@ -1294,11 +1294,16 @@ def lancar_nota(request):
         messages.success(request, f'Nota salva: {acertos_contagem}')
         return redirect(f'/lancar_nota/?avaliacao_id={avaliacao_id}')
 
+    # 🔥 CADEADO DE SEGURANÇA: Mostra apenas as provas do professor logado 🔥
+    avaliacoes_dropdown = Avaliacao.objects.all().order_by('-data_aplicacao')
+    if hasattr(request.user, 'professor_perfil'):
+        avaliacoes_dropdown = avaliacoes_dropdown.filter(alocacao__professor=request.user.professor_perfil)
+
     return render(request, 'core/lancar_nota.html', {
         'avaliacao_selecionada': avaliacao_obj,
         'itens': itens, 
         'matriculas': matriculas_turma, 
-        'avaliacoes_todas': Avaliacao.objects.all().order_by('-data_aplicacao')
+        'avaliacoes_todas': avaliacoes_dropdown
     })
 
 # ==============================================================================
@@ -2387,7 +2392,12 @@ def gerenciar_ndi(request):
     turma_id = request.GET.get('turma')
     bimestre = int(request.GET.get('bimestre', 1))
     
-    turmas = Turma.objects.all().order_by('nome')
+    # 🔥 CADEADO DE SEGURANÇA: Filtra Turmas do Professor 🔥
+    ano_atual = timezone.now().year
+    turmas_qs = Turma.objects.filter(ano_letivo=ano_atual).order_by('nome')
+    if hasattr(request.user, 'professor_perfil'):
+        turmas_qs = turmas_qs.filter(alocacoes__professor=request.user.professor_perfil).distinct()
+
     alunos_data = []
     turma_selecionada = None
 
@@ -2450,7 +2460,7 @@ def gerenciar_ndi(request):
             alunos_data.append({'obj': mat, 'ndi': ndi})
 
     return render(request, 'core/gerenciar_ndi.html', {
-        'turmas': turmas,
+        'turmas': turmas_qs,
         'turma_selecionada': turma_selecionada,
         'alunos_data': alunos_data,
         'bimestre_atual': bimestre,
@@ -2460,18 +2470,26 @@ def gerenciar_ndi(request):
 @login_required
 def plano_anual(request):
     turma_id = request.GET.get('turma')
-    
-    disciplinas_qs = Disciplina.objects.values_list('nome', flat=True).order_by('nome')
     disciplina_selecionada = request.GET.get('disciplina')
     
+    # 🔥 CADEADO DE SEGURANÇA: Filtra Turmas e Disciplinas do Professor 🔥
+    ano_atual = timezone.now().year
+    turmas_qs = Turma.objects.filter(ano_letivo=ano_atual).order_by('nome')
+    disciplinas_qs = Disciplina.objects.all().order_by('nome')
+
+    if hasattr(request.user, 'professor_perfil'):
+        perfil = request.user.professor_perfil
+        turmas_qs = turmas_qs.filter(alocacoes__professor=perfil).distinct()
+        disciplinas_qs = disciplinas_qs.filter(alocacoes__professor=perfil).distinct()
+
+    lista_disciplinas_nomes = disciplinas_qs.values_list('nome', flat=True)
+    
     if not disciplina_selecionada:
-        if disciplinas_qs.exists():
-            disciplina_selecionada = disciplinas_qs.first()
+        if lista_disciplinas_nomes.exists():
+            disciplina_selecionada = lista_disciplinas_nomes.first()
         else:
             disciplina_selecionada = 'Língua Portuguesa'
 
-    turmas = Turma.objects.all().order_by('nome')
-    
     plano = None
     dados_kanban = {}
     planos_para_importar = [] 
@@ -2561,8 +2579,8 @@ def plano_anual(request):
             dados_kanban[t.bimestre][t.status].append(t)
 
     return render(request, 'core/plano_anual.html', {
-        'turmas': turmas,
-        'disciplinas': disciplinas_qs,
+        'turmas': turmas_qs,
+        'disciplinas': lista_disciplinas_nomes,
         'turma_selecionada_id': int(turma_id) if turma_id else None,
         'disciplina_atual': disciplina_selecionada,
         'plano': plano,
