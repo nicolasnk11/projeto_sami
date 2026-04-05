@@ -21,6 +21,7 @@ class ConfiguracaoSistema(models.Model):
 
 class Disciplina(models.Model):
     nome = models.CharField(max_length=50, unique=True, verbose_name="Nome da Disciplina")
+    area_enem = models.CharField('Área do ENEM', max_length=50, null=True, blank=True)
     def __str__(self): return self.nome
 
 class Turma(models.Model):
@@ -155,7 +156,13 @@ class Descritor(models.Model):
     
     codigo = models.CharField(max_length=20, help_text="Ex: S01, S01H01, H12")
     descricao = models.TextField()
-    disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT)
+    
+    # 🔥 ALTERAÇÃO 1: Adicionado null=True, blank=True para destravar a disciplina
+    disciplina = models.ForeignKey(Disciplina, on_delete=models.PROTECT, null=True, blank=True)
+    
+    # 🔥 ALTERAÇÃO 2: Novos campos para o Guarda-Chuva do ENEM
+    area_enem = models.CharField('Área do ENEM', max_length=50, null=True, blank=True)
+    competencia = models.TextField('Competência do ENEM', null=True, blank=True)
     
     matriz = models.CharField(max_length=15, choices=MATRIZ_CHOICES, default='SPAECE')
     descritor_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='habilidades_filhas')
@@ -165,6 +172,10 @@ class Descritor(models.Model):
         prefixo = f"[{self.matriz}] "
         if self.descritor_pai:
             return f"{prefixo}{self.descritor_pai.codigo} > {self.codigo} - {self.descricao[:40]}..."
+        # Se for do ENEM e não tiver disciplina atrelada, mostra a Área
+        if not self.disciplina and self.area_enem:
+            return f"{prefixo}[{self.area_enem}] {self.codigo} - {self.descricao[:40]}..."
+            
         return f"{prefixo}{self.codigo} - {self.descricao[:40]}..."
         
     class Meta: 
