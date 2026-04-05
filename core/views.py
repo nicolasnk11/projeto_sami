@@ -2682,7 +2682,6 @@ def gerenciar_descritores(request):
             pai_id = request.POST.get('descritor_pai')
             
             dados = {
-                # Se for vazio, passa None para o banco não dar erro no ForeignKey
                 'disciplina_id': disciplina_id if disciplina_id else None, 
                 'matriz': matriz,
                 'codigo': codigo, 
@@ -2703,40 +2702,57 @@ def gerenciar_descritores(request):
 
     descritores_base = Descritor.objects.filter(descritor_pai__isnull=True).order_by('codigo')
     
-    if filtro_disc:
-        descritores_base = descritores_base.filter(disciplina_id=filtro_disc)
     if filtro_matriz:
         descritores_base = descritores_base.filter(matriz=filtro_matriz)
 
     disciplinas_ativas = Disciplina.objects.all().order_by('nome')
     arvore = []
     
-    # 1. Monta as disciplinas normais (SISEDU)
-    for disc in disciplinas_ativas:
-        pais_da_disc = descritores_base.filter(disciplina=disc)
-        if pais_da_disc.exists() or not filtro_disc: 
-            arvore.append({
-                'disciplina': disc,
-                'pais': pais_da_disc
-            })
-
-    # 2. Monta as Áreas do ENEM (O Guarda-Chuva)
-    if not filtro_disc:
-        areas_enem = Descritor.objects.filter(matriz='ENEM', disciplina__isnull=True).values_list('area_enem', flat=True).distinct()
-        
-        for area in areas_enem:
-            if area:
-                pais_da_area = descritores_base.filter(area_enem=area, disciplina__isnull=True)
+    # 🔥 A MÁGICA DO FILTRO ACONTECE AQUI
+    if filtro_disc:
+        try:
+            disc_selecionada = Disciplina.objects.get(id=filtro_disc)
+            
+            # 1. Puxa as habilidades exclusivas (ex: SISEDU)
+            pais_da_disc = descritores_base.filter(disciplina=disc_selecionada)
+            if pais_da_disc.exists():
+                arvore.append({
+                    'disciplina': disc_selecionada,
+                    'pais': pais_da_disc
+                })
+                
+            # 2. Puxa a Área do ENEM correspondente (O Guarda-Chuva)
+            if disc_selecionada.area_enem:
+                pais_da_area = descritores_base.filter(area_enem=disc_selecionada.area_enem, disciplina__isnull=True)
                 if pais_da_area.exists():
-                    # Criamos um objeto "fantasma" só pro HTML conseguir ler o nome e não quebrar
                     class AreaVirtual:
                         id = None
-                        nome = f"📚 MATRIZ ENEM - {area}"
+                        nome = f"📚 MATRIZ ENEM - {disc_selecionada.area_enem}"
                         
                     arvore.append({
                         'disciplina': AreaVirtual(),
                         'pais': pais_da_area
                     })
+        except Disciplina.DoesNotExist:
+            pass
+            
+    else:
+        # Se não tem filtro, lista TUDO (Disciplinas normais + Áreas do ENEM)
+        for disc in disciplinas_ativas:
+            pais_da_disc = descritores_base.filter(disciplina=disc)
+            if pais_da_disc.exists(): 
+                arvore.append({'disciplina': disc, 'pais': pais_da_disc})
+
+        areas_enem = Descritor.objects.filter(matriz='ENEM', disciplina__isnull=True).values_list('area_enem', flat=True).distinct()
+        for area in areas_enem:
+            if area:
+                pais_da_area = descritores_base.filter(area_enem=area, disciplina__isnull=True)
+                if pais_da_area.exists():
+                    class AreaVirtual:
+                        id = None
+                        nome = f"📚 MATRIZ ENEM - {area}"
+                        
+                    arvore.append({'disciplina': AreaVirtual(), 'pais': pais_da_area})
 
     context = {
         'arvore': arvore,
