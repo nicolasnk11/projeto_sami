@@ -408,6 +408,8 @@ def painel_gestao(request):
 
 @login_required
 def importar_questoes(request):
+    from django.db.models import Q
+    
     if request.method == 'POST':
         form = ImportarQuestoesForm(request.POST, request.FILES)
         if form.is_valid():
@@ -452,11 +454,20 @@ def importar_questoes(request):
                         if c_desc and pd.notna(row[c_desc]):
                             raw_cod = str(row[c_desc]).replace('-', ' ').strip()
                             cod = raw_cod.split()[0].strip() 
-                            desc_obj, created = Descritor.objects.get_or_create(
-                                codigo__iexact=cod, disciplina=disc_obj,
-                                defaults={'codigo': cod, 'descricao': f'Importado: {raw_cod}', 'tema': 'Geral'}
-                            )
-                            if created: descritores_novos += 1
+                            
+                            # 🔥 NOVO CÓDIGO: Busca Inteligente na Disciplina ou na Área do ENEM
+                            filtros = Q(codigo__iexact=cod) & Q(disciplina=disc_obj)
+                            if disc_obj.area_enem:
+                                filtros = Q(codigo__iexact=cod) & (Q(disciplina=disc_obj) | Q(area_enem=disc_obj.area_enem, matriz='ENEM'))
+                                
+                            desc_obj = Descritor.objects.filter(filtros).first()
+
+                            if not desc_obj:
+                                desc_obj = Descritor.objects.create(
+                                    codigo=cod, disciplina=disc_obj,
+                                    descricao=f'Importado: {raw_cod}', tema='Geral'
+                                )
+                                descritores_novos += 1
 
                         def get_alt(letra):
                             col = achar_coluna(df, [f'alternativa{letra}', f'opcao{letra}', letra])
@@ -1485,6 +1496,8 @@ def gerenciar_turmas(request):
 
 @login_required
 def listar_questoes(request):
+    from django.db.models import Q
+    
     if request.method == 'POST':
         acao = request.POST.get('acao')
         
@@ -1516,10 +1529,20 @@ def listar_questoes(request):
             
             desc_cod = request.POST.get('descritor_cod')
             if desc_cod:
-                desc_obj, _ = Descritor.objects.get_or_create(
-                    codigo=desc_cod, 
-                    defaults={'disciplina_id': dados['disciplina_id'], 'descricao': 'Criado manualmente'}
-                )
+                # 🔥 NOVO CÓDIGO: Busca Inteligente ao salvar/editar manualmente
+                disc_id = dados['disciplina_id']
+                disc_obj = Disciplina.objects.filter(id=disc_id).first()
+                
+                filtros = Q(codigo__iexact=desc_cod) & Q(disciplina_id=disc_id)
+                if disc_obj and disc_obj.area_enem:
+                    filtros = Q(codigo__iexact=desc_cod) & (Q(disciplina_id=disc_id) | Q(area_enem=disc_obj.area_enem, matriz='ENEM'))
+                    
+                desc_obj = Descritor.objects.filter(filtros).first()
+                
+                if not desc_obj:
+                    desc_obj = Descritor.objects.create(
+                        codigo=desc_cod, disciplina_id=disc_id, descricao='Criado manualmente'
+                    )
                 dados['descritor'] = desc_obj
             
             try:
