@@ -1111,8 +1111,17 @@ def montar_prova(request, avaliacao_id):
     if f_busca:
         questoes = questoes.filter(enunciado__icontains=f_busca)
 
-    descritores = Descritor.objects.filter(disciplina=avaliacao.alocacao.disciplina).order_by('codigo')
-
+# IMPORTANTE: Garanta que você importou o Q lá no topo do arquivo (from django.db.models import Q)
+    
+    disciplina_obj = avaliacao.alocacao.disciplina
+    
+    # Busca habilidades Específicas da Disciplina OU Gerais da Área (Matriz ENEM)
+    filtros = Q(disciplina=disciplina_obj)
+    if disciplina_obj.area_enem:
+        filtros = filtros | Q(area_enem=disciplina_obj.area_enem, matriz='ENEM')
+        
+    descritores = Descritor.objects.filter(filtros).order_by('matriz', 'codigo')
+    
     context = {
         'avaliacao': avaliacao,
         'questoes': questoes,
@@ -1195,7 +1204,13 @@ def definir_gabarito(request, avaliacao_id):
 
             return redirect('gerenciar_avaliacoes')
 
-    descritores = Descritor.objects.filter(disciplina=avaliacao.alocacao.disciplina).order_by('codigo')
+    disciplina_obj = avaliacao.alocacao.disciplina
+    
+    filtros = Q(disciplina=disciplina_obj)
+    if disciplina_obj.area_enem:
+        filtros = filtros | Q(area_enem=disciplina_obj.area_enem, matriz='ENEM')
+        
+    descritores = Descritor.objects.filter(filtros).order_by('matriz', 'codigo')
 
     context = {
         'avaliacao': avaliacao, 
@@ -2667,7 +2682,8 @@ def gerenciar_descritores(request):
             pai_id = request.POST.get('descritor_pai')
             
             dados = {
-                'disciplina_id': disciplina_id, 
+                # Se for vazio, passa None para o banco não dar erro no ForeignKey
+                'disciplina_id': disciplina_id if disciplina_id else None, 
                 'matriz': matriz,
                 'codigo': codigo, 
                 'descricao': descricao,
@@ -2695,6 +2711,7 @@ def gerenciar_descritores(request):
     disciplinas_ativas = Disciplina.objects.all().order_by('nome')
     arvore = []
     
+    # 1. Monta as disciplinas normais (SISEDU)
     for disc in disciplinas_ativas:
         pais_da_disc = descritores_base.filter(disciplina=disc)
         if pais_da_disc.exists() or not filtro_disc: 
@@ -2702,6 +2719,24 @@ def gerenciar_descritores(request):
                 'disciplina': disc,
                 'pais': pais_da_disc
             })
+
+    # 2. Monta as Áreas do ENEM (O Guarda-Chuva)
+    if not filtro_disc:
+        areas_enem = Descritor.objects.filter(matriz='ENEM', disciplina__isnull=True).values_list('area_enem', flat=True).distinct()
+        
+        for area in areas_enem:
+            if area:
+                pais_da_area = descritores_base.filter(area_enem=area, disciplina__isnull=True)
+                if pais_da_area.exists():
+                    # Criamos um objeto "fantasma" só pro HTML conseguir ler o nome e não quebrar
+                    class AreaVirtual:
+                        id = None
+                        nome = f"📚 MATRIZ ENEM - {area}"
+                        
+                    arvore.append({
+                        'disciplina': AreaVirtual(),
+                        'pais': pais_da_area
+                    })
 
     context = {
         'arvore': arvore,
