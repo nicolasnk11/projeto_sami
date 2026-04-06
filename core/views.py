@@ -1595,32 +1595,46 @@ def listar_questoes(request):
     return render(request, 'core/listar_questoes.html', context)
 
 @login_required
+@require_POST
 def editar_avaliacao(request, avaliacao_id):
-    avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
-    if request.method == 'POST':
-        avaliacao.titulo = request.POST.get('titulo')
-        avaliacao.data_aplicacao = request.POST.get('data_aplicacao')
-        
-        t_id = request.POST.get('turma')
-        d_id = request.POST.get('disciplina')
-        prof_sis = avaliacao.alocacao.professor
-        
-        nova_aloc = Alocacao.objects.filter(turma_id=t_id, disciplina_id=d_id, professor=prof_sis).first()
-        if not nova_aloc:
-            nova_aloc = Alocacao.objects.create(turma_id=t_id, disciplina_id=d_id, professor=prof_sis)
-            
-        avaliacao.alocacao = nova_aloc
-        avaliacao.save()
-        
-        messages.success(request, 'Avaliação atualizada!')
-        return redirect('gerenciar_avaliacoes')
+    av = get_object_or_404(Avaliacao, id=avaliacao_id)
     
-    context = {
-        'avaliacao': avaliacao, 'turmas': Turma.objects.all(),
-        'disciplinas': Disciplina.objects.all(),
-        'data_formatada': avaliacao.data_aplicacao.strftime('%Y-%m-%d') if avaliacao.data_aplicacao else ''
-    }
-    return render(request, 'core/editar_avaliacao.html', context)
+    novo_titulo = request.POST.get('titulo')
+    nova_data = request.POST.get('data_aplicacao')
+    nova_turma_id = request.POST.get('turma_id')
+    
+    if novo_titulo:
+        av.titulo = novo_titulo
+    if nova_data:
+        av.data_aplicacao = nova_data
+        
+    if nova_turma_id:
+        try:
+            nova_turma = Turma.objects.get(id=nova_turma_id)
+            # Verifica se já existe uma alocação para a nova turma + mesma disciplina + mesmo professor
+            alocacao_existente = Alocacao.objects.filter(
+                turma=nova_turma, 
+                disciplina=av.alocacao.disciplina,
+                professor=av.alocacao.professor
+            ).first()
+            
+            if alocacao_existente:
+                av.alocacao = alocacao_existente
+            else:
+                # Se não existir, cria a gaveta (alocação) nova
+                nova_alocacao = Alocacao.objects.create(
+                    turma=nova_turma,
+                    disciplina=av.alocacao.disciplina,
+                    professor=av.alocacao.professor
+                )
+                av.alocacao = nova_alocacao
+                
+        except Turma.DoesNotExist:
+            pass
+
+    av.save()
+    messages.success(request, "Avaliação editada com sucesso!")
+    return redirect('gerenciar_avaliacoes')
 
 # ==============================================================================
 # 📊 RELATÓRIO DE PROFICIÊNCIA
@@ -1880,7 +1894,13 @@ def gerar_relatorio_proficiencia(request):
 def api_filtrar_alunos(request):
     turma_id = request.GET.get('turma_id')
     if turma_id:
+        # Busca os alunos que estão cursando
         matriculas = Matricula.objects.filter(turma_id=turma_id, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
+        
+        # Se vier vazio (ex: turma do ano passado onde todos já foram aprovados), busca o histórico ignorando os transferidos/abandonos
+        if not matriculas.exists():
+            matriculas = Matricula.objects.filter(turma_id=turma_id).exclude(status__in=['TRANSFERIDO', 'ABANDONO']).select_related('aluno').order_by('aluno__nome_completo')
+            
         data = [{'id': m.aluno.id, 'nome': m.aluno.nome_completo} for m in matriculas]
     else:
         data = []

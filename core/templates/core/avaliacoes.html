@@ -152,9 +152,9 @@
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2" style="z-index: 1050;">
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Edição</h6></li>
                                             <li>
-                                                <a class="dropdown-item rounded-2 py-2" href="{% url 'editar_avaliacao' av.id %}">
+                                                <button class="dropdown-item rounded-2 py-2" type="button" data-bs-toggle="modal" data-bs-target="#modalEditar{{ av.id }}">
                                                     <i class="bi bi-pencil-square me-2 text-primary"></i> Editar Prova
-                                                </a>
+                                                </button>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item rounded-2 py-2" href="{% url 'definir_gabarito' av.id %}">
@@ -222,7 +222,7 @@
                 <p class="text-muted small fw-bold mb-0 bg-light p-2 rounded">Essa ação destruirá todas as notas lançadas e não pode ser desfeita!</p>
             </div>
             <div class="modal-footer justify-content-center bg-light border-0 rounded-bottom-4 py-3">
-                <form method="post">
+                <form method="post" action="{% url 'gerenciar_avaliacoes' %}" class="d-flex gap-2 w-100 justify-content-center">
                     {% csrf_token %}
                     <input type="hidden" name="delete_id" value="{{ av.id }}">
                     <button type="button" class="btn btn-secondary px-4 fw-bold rounded-pill" data-bs-dismiss="modal">Cancelar</button>
@@ -232,11 +232,48 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalEditar{{ av.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Avaliação</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'editar_avaliacao' av.id %}">
+                {% csrf_token %}
+                <div class="modal-body p-4 bg-light">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small">TÍTULO DA PROVA</label>
+                        <input type="text" name="titulo" class="form-control border-0 shadow-sm" value="{{ av.titulo }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small">DATA DE APLICAÇÃO</label>
+                        <input type="date" name="data_aplicacao" class="form-control border-0 shadow-sm" value="{{ av.data_aplicacao|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small">TURMA</label>
+                        <select name="turma_id" class="form-select border-0 shadow-sm" required>
+                            {% for t in turmas_ativas %}
+                                <option value="{{ t.id }}" {% if av.alocacao.turma.id == t.id %}selected{% endif %}>{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted d-block mt-1">A disciplina continuará sendo {{ av.alocacao.disciplina.nome }}.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-secondary fw-bold rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endfor %}
 
 <div class="modal fade" id="modalGerarInteligente" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <form method="post" action="{% url 'gerar_prova_pdf' %}" class="modal-content border-0 shadow-lg rounded-4">
+        <form method="post" action="{% url 'gerar_prova_pdf' %}" class="modal-content border-0 shadow-lg rounded-4" onsubmit="setTimeout(() => { var m = bootstrap.Modal.getInstance(document.getElementById('modalGerarInteligente')); m.hide(); alert('O Download começará em instantes. Recarregue a página para ver a prova salva no sistema!'); }, 1500);">
             {% csrf_token %}
             <div class="modal-header bg-primary text-white border-0">
                 <h5 class="modal-title fw-bold"><i class="bi bi-magic me-2"></i>Gerador Inteligente</h5>
@@ -320,7 +357,7 @@
                 <div class="row align-items-center bg-white p-3 rounded-4 border shadow-sm">
                     <div class="col-md-5 border-end">
                         <label class="form-label fw-bold small text-muted">QTD. QUESTÕES</label>
-                        <input type="number" name="qtd_questoes" class="form-control form-control-lg text-center fw-bold border-0 bg-light" value="10" min="1" max="50" data-bs-toggle="tooltip" title="Máximo de 50 questões no papel">
+                        <input type="number" name="qtd_questoes" id="qtdQuestoesInput" class="form-control form-control-lg text-center fw-bold border-0 bg-light" value="10" min="1" max="50" data-bs-toggle="tooltip" title="Máximo de 50 questões no papel" oninput="this.setAttribute('value', this.value);">
                     </div>
                     <div class="col-md-7 ps-4">
                         <div class="form-check form-switch">
@@ -392,7 +429,7 @@
                     });
                     selectAluno.disabled = false;
                 } else {
-                    selectAluno.innerHTML = '<option>Turma vazia ou sem alunos cursando.</option>';
+                    selectAluno.innerHTML = '<option>Turma vazia ou sem alunos aptos.</option>';
                 }
             })
             .catch(error => {
@@ -404,7 +441,7 @@
 
 <style>
     .transition-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
-    .transition-hover:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; z-index: 10; }
+    .transition-hover:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; position: relative; z-index: 10; }
     .hover-up:hover { transform: translateY(-2px); transition: transform 0.2s; }
     .hover-danger:hover { background-color: #f8d7da !important; color: #842029 !important; }
     
