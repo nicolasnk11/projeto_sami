@@ -2316,8 +2316,9 @@ def gerar_boletim_pdf(request, aluno_id):
 # ==========================================
 @login_required
 def gerar_cartoes_pdf(request, avaliacao_id):
-    from django.utils.text import slugify # Garante que o nome do arquivo seja seguro
+    from django.utils.text import slugify
     import io
+    import logging
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import cm
@@ -2325,126 +2326,158 @@ def gerar_cartoes_pdf(request, avaliacao_id):
     from reportlab.lib.utils import ImageReader
     import qrcode
 
-    avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
-    
-    if avaliacao.matricula: 
-        matriculas = [avaliacao.matricula]
-    else:
-        matriculas = Matricula.objects.filter(
-            turma=avaliacao.alocacao.turma, 
-            status='CURSANDO'
-        ).select_related('aluno').order_by('aluno__nome_completo')
-    
-    # 🔥 CORREÇÃO 1: Evitar PDF de 0 páginas
-    total_alunos = len(matriculas)
-    if total_alunos == 0:
-        messages.error(request, "Não há alunos matriculados nesta turma para gerar cartões.")
-        return redirect('gerenciar_avaliacoes')
-    
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-    margin = 1 * cm
-    
-    card_w = (width - (3 * margin)) / 2
-    card_h = (height - (3 * margin)) / 2
-    
-    positions = [
-        (margin, height - margin - card_h), 
-        (margin + card_w + margin, height - margin - card_h),
-        (margin, margin),
-        (margin + card_w + margin, margin)
-    ]
-    
-    total_questoes = ItemGabarito.objects.filter(avaliacao=avaliacao).count() or 10
-    limite_coluna_1 = 15 
-    
-    aluno_idx = 0
-    
-    while aluno_idx < total_alunos:
-        for pos_x, pos_y in positions:
-            if aluno_idx >= total_alunos: break
-            
-            mat = matriculas[aluno_idx]
-            aluno = mat.aluno
-            
-            c.setStrokeColor(colors.black)
-            c.setLineWidth(1)
-            c.setDash([2, 4])
-            c.rect(pos_x, pos_y, card_w, card_h, stroke=1, fill=0)
-            c.setDash([])
+    logger = logging.getLogger(__name__) # Para registrar erros silenciosos no servidor
 
-            c.setFillColor(colors.black)
-            marker_size = 15
-            c.rect(pos_x + 10, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
-            c.rect(pos_x + card_w - 10 - marker_size, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
-            c.rect(pos_x + 10, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
-            c.rect(pos_x + card_w - 10 - marker_size, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
+    try:
+        avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
+        
+        # 🔥 BLINDAGEM 1: Busca resiliente de matrículas (O Fallback Inteligente)
+        if avaliacao.matricula: 
+            matriculas = [avaliacao.matricula]
+        else:
+            matriculas = Matricula.objects.filter(
+                turma=avaliacao.alocacao.turma, 
+                status='CURSANDO'
+            ).select_related('aluno', 'turma').order_by('aluno__nome_completo')
+            
+            if not matriculas.exists():
+                matriculas = Matricula.objects.filter(
+                    turma=avaliacao.alocacao.turma
+                ).exclude(status__in=['TRANSFERIDO', 'ABANDONO']).select_related('aluno', 'turma').order_by('aluno__nome_completo')
+        
+        total_alunos = len(matriculas)
+        if total_alunos == 0:
+            messages.error(request, "Não há alunos matriculados aptos nesta turma para gerar cartões.")
+            return redirect('gerenciar_avaliacoes')
+        
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+        margin = 1 * cm
+        
+        card_w = (width - (3 * margin)) / 2
+        card_h = (height - (3 * margin)) / 2
+        
+        positions = [
+            (margin, height - margin - card_h), 
+            (margin + card_w + margin, height - margin - card_h),
+            (margin, margin),
+            (margin + card_w + margin, margin)
+        ]
+        
+        # Garante que sempre tenha um número válido de questões (fallback para 10)
+        total_questoes = ItemGabarito.objects.filter(avaliacao=avaliacao).count()
+        if total_questoes == 0:
+            total_questoes = 10 
 
-            qr_data = f"A{avaliacao.id}-M{mat.id}" 
-            
-            qr = qrcode.QRCode(box_size=2, border=0)
-            qr.add_data(qr_data)
-            qr.make(fit=True)
-            img_qr = qr.make_image(fill_color="black", back_color="white")
-            
-            # 🔥 CORREÇÃO 2: Salva o QR Code na memória de forma segura para o ReportLab
-            qr_buffer = io.BytesIO()
-            img_qr.save(qr_buffer)
-            qr_buffer.seek(0)
-            qr_img_reader = ImageReader(qr_buffer)
-            
-            c.drawImage(qr_img_reader, pos_x + card_w - 70, pos_y + 20, width=50, height=50)
-            
-            c.setFillColor(colors.black)
-            c.setFont("Helvetica-Bold", 11)
-            c.drawString(pos_x + 35, pos_y + card_h - 25, "CARTÃO RESPOSTA")
-            
-            c.setFont("Helvetica", 9)
-            c.drawString(pos_x + 35, pos_y + card_h - 45, f"Aluno: {aluno.nome_completo[:25]}")
-            c.drawString(pos_x + 35, pos_y + card_h - 58, f"Prova: {avaliacao.titulo[:25]}")
-            
-            c.setFont("Helvetica", 8)
-            c.drawString(pos_x + 35, pos_y + card_h - 70, f"Turma: {mat.turma.nome} | Matrícula: {mat.id}")
-            
-            y_start = pos_y + card_h - 95
-            x_col1 = pos_x + 30
-            x_col2 = pos_x + card_w/2 + 10 
-            
-            c.setFont("Helvetica", 9)
-            
-            for q_num in range(1, total_questoes + 1):
-                if q_num <= limite_coluna_1:
-                    curr_x = x_col1
-                    curr_y = y_start - ((q_num - 1) * 16)
-                else:
-                    idx_col2 = q_num - limite_coluna_1 - 1
-                    curr_x = x_col2
-                    curr_y = y_start - (idx_col2 * 16)
-                    if curr_y < (pos_y + 80): 
-                        curr_x = x_col2 - 20 
-
-                c.drawString(curr_x, curr_y, str(q_num).zfill(2))
+        limite_coluna_1 = 15 
+        
+        aluno_idx = 0
+        
+        while aluno_idx < total_alunos:
+            for pos_x, pos_y in positions:
+                if aluno_idx >= total_alunos: break
                 
-                opcoes = ['A', 'B', 'C', 'D', 'E']
-                for i, opt in enumerate(opcoes):
-                    bubble_x = curr_x + 25 + (i * 14)
-                    bubble_y = curr_y + 3
-                    c.circle(bubble_x, bubble_y, 5.5, stroke=1, fill=0)
+                mat = matriculas[aluno_idx]
+                aluno = mat.aluno
+                
+                # 🔥 BLINDAGEM 2: Textos seguros para evitar erros de 'NoneType'
+                nome_aluno = (aluno.nome_completo or "ALUNO DESCONHECIDO")[:25]
+                titulo_prova = (avaliacao.titulo or "PROVA SEM TITULO")[:25]
+                nome_turma = (mat.turma.nome or "SEM TURMA")[:15]
+                
+                c.setStrokeColor(colors.black)
+                c.setLineWidth(1)
+                c.setDash([2, 4])
+                c.rect(pos_x, pos_y, card_w, card_h, stroke=1, fill=0)
+                c.setDash([])
+
+                c.setFillColor(colors.black)
+                marker_size = 15
+                c.rect(pos_x + 10, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
+                c.rect(pos_x + card_w - 10 - marker_size, pos_y + card_h - 10 - marker_size, marker_size, marker_size, fill=1, stroke=0)
+                c.rect(pos_x + 10, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
+                c.rect(pos_x + card_w - 10 - marker_size, pos_y + 10, marker_size, marker_size, fill=1, stroke=0)
+
+                qr_data = f"A{avaliacao.id}-M{mat.id}" 
+                
+                # 🔥 BLINDAGEM 3: Geração Segura do QR Code (Try/Except isolado)
+                try:
+                    qr = qrcode.QRCode(box_size=2, border=0)
+                    qr.add_data(qr_data)
+                    qr.make(fit=True)
+                    img_qr = qr.make_image(fill_color="black", back_color="white")
+                    
+                    qr_buffer = io.BytesIO()
+                    img_qr.save(qr_buffer)
+                    qr_buffer.seek(0)
+                    qr_img_reader = ImageReader(qr_buffer)
+                    
+                    c.drawImage(qr_img_reader, pos_x + card_w - 70, pos_y + 20, width=50, height=50)
+                except Exception as e:
+                    logger.error(f"Erro ao gerar QR Code para {qr_data}: {e}")
+                    # Desenha um quadrado de aviso caso o QR Code falhe, mas não corrompe o resto
+                    c.rect(pos_x + card_w - 70, pos_y + 20, 50, 50, stroke=1, fill=0)
                     c.setFont("Helvetica", 6)
-                    c.drawCentredString(bubble_x, bubble_y - 2, opt)
-                    c.setFont("Helvetica", 9)
+                    c.drawString(pos_x + card_w - 65, pos_y + 40, "ERRO QR")
+                
+                c.setFillColor(colors.black)
+                c.setFont("Helvetica-Bold", 11)
+                c.drawString(pos_x + 35, pos_y + card_h - 25, "CARTÃO RESPOSTA")
+                
+                c.setFont("Helvetica", 9)
+                c.drawString(pos_x + 35, pos_y + card_h - 45, f"Aluno: {nome_aluno}")
+                c.drawString(pos_x + 35, pos_y + card_h - 58, f"Prova: {titulo_prova}")
+                
+                c.setFont("Helvetica", 8)
+                c.drawString(pos_x + 35, pos_y + card_h - 70, f"Turma: {nome_turma} | Matrícula: {mat.id}")
+                
+                y_start = pos_y + card_h - 95
+                x_col1 = pos_x + 30
+                x_col2 = pos_x + card_w/2 + 10 
+                
+                c.setFont("Helvetica", 9)
+                
+                for q_num in range(1, total_questoes + 1):
+                    if q_num <= limite_coluna_1:
+                        curr_x = x_col1
+                        curr_y = y_start - ((q_num - 1) * 16)
+                    else:
+                        idx_col2 = q_num - limite_coluna_1 - 1
+                        curr_x = x_col2
+                        curr_y = y_start - (idx_col2 * 16)
+                        if curr_y < (pos_y + 80): 
+                            curr_x = x_col2 - 20 
 
-            aluno_idx += 1
+                    c.drawString(curr_x, curr_y, str(q_num).zfill(2))
+                    
+                    opcoes = ['A', 'B', 'C', 'D', 'E']
+                    for i, opt in enumerate(opcoes):
+                        bubble_x = curr_x + 25 + (i * 14)
+                        bubble_y = curr_y + 3
+                        c.circle(bubble_x, bubble_y, 5.5, stroke=1, fill=0)
+                        c.setFont("Helvetica", 6)
+                        c.drawCentredString(bubble_x, bubble_y - 2, opt)
+                        c.setFont("Helvetica", 9)
+
+                aluno_idx += 1
+                
+            c.showPage() 
+
+        c.save()
+        buffer.seek(0)
+        
+        # 🔥 BLINDAGEM 4: Título super seguro para download (Fallback caso slugify fique vazio)
+        safe_title = slugify(avaliacao.titulo or "avaliacao")
+        if not safe_title: 
+            safe_title = f"avaliacao_{avaliacao.id}"
             
-        c.showPage() 
+        return FileResponse(buffer, as_attachment=True, filename=f'Cartoes_{safe_title}.pdf')
 
-    c.save()
-    buffer.seek(0)
-    
-    # 🔥 CORREÇÃO 3: Filtra os acentos do título para não quebrar o download
-    safe_title = slugify(avaliacao.titulo)
-    return FileResponse(buffer, as_attachment=True, filename=f'Cartoes_{safe_title}.pdf')
+    except Exception as e:
+        logger.error(f"Erro fatal ao gerar PDF dos cartões: {e}")
+        messages.error(request, "Ocorreu um erro técnico ao gerar os cartões. Contate o suporte.")
+        return redirect('gerenciar_avaliacoes')
 
 
 @login_required
