@@ -2316,6 +2316,15 @@ def gerar_boletim_pdf(request, aluno_id):
 # ==========================================
 @login_required
 def gerar_cartoes_pdf(request, avaliacao_id):
+    from django.utils.text import slugify # Garante que o nome do arquivo seja seguro
+    import io
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.lib.utils import ImageReader
+    import qrcode
+
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     
     if avaliacao.matricula: 
@@ -2325,6 +2334,12 @@ def gerar_cartoes_pdf(request, avaliacao_id):
             turma=avaliacao.alocacao.turma, 
             status='CURSANDO'
         ).select_related('aluno').order_by('aluno__nome_completo')
+    
+    # 🔥 CORREÇÃO 1: Evitar PDF de 0 páginas
+    total_alunos = len(matriculas)
+    if total_alunos == 0:
+        messages.error(request, "Não há alunos matriculados nesta turma para gerar cartões.")
+        return redirect('gerenciar_avaliacoes')
     
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
@@ -2345,7 +2360,6 @@ def gerar_cartoes_pdf(request, avaliacao_id):
     limite_coluna_1 = 15 
     
     aluno_idx = 0
-    total_alunos = len(matriculas)
     
     while aluno_idx < total_alunos:
         for pos_x, pos_y in positions:
@@ -2373,7 +2387,12 @@ def gerar_cartoes_pdf(request, avaliacao_id):
             qr.add_data(qr_data)
             qr.make(fit=True)
             img_qr = qr.make_image(fill_color="black", back_color="white")
-            qr_img_reader = ImageReader(img_qr._img)
+            
+            # 🔥 CORREÇÃO 2: Salva o QR Code na memória de forma segura para o ReportLab
+            qr_buffer = io.BytesIO()
+            img_qr.save(qr_buffer)
+            qr_buffer.seek(0)
+            qr_img_reader = ImageReader(qr_buffer)
             
             c.drawImage(qr_img_reader, pos_x + card_w - 70, pos_y + 20, width=50, height=50)
             
@@ -2422,7 +2441,10 @@ def gerar_cartoes_pdf(request, avaliacao_id):
 
     c.save()
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f'Cartoes_{avaliacao.titulo}.pdf')
+    
+    # 🔥 CORREÇÃO 3: Filtra os acentos do título para não quebrar o download
+    safe_title = slugify(avaliacao.titulo)
+    return FileResponse(buffer, as_attachment=True, filename=f'Cartoes_{safe_title}.pdf')
 
 
 @login_required
