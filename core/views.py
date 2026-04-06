@@ -624,7 +624,22 @@ def gerenciar_avaliacoes(request):
     if hasattr(request.user, 'professor_perfil'):
         perfil = request.user.professor_perfil
         
-        avaliacoes = avaliacoes.filter(alocacao__professor=perfil)
+        # --- INÍCIO DA MÁGICA DO PODER COMPARTILHADO ---
+        # 1. Pegamos todas as gavetas (alocações) que esse professor possui
+        alocacoes_do_prof = perfil.alocacoes.all()
+        
+        # 2. Criamos uma regra flexível: "Combine as provas que tenham a mesma Turma E Disciplina dele"
+        query_compartilhada = Q()
+        for aloc in alocacoes_do_prof:
+            query_compartilhada |= Q(alocacao__turma=aloc.turma, alocacao__disciplina=aloc.disciplina)
+            
+        # 3. Aplicamos a regra! 
+        if query_compartilhada:
+            avaliacoes = avaliacoes.filter(query_compartilhada)
+        else:
+            # Se o professor não tiver nenhuma turma atrelada a ele, não vê nada
+            avaliacoes = avaliacoes.none() 
+        # --- FIM DA MÁGICA ---
         
         turmas_dropdown = turmas_dropdown.filter(alocacoes__professor=perfil).distinct()
         turmas_ativas = turmas_ativas.filter(alocacoes__professor=perfil).distinct()
@@ -647,6 +662,7 @@ def gerenciar_avaliacoes(request):
         'filtro_disciplina': int(disciplina_id) if disciplina_id else None,
         'filtro_data': data_filtro
     }
+    
     
     return render(request, 'core/avaliacoes.html', context)
 
