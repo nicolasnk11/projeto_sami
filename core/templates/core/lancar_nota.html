@@ -106,7 +106,7 @@
 
                     <div class="alert alert-info border-0 shadow-sm d-flex align-items-center py-2 mb-4">
                         <i class="bi bi-info-circle-fill me-2"></i>
-                        <small><strong>Dica:</strong> Verde = Correto | Vermelho = Errado | Amarelo = Nula/Rasura.</small>
+                        <small><strong>Dica:</strong> Verde = Correto | Vermelho = Errado | Amarelo = Nula (N) / Rasura (*).</small>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 justify-content-start" id="gradeQuestoes">
@@ -185,8 +185,8 @@
             return;
         }
 
-        if (valor === '*') {
-            // NULA / RASURA (Amarelo)
+        // 🔥 ATUALIZADO: Aceita 'N' ou '*' como Nulo/Rasura (Fica Amarelo)
+        if (valor === '*' || valor === 'N') {
             input.classList.add('bg-warning-subtle', 'text-warning');
         } else if (valor === gabarito) {
             // ACERTO (Verde)
@@ -202,14 +202,10 @@
         
         // ALERTA DE PERDA DE DADOS (Com Modal Bonito)
         if (isDirty && ALUNO_ATUAL_ID !== id && ALUNO_ATUAL_ID !== null && !ignorarAviso) {
-            // Guarda os dados do aluno que ele tentou clicar
             proximoAlunoPendente = { elemento, id, nome, dadosScaneados };
-            
-            // Dispara o Modal do Bootstrap
             const modalAviso = new bootstrap.Modal(document.getElementById('modalAvisoSaida'));
             modalAviso.show();
-            
-            return false; // Interrompe a troca de aluno
+            return false;
         }
 
         // Visual Seleção
@@ -221,7 +217,7 @@
         }
         
         ALUNO_ATUAL_ID = id;
-        isDirty = false; // Resetamos o espião para o novo aluno
+        isDirty = false; 
         document.getElementById('nomeAlunoDisplay').innerText = nome;
         document.getElementById('cardLancamento').style.opacity = '1';
         document.getElementById('cardLancamento').style.pointerEvents = 'auto';
@@ -296,7 +292,6 @@
             for (const [num, letra] of Object.entries(dados.respostas)) {
                 const input = document.querySelector(`.input-resposta[data-numero="${num}"]`);
                 if(input) {
-                    // Tratamento para Dupla Marcação / Nula
                     if (letra === 'NULA' || letra === 'MULTIPLA') {
                         input.value = '*';
                     } else {
@@ -319,6 +314,7 @@
         const respostas = {};
         document.querySelectorAll('.input-resposta').forEach(inp => {
             if(inp.value.trim()) {
+                // Se for asterisco manda 'NULA', se não, manda a letra (inclusive o 'N')
                 respostas[inp.dataset.numero] = (inp.value === '*') ? 'NULA' : inp.value.trim().toUpperCase();
             }
         });
@@ -343,7 +339,7 @@
             btn.innerHTML = txt; btn.disabled = false;
             if (data.sucesso) {
                 mostrarToast("Salvo!", data.msg, "success");
-                isDirty = false; // Notas salvas! Desarma o espião.
+                isDirty = false; 
                 const icon = document.querySelector(`#aluno-row-${ALUNO_ATUAL_ID} .status-icon`);
                 if(icon) icon.className = 'bi bi-check-circle-fill text-success fs-5 status-icon';
             } else {
@@ -402,13 +398,12 @@
         inputs.forEach(input => {
             // Evento: Digitar (Input)
             input.addEventListener('input', function() {
-                isDirty = true; // Avisa que mexeu!
+                isDirty = true; 
                 
-                // Restringe para letras válidas e o asterisco de anulação
-                this.value = this.value.replace(/[^ABCDEabcde\*]/g, '').toUpperCase();
+                // 🔥 ATUALIZADO: O REGEX AGORA DEIXA PASSAR 'N' e 'n'
+                this.value = this.value.replace(/[^ABCDEabcdeNn\*]/g, '').toUpperCase();
                 validarCor(this);
 
-                // Pulo Automático
                 let idx = parseInt(this.dataset.index);
                 if(this.value.length === 1 && idx < inputs.length - 1) inputs[idx+1].focus();
             });
@@ -417,10 +412,11 @@
             input.addEventListener('paste', function(e) {
                 if(this.disabled) return;
                 e.preventDefault();
-                isDirty = true; // Avisa que mexeu!
+                isDirty = true; 
                 
                 let text = (e.clipboardData || window.clipboardData).getData('text');
-                text = text.replace(/[^ABCDEabcde\*]/g, '').toUpperCase(); // Filtra lixo
+                // 🔥 ATUALIZADO NO COLA (PASTE) TAMBÉM
+                text = text.replace(/[^ABCDEabcdeNn\*]/g, '').toUpperCase(); 
                 if(!text) return;
 
                 let startIdx = parseInt(this.dataset.index);
@@ -437,9 +433,7 @@
             input.addEventListener('focus', function() { this.select(); });
         });
 
-        // ----------------------------------------------------
-        // CORREÇÃO DO FILTRO DE BUSCA
-        // ----------------------------------------------------
+        // FILTRO DE BUSCA
         document.getElementById('buscaAluno').addEventListener('input', function() {
             const termo = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
@@ -456,27 +450,23 @@
             });
         });
 
-        // ----------------------------------------------------
         // AÇÃO DO MODAL DE AVISO (Sair sem salvar)
-        // ----------------------------------------------------
         document.getElementById('btnConfirmarSaida').addEventListener('click', function() {
-            // Esconde o modal
             const modalEl = document.getElementById('modalAvisoSaida');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             if (modalInstance) {
                 modalInstance.hide();
             }
             
-            isDirty = false; // Desarma o espião à força
+            isDirty = false; 
             
-            // Carrega o aluno que estava aguardando na fila
             if (proximoAlunoPendente) {
                 selecionarAluno(
                     proximoAlunoPendente.elemento, 
                     proximoAlunoPendente.id, 
                     proximoAlunoPendente.nome, 
                     proximoAlunoPendente.dadosScaneados, 
-                    true // Força ignorar o aviso!
+                    true 
                 );
             }
         });

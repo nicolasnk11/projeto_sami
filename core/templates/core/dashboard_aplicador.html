@@ -1,0 +1,138 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background-color: #f8f9fa; min-height: 90vh;">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-shield-check text-primary me-2"></i> QG de Aplicação
+            </h2>
+            <p class="text-muted fw-medium fs-6">
+                Bem-vindo à linha de frente, <strong>{{ nome_exibicao }}</strong>! Aqui está o seu painel de controle tático.
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="bg-white p-3 rounded-4 shadow-sm border border-secondary border-opacity-10 d-inline-block text-start w-100" style="max-width: 300px;">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-bold text-secondary text-uppercase">Progresso de Lançamentos</span>
+                    <span class="small fw-bold text-primary">{{ progresso }}%</span>
+                </div>
+                <div class="progress" style="height: 10px; border-radius: 10px;">
+                    <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ progresso }}%;"></div>
+                </div>
+                <div class="small text-muted mt-2 fw-medium text-center">
+                    {{ provas_com_nota }} de {{ total_provas }} avaliações concluídas
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a href="{% url 'criar_avaliacao' %}" class="text-decoration-none">
+                <div class="card card-tatico h-100 border-0 rounded-4 shadow-sm bg-white position-relative overflow-hidden p-3">
+                    <div class="bg-icone-fundo bg-primary bg-opacity-10 position-absolute rounded-circle" style="width: 150px; height: 150px; top: -30px; right: -30px; z-index: 0;"></div>
+                    <div class="card-body position-relative z-1 d-flex flex-column justify-content-center">
+                        <i class="bi bi-file-earmark-plus-fill text-primary mb-3" style="font-size: 2.5rem;"></i>
+                        <h4 class="fw-bold text-dark">Criar Avaliação</h4>
+                        <p class="text-muted small mb-0 fw-medium">Agende e crie novas provas para as suas turmas atreladas.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'lancar_nota' %}" class="text-decoration-none">
+                <div class="card card-tatico h-100 border-0 rounded-4 shadow-sm text-white position-relative overflow-hidden p-3" style="background: linear-gradient(135deg, #0A2619 0%, #15452d 100%);">
+                    <div class="bg-icone-fundo bg-white bg-opacity-10 position-absolute rounded-circle" style="width: 150px; height: 150px; top: -30px; right: -30px; z-index: 0;"></div>
+                    <div class="card-body position-relative z-1 d-flex flex-column justify-content-center">
+                        <i class="bi bi-upc-scan text-white mb-3" style="font-size: 2.5rem;"></i>
+                        <h4 class="fw-bold text-white">Lançar Notas</h4>
+                        <p class="text-white text-opacity-75 small mb-0 fw-medium">Use a câmera ou digite o gabarito para salvar as notas.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'dashboard' %}" class="text-decoration-none">
+                <div class="card card-tatico h-100 border-0 rounded-4 shadow-sm bg-white position-relative overflow-hidden p-3">
+                    <div class="bg-icone-fundo bg-warning bg-opacity-10 position-absolute rounded-circle" style="width: 150px; height: 150px; top: -30px; right: -30px; z-index: 0;"></div>
+                    <div class="card-body position-relative z-1 d-flex flex-column justify-content-center">
+                        <i class="bi bi-bar-chart-fill text-warning mb-3" style="font-size: 2.5rem;"></i>
+                        <h4 class="fw-bold text-dark">Resultados</h4>
+                        <p class="text-muted small mb-0 fw-medium">Veja o Raio-X e as estatísticas das avaliações já lançadas.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-radar me-2 text-danger"></i> Radar de Lançamentos Pendentes</h5>
+                    <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold">Ver Todas</a>
+                </div>
+                <div class="card-body p-4">
+                    {% if provas_pendentes %}
+                        <div class="list-group list-group-flush gap-2">
+                            {% for prova in provas_pendentes %}
+                                <div class="list-group-item border border-secondary border-opacity-25 rounded-4 p-3 d-flex justify-content-between align-items-center bg-light transition-hover">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                            <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-1">{{ prova.titulo }}</h6>
+                                            <small class="text-muted fw-medium"><i class="bi bi-calendar-event me-1"></i> {{ prova.data_aplicacao|date:"d/m/Y" }} | Turma: {{ prova.alocacao.turma.nome }}</small>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'lancar_nota' %}?avaliacao_id={{ prova.id }}" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">
+                                        Lançar Agora
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-check2-circle text-success" style="font-size: 4rem;"></i>
+                            <h5 class="fw-bold mt-3 text-dark">Área Limpa!</h5>
+                            <p class="text-muted fw-medium">Todas as avaliações já possuem resultados lançados. Bom trabalho!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
+                <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
+                    <i class="bi bi-life-preserver mb-3 text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="fw-bold mb-3">Dicas Rápidas</h4>
+                    <ul class="list-unstyled text-start mb-4 fw-medium text-white text-opacity-75" style="font-size: 0.9rem; line-height: 1.8;">
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Use o <strong>Scanner</strong> para ler os cartões rapidamente pelo celular.</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Digite <strong>"N" ou "*"</strong> se o aluno rasurou a questão.</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Pressione <strong>Enter</strong> para pular para o próximo aluno ao digitar.</li>
+                    </ul>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-tatico {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-tatico:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+    .transition-hover { transition: all 0.2s; }
+    .transition-hover:hover { transform: scale(1.02); }
+</style>
+{% endblock %}

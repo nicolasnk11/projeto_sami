@@ -12,6 +12,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('', views.dashboard_redirect, name='home'),
     path('redirecionar/', views.redirecionar_apos_login, name='redirecionar_login'),
+    path('aplicador/', views.dashboard_aplicador, name='dashboard_aplicador'),
 
     # --- DASHBOARDS ---
     path('dashboard/', views.dashboard, name='dashboard'),

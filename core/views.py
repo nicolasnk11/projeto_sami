@@ -1359,7 +1359,6 @@ def lancar_nota(request):
         'matriculas': matriculas_turma, 
         'avaliacoes_todas': avaliacoes_dropdown
     })
-
 # ==============================================================================
 # 📋 GERENCIAMENTO GERAL
 # ==============================================================================
@@ -3397,11 +3396,14 @@ def login_sucesso_redirect(request):
     if user.is_superuser or user.is_staff:
         return redirect('dashboard')
     
-    if user.groups.filter(name='Professores').exists():
+    if hasattr(user, 'professor_perfil'):
+        perfil = user.professor_perfil
+        # 🔥 O GUARDA DA PORTA: Se tiver "Aplicador" no nome, vai pro QG!
+        if 'aplicador' in perfil.nome_completo.lower():
+            return redirect('dashboard_aplicador')
         return redirect('area_professor')
         
     return redirect('dashboard_aluno')
-
 
 @login_required
 def redirecionar_apos_login(request):
@@ -3411,6 +3413,10 @@ def redirecionar_apos_login(request):
         return redirect('dashboard')
     
     if hasattr(user, 'professor_perfil'):
+        perfil = user.professor_perfil
+        # 🔥 O GUARDA DA PORTA: Se tiver "Aplicador" no nome, vai pro QG!
+        if 'aplicador' in perfil.nome_completo.lower():
+            return redirect('dashboard_aplicador')
         return redirect('area_professor')
 
     if hasattr(user, 'aluno'):
@@ -3418,6 +3424,44 @@ def redirecionar_apos_login(request):
         
     messages.error(request, "Perfil não identificado. Contate a secretaria.")
     return redirect('dashboard')
+
+@login_required
+def dashboard_aplicador(request):
+    from django.db.models import Count
+    from datetime import datetime
+
+    try:
+        perfil = request.user.professor_perfil
+    except AttributeError:
+        return redirect('dashboard')
+
+    # Pega todas as provas que estão na gaveta deste Aplicador
+    avaliacoes = Avaliacao.objects.filter(alocacao__professor=perfil).order_by('-data_aplicacao')
+    
+    # Quais provas já têm algum resultado lançado?
+    provas_com_nota = avaliacoes.annotate(qtd_resultados=Count('resultado')).filter(qtd_resultados__gt=0).count()
+    total_provas = avaliacoes.count()
+    
+    progresso = 0
+    if total_provas > 0:
+        progresso = int((provas_com_nota / total_provas) * 100)
+
+    # Radar de Missões (Provas de hoje e provas sem nota)
+    provas_hoje = avaliacoes.filter(data_aplicacao=datetime.now().date())
+    provas_pendentes = avaliacoes.annotate(qtd_resultados=Count('resultado')).filter(qtd_resultados=0)[:4]
+
+    nome_exibicao = perfil.nome_completo.split("-")[0].strip() if perfil.nome_completo else "Aplicador"
+
+    context = {
+        'nome_exibicao': nome_exibicao,
+        'provas_hoje': provas_hoje,
+        'provas_pendentes': provas_pendentes,
+        'progresso': progresso,
+        'total_provas': total_provas,
+        'provas_com_nota': provas_com_nota,
+        'avaliacoes_recentes': avaliacoes[:5]
+    }
+    return render(request, 'core/dashboard_aplicador.html', context)
 
 
 @login_required
