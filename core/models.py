@@ -266,6 +266,7 @@ class RespostaDetalhada(models.Model):
 
 class NDI(models.Model):
     matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE, related_name='boletins')
+    disciplina = models.ForeignKey(Disciplina, on_delete=models.CASCADE, related_name='ndis', null=True) # A MÁGICA ENTRA AQUI
     bimestre = models.IntegerField(default=1)
     nota_frequencia = models.FloatField(default=0)
     nota_atividade = models.FloatField(default=0)
@@ -273,7 +274,9 @@ class NDI(models.Model):
     nota_prova_parcial = models.FloatField(default=0)
     nota_prova_bimestral = models.FloatField(default=0)
     
-    class Meta: unique_together = ('matricula', 'bimestre')
+    class Meta: 
+        # Agora o sistema entende que não pode repetir o mesmo Bimestre na mesma Matéria!
+        unique_together = ('matricula', 'bimestre', 'disciplina')
     
     @property
     def ndi_final(self):
@@ -281,8 +284,8 @@ class NDI(models.Model):
         return (parcial + self.nota_prova_parcial + self.nota_prova_bimestral) / 3
 
     def __str__(self):
-        return f"Boletim {self.bimestre}º Bim - {self.matricula.aluno.nome_completo[:20]}"
-
+        disc_nome = self.disciplina.nome if self.disciplina else "Geral"
+        return f"Boletim {self.bimestre}º Bim - {self.matricula.aluno.nome_completo[:20]} ({disc_nome})"
 # ==============================================================================
 # 5. GESTÃO DE AULAS E SUPORTE
 # ==============================================================================
