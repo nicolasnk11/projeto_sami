@@ -2557,10 +2557,15 @@ def gerenciar_ndi(request):
         except ValueError:
             return None
 
-    if turma_id and disciplina_id:
+    # 🔥 CORREÇÃO: Memoriza as seleções de forma independente para a tela não "piscar e resetar"
+    if turma_id:
         turma_selecionada = get_object_or_404(Turma, id=turma_id)
+    if disciplina_id:
         disciplina_selecionada = get_object_or_404(Disciplina, id=disciplina_id)
-        matriculas = Matricula.objects.filter(turma_id=turma_id, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
+
+    # Só busca os alunos e permite salvar se as DUAS opções estiverem selecionadas
+    if turma_selecionada and disciplina_selecionada:
+        matriculas = Matricula.objects.filter(turma=turma_selecionada, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
         
         if request.method == 'POST':
             salvos = 0
@@ -2603,6 +2608,7 @@ def gerenciar_ndi(request):
                 
             return redirect(f"{request.path}?turma={turma_id}&disciplina={disciplina_id}&bimestre={bimestre}")
 
+        # Busca as notas para preencher a tela
         for mat in matriculas:
             ndi = NDI.objects.filter(matricula=mat, bimestre=bimestre, disciplina=disciplina_selecionada).first()
             alunos_data.append({'obj': mat, 'ndi': ndi})
@@ -2616,7 +2622,7 @@ def gerenciar_ndi(request):
         'bimestre_atual': bimestre,
         'bimestres_opts': [1, 2, 3, 4]
     })
-
+    
 @login_required
 def plano_anual(request):
     turma_id = request.GET.get('turma')
