@@ -3446,14 +3446,20 @@ def dashboard_aplicador(request):
     if total_provas > 0:
         progresso = int((provas_com_nota / total_provas) * 100)
 
-    # Radar de Missões (Provas de hoje e provas sem nota)
+    # Radar de Missões
     provas_hoje = avaliacoes.filter(data_aplicacao=datetime.now().date())
-    provas_pendentes = avaliacoes.annotate(qtd_resultados=Count('resultado')).filter(qtd_resultados=0)[:4]
+    provas_pendentes = avaliacoes.annotate(qtd_resultados=Count('resultado')).filter(qtd_resultados=0).order_by('-data_aplicacao')[:4]
 
+    # Identificação de Patente e Tropa
     nome_exibicao = perfil.nome_completo.split("-")[0].strip() if perfil.nome_completo else "Aplicador"
+    
+    # Vasculha as alocações para ver quais turmas ele atende e cria um texto (ex: "1º ANO A, 1º ANO B")
+    turmas_aplicador = list(set([aloc.turma.nome for aloc in perfil.alocacoes.all()]))
+    turmas_texto = " e ".join(turmas_aplicador) if turmas_aplicador else "Nenhuma turma vinculada"
 
     context = {
         'nome_exibicao': nome_exibicao,
+        'turmas_texto': turmas_texto,
         'provas_hoje': provas_hoje,
         'provas_pendentes': provas_pendentes,
         'progresso': progresso,
@@ -3462,7 +3468,6 @@ def dashboard_aplicador(request):
         'avaliacoes_recentes': avaliacoes[:5]
     }
     return render(request, 'core/dashboard_aplicador.html', context)
-
 
 @login_required
 def gerenciar_virada_ano(request):

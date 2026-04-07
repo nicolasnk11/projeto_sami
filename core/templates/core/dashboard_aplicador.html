@@ -9,9 +9,14 @@
             <h2 class="fw-bold text-dark mb-1">
                 <i class="bi bi-shield-check text-primary me-2"></i> QG de Aplicação
             </h2>
-            <p class="text-muted fw-medium fs-6">
-                Bem-vindo à linha de frente, <strong>{{ nome_exibicao }}</strong>! Aqui está o seu painel de controle tático.
-            </p>
+            <div class="d-flex flex-wrap align-items-center mt-2 gap-2">
+                <span class="badge bg-dark px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
+                    <i class="bi bi-person-badge me-1 text-warning"></i> {{ nome_exibicao }}
+                </span>
+                <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
+                    <i class="bi bi-pin-map-fill me-1"></i> Operando na turma: {{ turmas_texto }}
+                </span>
+            </div>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
             <div class="bg-white p-3 rounded-4 shadow-sm border border-secondary border-opacity-10 d-inline-block text-start w-100" style="max-width: 300px;">
@@ -61,9 +66,9 @@
                 <div class="card card-tatico h-100 border-0 rounded-4 shadow-sm bg-white position-relative overflow-hidden p-3">
                     <div class="bg-icone-fundo bg-warning bg-opacity-10 position-absolute rounded-circle" style="width: 150px; height: 150px; top: -30px; right: -30px; z-index: 0;"></div>
                     <div class="card-body position-relative z-1 d-flex flex-column justify-content-center">
-                        <i class="bi bi-bar-chart-fill text-warning mb-3" style="font-size: 2.5rem;"></i>
-                        <h4 class="fw-bold text-dark">Resultados</h4>
-                        <p class="text-muted small mb-0 fw-medium">Veja o Raio-X e as estatísticas das avaliações já lançadas.</p>
+                        <i class="bi bi-list-columns-reverse text-warning mb-3" style="font-size: 2.5rem;"></i>
+                        <h4 class="fw-bold text-dark">Resultados da Turma</h4>
+                        <p class="text-muted small mb-0 fw-medium">Veja a lista de notas e o desempenho dos alunos nas provas aplicadas.</p>
                     </div>
                 </div>
             </a>
@@ -74,8 +79,7 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-radar me-2 text-danger"></i> Radar de Lançamentos Pendentes</h5>
-                    <a href="{% url 'gerenciar_avaliacoes' %}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold">Ver Todas</a>
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-radar me-2 text-danger"></i> Lançamentos Pendentes</h5>
                 </div>
                 <div class="card-body p-4">
                     {% if provas_pendentes %}
@@ -88,11 +92,11 @@
                                         </div>
                                         <div>
                                             <h6 class="fw-bold text-dark mb-1">{{ prova.titulo }}</h6>
-                                            <small class="text-muted fw-medium"><i class="bi bi-calendar-event me-1"></i> {{ prova.data_aplicacao|date:"d/m/Y" }} | Turma: {{ prova.alocacao.turma.nome }}</small>
+                                            <small class="text-muted fw-medium"><i class="bi bi-calendar-event me-1"></i> {{ prova.data_aplicacao|date:"d/m/Y" }} | {{ prova.alocacao.disciplina.nome }}</small>
                                         </div>
                                     </div>
                                     <a href="{% url 'lancar_nota' %}?avaliacao_id={{ prova.id }}" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">
-                                        Lançar Agora
+                                        Lançar
                                     </a>
                                 </div>
                             {% endfor %}
@@ -109,29 +113,27 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
-                <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
-                    <i class="bi bi-life-preserver mb-3 text-warning" style="font-size: 3rem;"></i>
-                    <h4 class="fw-bold mb-3">Dicas Rápidas</h4>
-                    <ul class="list-unstyled text-start mb-4 fw-medium text-white text-opacity-75" style="font-size: 0.9rem; line-height: 1.8;">
-                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Use o <strong>Scanner</strong> para ler os cartões rapidamente pelo celular.</li>
-                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Digite <strong>"N" ou "*"</strong> se o aluno rasurou a questão.</li>
-                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Pressione <strong>Enter</strong> para pular para o próximo aluno ao digitar.</li>
-                    </ul>
-                    </div>
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white position-relative overflow-hidden">
+                <div class="position-absolute w-100 h-100" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'); z-index: 0;"></div>
+                
+                <div class="card-body p-4 d-flex flex-column justify-content-center text-center position-relative z-1">
+                    <i class="bi bi-youtube mb-3 text-danger" style="font-size: 3.5rem;"></i>
+                    <h4 class="fw-bold mb-2">Central de Treinamento</h4>
+                    <p class="text-white text-opacity-75 small mb-4 fw-medium px-2">
+                        Precisa de ajuda com o scanner de cartões ou na criação de provas? Assista aos nossos tutoriais rápidos.
+                    </p>
+                    <a href="{% url 'central_ajuda' %}" class="btn btn-warning text-dark rounded-pill fw-bold shadow-sm px-4 py-3 mt-auto align-self-center w-100 transition-hover">
+                        <i class="bi bi-play-circle-fill me-2"></i> ACESSAR TUTORIAIS
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .card-tatico {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .card-tatico:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
-    }
+    .card-tatico { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-tatico:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
     .transition-hover { transition: all 0.2s; }
     .transition-hover:hover { transform: scale(1.02); }
 </style>
