@@ -19,8 +19,8 @@
         </div>
         
         <div class="d-flex flex-wrap gap-2 w-100 w-md-auto">
-            {% if turma_selecionada %}
-            <a href="{% url 'relatorio_ndi_print' turma_selecionada.id bimestre_atual %}" target="_blank" class="btn btn-light border border-secondary border-opacity-50 shadow-sm fw-bold text-dark transition-hover w-100 w-sm-auto">
+            {% if turma_selecionada and disciplina_selecionada %}
+            <a href="{% url 'relatorio_ndi_print' turma_selecionada.id disciplina_selecionada.id bimestre_atual %}" target="_blank" class="btn btn-light border border-secondary border-opacity-50 shadow-sm fw-bold text-dark transition-hover w-100 w-sm-auto">
                 <i class="bi bi-printer-fill me-2 text-secondary"></i> Imprimir Relatório
             </a>
             {% endif %}
@@ -34,7 +34,7 @@
     <div class="card border border-secondary border-opacity-25 shadow-sm mb-4 bg-white rounded-4">
         <div class="card-body p-4">
             <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label class="fw-bold small text-secondary text-uppercase mb-1">Turma Ativa</label>
                     <div class="input-group shadow-sm rounded-3 overflow-hidden">
                         <span class="input-group-text bg-light border-secondary border-opacity-25 border-end-0"><i class="bi bi-people-fill text-dark"></i></span>
@@ -48,7 +48,19 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
+                    <label class="fw-bold small text-secondary text-uppercase mb-1">Disciplina</label>
+                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-light border-secondary border-opacity-25 border-end-0"><i class="bi bi-book-half text-dark"></i></span>
+                        <select name="disciplina" class="form-select border-secondary border-opacity-25 border-start-0 bg-light fw-bold text-dark py-2" onchange="this.form.submit()">
+                            <option value="">-- Selecione a Matéria --</option>
+                            {% for d in disciplinas %}
+                                <option value="{{ d.id }}" {% if disciplina_selecionada.id == d.id %}selected{% endif %}>{{ d.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <label class="fw-bold small text-secondary text-uppercase mb-1">Bimestre</label>
                     <div class="input-group shadow-sm rounded-3 overflow-hidden">
                         <span class="input-group-text bg-light border-secondary border-opacity-25 border-end-0"><i class="bi bi-calendar-range text-dark"></i></span>
@@ -59,8 +71,8 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4 text-start text-md-end pt-3 pt-md-0">
-                    {% if turma_selecionada %}
+                <div class="col-md-2 text-start text-md-end pt-3 pt-md-0">
+                    {% if turma_selecionada and disciplina_selecionada %}
                     <span class="text-secondary fw-medium small border rounded-pill px-3 py-2 bg-light shadow-sm">
                         Alunos na pauta: <strong class="text-dark">{{ alunos_data|length }}</strong>
                     </span>
@@ -77,7 +89,7 @@
         </div>
     </div>
 
-    {% if turma_selecionada %}
+    {% if turma_selecionada and disciplina_selecionada %}
     <form method="post" id="formNotas" onsubmit="return validarFormulario()">
         {% csrf_token %}
         <div class="card border border-secondary border-opacity-25 shadow-lg rounded-4 overflow-hidden border-top border-4" style="border-color: #0A2619 !important;">
@@ -185,7 +197,7 @@
             <i class="bi bi-journal-check fs-1 text-dark"></i>
         </div>
         <h4 class="fw-bold text-dark">Diário de Classe</h4>
-        <p class="text-secondary fw-medium px-4">Selecione uma turma ativa no filtro acima para visualizar a lista de alunos e lançar as notas do bimestre.</p>
+        <p class="text-secondary fw-medium px-4">Selecione a <b>Turma</b> e a <b>Disciplina</b> no filtro acima para visualizar a lista de alunos e lançar as notas do bimestre.</p>
     </div>
     {% endif %}
 </div>
@@ -237,7 +249,6 @@
     function validarInput(input) {
         let val = parseFloat(input.value.replace(',', '.'));
         
-        // Remove erro visual se começar a digitar
         if (input.value !== "") {
             input.classList.remove('is-invalid');
         }
@@ -263,7 +274,6 @@
         const pp = getVal('pp');
         const pb = getVal('pb');
 
-        // Cálculo exato: ( (Freq + Ativ + Comp)/3 + PP + PB ) / 3
         const ndiParcial = (fre + atv + comp) / 3;
         const ndiFinal = (ndiParcial + pp + pb) / 3;
         
@@ -273,7 +283,6 @@
             elFinal.innerText = ndiFinal.toFixed(1);
             elFinal.className = "badge px-3 py-2 rounded-pill fs-6 shadow-sm border";
             
-            // Lógica de Cores da Nota
             if(ndiFinal >= 6) { 
                 elFinal.classList.add("bg-success", "text-white", "border-success"); 
             }
@@ -286,7 +295,7 @@
         }
     }
 
-    // --- 3. VALIDAÇÃO AO SALVAR (SEM ALERT NATIVO) ---
+    // --- 3. VALIDAÇÃO AO SALVAR ---
     function validarFormulario() {
         let formValido = true;
         const rows = document.querySelectorAll('.aluno-row');
@@ -302,7 +311,6 @@
                 else vazios++;
             });
 
-            // Regra: Se preencheu ALGUM campo na linha, tem que preencher TODOS
             if (preenchidos > 0 && vazios > 0) {
                 formValido = false;
                 inputs.forEach(inp => {
@@ -313,11 +321,8 @@
         });
 
         if (!formValido) {
-            // Exibe a div de erro linda no topo da tabela
             const alerta = document.getElementById('alertaValidacao');
             alerta.classList.remove('d-none');
-            
-            // Rola a tela suavemente para a primeira linha incompleta
             if (primeiroErro) primeiroErro.scrollIntoView({behavior: "smooth", block: "center"});
             return false;
         }
@@ -330,7 +335,7 @@
 
         const inputs = Array.from(document.querySelectorAll('.nav-input'));
         const currentIdx = inputs.indexOf(e.target);
-        const colCount = 5; // 5 inputs por aluno
+        const colCount = 5; 
         
         let nextIdx = null;
 
@@ -349,7 +354,7 @@
 
         if (nextIdx !== null && nextIdx >= 0 && nextIdx < inputs.length) {
             inputs[nextIdx].focus();
-            inputs[nextIdx].select(); // Seleciona o texto pra facilitar sobrescrever
+            inputs[nextIdx].select(); 
         }
     });
 

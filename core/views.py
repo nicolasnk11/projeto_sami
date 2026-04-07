@@ -2531,16 +2531,22 @@ def gerar_cartoes_pdf(request, avaliacao_id):
 @login_required
 def gerenciar_ndi(request):
     turma_id = request.GET.get('turma')
+    disciplina_id = request.GET.get('disciplina')
     bimestre = int(request.GET.get('bimestre', 1))
     
-    # 🔥 CADEADO DE SEGURANÇA: Filtra Turmas do Professor 🔥
+    # 🔥 CADEADO DE SEGURANÇA: Filtra Turmas e Disciplinas do Professor 🔥
     ano_atual = timezone.now().year
     turmas_qs = Turma.objects.filter(ano_letivo=ano_atual).order_by('nome')
+    disciplinas_qs = Disciplina.objects.all().order_by('nome')
+    
     if hasattr(request.user, 'professor_perfil'):
-        turmas_qs = turmas_qs.filter(alocacoes__professor=request.user.professor_perfil).distinct()
+        perfil = request.user.professor_perfil
+        turmas_qs = turmas_qs.filter(alocacoes__professor=perfil).distinct()
+        disciplinas_qs = disciplinas_qs.filter(alocacoes__professor=perfil).distinct()
 
     alunos_data = []
     turma_selecionada = None
+    disciplina_selecionada = None
 
     def processar_nota(valor_str):
         if not valor_str or valor_str.strip() == '':
@@ -2551,8 +2557,9 @@ def gerenciar_ndi(request):
         except ValueError:
             return None
 
-    if turma_id:
+    if turma_id and disciplina_id:
         turma_selecionada = get_object_or_404(Turma, id=turma_id)
+        disciplina_selecionada = get_object_or_404(Disciplina, id=disciplina_id)
         matriculas = Matricula.objects.filter(turma_id=turma_id, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
         
         if request.method == 'POST':
@@ -2574,7 +2581,7 @@ def gerenciar_ndi(request):
 
                 if all(n is not None for n in notas):
                     NDI.objects.update_or_create(
-                        matricula=mat, bimestre=bimestre,
+                        matricula=mat, bimestre=bimestre, disciplina=disciplina_selecionada,
                         defaults={
                             'nota_frequencia': notas[0],
                             'nota_atividade': notas[1],
@@ -2594,15 +2601,17 @@ def gerenciar_ndi(request):
             else:
                 messages.success(request, msg)
                 
-            return redirect(f"{request.path}?turma={turma_id}&bimestre={bimestre}")
+            return redirect(f"{request.path}?turma={turma_id}&disciplina={disciplina_id}&bimestre={bimestre}")
 
         for mat in matriculas:
-            ndi = NDI.objects.filter(matricula=mat, bimestre=bimestre).first()
+            ndi = NDI.objects.filter(matricula=mat, bimestre=bimestre, disciplina=disciplina_selecionada).first()
             alunos_data.append({'obj': mat, 'ndi': ndi})
 
     return render(request, 'core/gerenciar_ndi.html', {
         'turmas': turmas_qs,
+        'disciplinas': disciplinas_qs,
         'turma_selecionada': turma_selecionada,
+        'disciplina_selecionada': disciplina_selecionada,
         'alunos_data': alunos_data,
         'bimestre_atual': bimestre,
         'bimestres_opts': [1, 2, 3, 4]
@@ -3146,14 +3155,15 @@ def gerar_acessos_em_massa(request):
 
 
 @login_required
-def relatorio_ndi_print(request, turma_id, bimestre):
+def relatorio_ndi_print(request, turma_id, disciplina_id, bimestre):
     turma = get_object_or_404(Turma, id=turma_id)
+    disciplina = get_object_or_404(Disciplina, id=disciplina_id)
     matriculas = Matricula.objects.filter(turma=turma, status='CURSANDO').select_related('aluno').order_by('aluno__nome_completo')
     
     dados = []
     
     for mat in matriculas:
-        ndi = NDI.objects.filter(matricula=mat, bimestre=bimestre).first()
+        ndi = NDI.objects.filter(matricula=mat, bimestre=bimestre, disciplina=disciplina).first()
         
         freq = ndi.nota_frequencia if ndi else 0.0
         atv = ndi.nota_atividade if ndi else 0.0
@@ -3179,12 +3189,11 @@ def relatorio_ndi_print(request, turma_id, bimestre):
 
     return render(request, 'core/relatorio_ndi_print.html', {
         'turma': turma,
+        'disciplina': disciplina,
         'bimestre': bimestre,
         'dados': dados,
         'data_geracao': timezone.now()
     })
-
-
 
 @login_required
 def api_lancar_nota_ajax(request):

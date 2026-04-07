@@ -4,59 +4,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório NDI - {{ turma.nome }}</title>
+    <title>Diário NDI - {{ turma.nome }} - {{ disciplina.nome }}</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
     <style>
-        /* CSS OTIMIZADO PARA IMPRESSÃO A4 E TELA */
+        /* CSS OTIMIZADO PARA IMPRESSÃO OFICIAL */
         :root {
-            --cor-primaria: {{ configuracao.cor_primaria|default:"#0A2619" }};
-            --cor-secundaria: {{ configuracao.cor_secundaria|default:"#D4AF37" }};
+            --cor-primaria: #0A2619;
+            --cor-secundaria: #D4AF37;
+            --cor-borda: #cbd5e1;
         }
 
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            font-size: 12px; 
-            color: #333; 
+            font-size: 11px; 
+            color: #1e293b; 
             -webkit-print-color-adjust: exact; 
-            background-color: #f0f2f5;
+            background-color: #f1f5f9;
         }
         
-        /* Container que simula a folha A4 na tela */
+        /* Container A4 */
         .a4-container {
             background: white;
             max-width: 210mm;
+            min-height: 297mm;
             margin: 20px auto;
-            padding: 20mm;
+            padding: 15mm 20mm;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border-radius: 8px;
+            position: relative;
         }
 
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--cor-secundaria); padding-bottom: 10px; }
-        .header h1 { margin: 0; color: var(--cor-primaria); text-transform: uppercase; font-size: 18px; font-weight: 700; }
-        .header p { margin: 2px 0; color: #666; font-size: 14px; }
+        /* Cabeçalho Oficial */
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid var(--cor-primaria); 
+            padding-bottom: 15px; 
+            position: relative;
+        }
         
-        .info-box { display: flex; justify-content: space-between; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 5px solid var(--cor-primaria); }
-        .info-item strong { color: var(--cor-primaria); }
+        .header h1 { 
+            margin: 0; 
+            color: var(--cor-primaria); 
+            text-transform: uppercase; 
+            font-size: 18px; 
+            font-weight: 800; 
+            letter-spacing: 0.5px;
+        }
         
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { padding: 8px 5px; border: 1px solid #ddd; text-align: center; }
+        .header p { 
+            margin: 5px 0 0 0; 
+            color: #475569; 
+            font-size: 12px; 
+            font-weight: 600;
+            text-transform: uppercase;
+        }
         
-        thead th { background-color: var(--cor-primaria); color: white; font-weight: 600; }
-        .th-sec { background-color: #f3f4f6; color: #333; font-size: 10px; text-transform: uppercase; }
+        /* Caixa de Informações (Agora com Disciplina) */
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 10px;
+            margin-bottom: 20px; 
+            background: #f8fafc; 
+            padding: 12px 15px; 
+            border-radius: 6px; 
+            border: 1px solid var(--cor-borda);
+            border-left: 4px solid var(--cor-secundaria); 
+        }
         
-        .col-aluno { text-align: left; padding-left: 10px; font-weight: 600; width: 30%; }
-        .col-destaque { background-color: rgba(212, 175, 55, 0.1); font-weight: bold; }
-        .col-final { background-color: rgba(20, 69, 47, 0.1); font-weight: bold; color: var(--cor-primaria); }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 9px; color: #64748b; font-weight: 700; margin-bottom: 2px; }
+        .info-value { font-size: 12px; color: var(--cor-primaria); font-weight: 800; text-transform: uppercase; }
         
-        .status-aprovado { color: #198754; font-weight: bold; }
-        .status-recuperacao { color: #fd7e14; font-weight: bold; }
-        .status-reprovado { color: #dc3545; font-weight: bold; }
+        /* Tabela de Notas */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { padding: 6px 4px; border: 1px solid var(--cor-borda); text-align: center; vertical-align: middle; }
+        
+        thead th { 
+            background-color: var(--cor-primaria); 
+            color: white; 
+            font-weight: 700; 
+            font-size: 10px;
+            border-color: #1a422e;
+        }
+        
+        .th-sec { background-color: #f1f5f9; color: var(--cor-primaria); font-size: 9px; font-weight: 800; }
+        
+        /* Linhas Zebradas para facilitar a leitura */
+        tbody tr:nth-child(even) { background-color: #f8fafc; }
+        
+        .col-aluno { text-align: left; padding-left: 10px; font-weight: 600; width: 32%; font-size: 11px;}
+        .col-destaque { background-color: rgba(212, 175, 55, 0.15) !important; font-weight: bold; color: #856404; }
+        .col-final { background-color: rgba(10, 38, 25, 0.1) !important; font-weight: 800; color: var(--cor-primaria); font-size: 12px;}
+        
+        /* Status Visual */
+        .badge-status { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; display: inline-block; width: 35px; }
+        .status-aprovado { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .status-recuperacao { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
+        .status-reprovado { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
 
-        .footer { text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 10px; margin-top: 30px; }
+        /* Assinatura do Professor */
+        .signature-box {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+        }
+        
+        .signature-line {
+            width: 250px;
+            border-top: 1px solid #333;
+            text-align: center;
+            padding-top: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .footer { text-align: center; font-size: 9px; color: #94a3b8; border-top: 1px dashed var(--cor-borda); padding-top: 10px; margin-top: 30px; }
 
         /* Barra de Ações Flutuante (Apenas para Tela) */
         .floating-actions {
@@ -71,9 +141,8 @@
         /* --- MÁGICA DA IMPRESSÃO --- */
         @media print {
             body { background-color: white; margin: 0; padding: 0; }
-            .a4-container { box-shadow: none; margin: 0; padding: 0; border-radius: 0; max-width: 100%; }
+            .a4-container { box-shadow: none; margin: 0; padding: 0; border-radius: 0; max-width: 100%; min-height: auto;}
             .no-print { display: none !important; }
-            .footer { position: fixed; bottom: 0; left: 0; right: 0; }
             @page { margin: 1cm; size: A4 portrait; }
         }
     </style>
@@ -81,40 +150,56 @@
 <body onload="window.print()">
 
     <div class="no-print floating-actions">
-        <button onclick="history.back()" class="btn btn-dark rounded-pill px-4 shadow-lg fw-bold" data-bs-toggle="tooltip" data-bs-placement="top" title="Voltar à tela anterior sem imprimir">
+        <button onclick="history.back()" class="btn btn-dark rounded-pill px-4 shadow-lg fw-bold border-2 border-white" data-bs-toggle="tooltip" data-bs-placement="top" title="Voltar à tela anterior sem imprimir">
             <i class="bi bi-arrow-left me-2"></i> Voltar
         </button>
-        <button onclick="window.print()" class="btn btn-warning rounded-pill px-4 shadow-lg fw-bold text-dark" style="background-color: var(--cor-secundaria); border: none;" data-bs-toggle="tooltip" data-bs-placement="top" title="Imprimir este documento">
-            <i class="bi bi-printer-fill me-2"></i> Imprimir Novamente
+        <button onclick="window.print()" class="btn btn-warning rounded-pill px-4 shadow-lg fw-bold text-dark border-2 border-white" style="background-color: var(--cor-secundaria);" data-bs-toggle="tooltip" data-bs-placement="top" title="Imprimir documento">
+            <i class="bi bi-printer-fill me-2"></i> Imprimir Diário
         </button>
     </div>
 
     <div class="a4-container">
         
         <div class="header">
-            <h1>{{ configuracao.nome_escola|default:"Escola EEMTI" }}</h1>
-            <p>Relatório de Desempenho Acadêmico - NDI</p>
+            <h1>{{ configuracao.nome_escola|default:"EEMTI PARQUE MARIA BERNARDO DE CASTRO" }}</h1>
+            <p>DIÁRIO DE CLASSE - NOTAS DE DESENVOLVIMENTO INDIVIDUAL (NDI)</p>
         </div>
 
-        <div class="info-box">
-            <div class="info-item">TURMA: <strong>{{ turma.nome }}</strong></div>
-            <div class="info-item">PERÍODO: <strong>{{ bimestre }}º BIMESTRE</strong></div>
-            <div class="info-item">ANO: <strong>{% now "Y" %}</strong></div>
-            <div class="info-item">GERADO EM: {{ data_geracao|date:"d/m/Y H:i" }}</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">DISCIPLINA</span>
+                <span class="info-value">{{ disciplina.nome }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">TURMA / SÉRIE</span>
+                <span class="info-value">{{ turma.nome }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">BIMESTRE</span>
+                <span class="info-value">{{ bimestre }}º BIMESTRE</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">DATA DE EMISSÃO</span>
+                <span class="info-value">{{ data_geracao|date:"d/m/Y" }}</span>
+            </div>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2" class="align-middle">ALUNO</th>
-                    <th colspan="4">AVALIAÇÃO CONTÍNUA</th>
-                    <th colspan="2">PROVAS</th>
-                    <th rowspan="2" class="align-middle" style="background-color: var(--cor-secundaria); color: #000;">MÉDIA FINAL</th>
-                    <th rowspan="2" class="align-middle" style="background-color: #eee; color: #333;">SITUAÇÃO</th>
+                    <th rowspan="2" class="align-middle text-start ps-3" style="font-size: 11px;">NOME DO ALUNO</th>
+                    <th colspan="4" style="background-color: #15452d;">AVALIAÇÃO CONTÍNUA (MÉDIA PARCIAL 1)</th>
+                    <th colspan="2" style="background-color: #1a5c3a;">PROVAS (MÉDIA PARCIAL 2)</th>
+                    <th rowspan="2" class="align-middle" style="background-color: var(--cor-secundaria); color: #000; font-size: 11px;">MÉDIA<br>FINAL</th>
+                    <th rowspan="2" class="align-middle" style="background-color: #cbd5e1; color: #1e293b;">STATUS</th>
                 </tr>
                 <tr class="th-sec">
-                    <th>FREQ</th> <th>ATIV</th> <th>COMP</th> <th>PARCIAL</th>
-                    <th>P. PARCIAL</th> <th>P. BIMEST.</th>
+                    <th title="Frequência">FREQ.</th> 
+                    <th title="Atividades">ATIV.</th> 
+                    <th title="Comportamento">COMP.</th> 
+                    <th style="background-color: #e2e8f0;">MP 1</th>
+                    <th title="Prova Parcial">P. PARCIAL</th> 
+                    <th title="Prova Bimestral">P. BIMEST.</th>
                 </tr>
             </thead>
             <tbody>
@@ -129,17 +214,33 @@
                     <td>{{ d.notas.pb|floatformat:1 }}</td>
                     <td class="col-final">{{ d.notas.final|floatformat:1 }}</td>
                     <td>
-                        {% if d.status == 'APROVADO' %}<span class="status-aprovado">APR</span>
-                        {% elif d.status == 'RECUPERAÇÃO' %}<span class="status-recuperacao">REC</span>
-                        {% else %}<span class="status-reprovado">REP</span>{% endif %}
+                        {% if d.status == 'APROVADO' %}<span class="badge-status status-aprovado">APR</span>
+                        {% elif d.status == 'RECUPERAÇÃO' %}<span class="badge-status status-recuperacao">REC</span>
+                        {% else %}<span class="badge-status status-reprovado">REP</span>{% endif %}
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="padding: 20px; color: #64748b; font-style: italic;">Nenhum aluno matriculado nesta turma ou notas não lançadas.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
+        <div class="signature-box">
+            <div class="signature-line">
+                Assinatura do(a) Professor(a)
+            </div>
+            <div class="signature-line">
+                Visto da Coordenação Pedagógica
+            </div>
+        </div>
+
         <div class="footer">
-            Documento gerado pelo sistema SAMI - Sistema de Monitoramento Inteligente em {% now "d/m/Y" %}
+            <div style="margin-bottom: 5px;">
+                <strong>LEGENDA:</strong> APR = Aprovado (>= 6.0) | REC = Recuperação (>= 4.0 e < 6.0) | REP = Reprovado (< 4.0)
+            </div>
+            Documento gerado pelo sistema SAMI Educacional em {{ data_geracao|date:"d/m/Y às H:i" }}
         </div>
 
     </div>

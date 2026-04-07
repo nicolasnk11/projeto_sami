@@ -43,7 +43,7 @@ urlpatterns = [
     path('relatorio-proficiencia/<int:avaliacao_id>/', views.gerar_relatorio_proficiencia, name='relatorio_proficiencia'),
     
     path('avaliacao/<int:avaliacao_id>/mapa/', views.mapa_calor, name='mapa_calor'),
-    path('relatorio-ndi/<int:turma_id>/<int:bimestre>/', views.relatorio_ndi_print, name='relatorio_ndi_print'),
+    path('relatorio-ndi/<int:turma_id>/<int:disciplina_id>/<int:bimestre>/', views.relatorio_ndi_print, name='relatorio_ndi_print'),
 
     # --- NOTAS E PLANOS ---
     path('lancar_nota/', views.lancar_nota, name='lancar_nota'),
