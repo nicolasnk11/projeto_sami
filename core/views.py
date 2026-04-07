@@ -3427,7 +3427,7 @@ def redirecionar_apos_login(request):
 
 @login_required
 def dashboard_aplicador(request):
-    from django.db.models import Count
+    from django.db.models import Count, Q
     from datetime import datetime
 
     try:
@@ -3435,9 +3435,20 @@ def dashboard_aplicador(request):
     except AttributeError:
         return redirect('dashboard')
 
-    # Pega todas as provas que estão na gaveta deste Aplicador
-    avaliacoes = Avaliacao.objects.filter(alocacao__professor=perfil).order_by('-data_aplicacao')
+    # 🔥 A MÁGICA DO PODER COMPARTILHADO (AGORA PLUGADA NO QG) 🔥
+    alocacoes_do_prof = perfil.alocacoes.all()
+    query_compartilhada = Q()
     
+    for aloc in alocacoes_do_prof:
+        # O Aplicador enxergará todas as provas das turmas e matérias vinculadas a ele
+        query_compartilhada |= Q(alocacao__turma=aloc.turma, alocacao__disciplina=aloc.disciplina)
+        
+    if query_compartilhada:
+        # O distinct() garante que a prova não apareça duplicada
+        avaliacoes = Avaliacao.objects.filter(query_compartilhada).order_by('-data_aplicacao').distinct()
+    else:
+        avaliacoes = Avaliacao.objects.none()
+
     # Quais provas já têm algum resultado lançado?
     provas_com_nota = avaliacoes.annotate(qtd_resultados=Count('resultado')).filter(qtd_resultados__gt=0).count()
     total_provas = avaliacoes.count()
@@ -3453,8 +3464,8 @@ def dashboard_aplicador(request):
     # Identificação de Patente e Tropa
     nome_exibicao = perfil.nome_completo.split("-")[0].strip() if perfil.nome_completo else "Aplicador"
     
-    # Vasculha as alocações para ver quais turmas ele atende e cria um texto (ex: "1º ANO A e 1º ANO B")
-    turmas_aplicador = list(set([aloc.turma.nome for aloc in perfil.alocacoes.all()]))
+    # Vasculha as alocações para ver quais turmas ele atende
+    turmas_aplicador = list(set([aloc.turma.nome for aloc in alocacoes_do_prof]))
     turmas_texto = " e ".join(turmas_aplicador) if turmas_aplicador else "Nenhuma turma vinculada"
 
     context = {
@@ -3466,7 +3477,7 @@ def dashboard_aplicador(request):
         'total_provas': total_provas,
         'provas_com_nota': provas_com_nota,
         'avaliacoes_recentes': avaliacoes[:5],
-        'avaliacoes': avaliacoes  # 🔥 ESSA É A CHAVE QUE ALIMENTA O MODAL!
+        'avaliacoes': avaliacoes # Alimenta a lista suspensa do Modal
     }
     return render(request, 'core/dashboard_aplicador.html', context)
 
