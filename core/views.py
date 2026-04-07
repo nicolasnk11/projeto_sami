@@ -3453,7 +3453,7 @@ def dashboard_aplicador(request):
     # Identificação de Patente e Tropa
     nome_exibicao = perfil.nome_completo.split("-")[0].strip() if perfil.nome_completo else "Aplicador"
     
-    # Vasculha as alocações para ver quais turmas ele atende e cria um texto (ex: "1º ANO A, 1º ANO B")
+    # Vasculha as alocações para ver quais turmas ele atende e cria um texto (ex: "1º ANO A e 1º ANO B")
     turmas_aplicador = list(set([aloc.turma.nome for aloc in perfil.alocacoes.all()]))
     turmas_texto = " e ".join(turmas_aplicador) if turmas_aplicador else "Nenhuma turma vinculada"
 
@@ -3465,7 +3465,8 @@ def dashboard_aplicador(request):
         'progresso': progresso,
         'total_provas': total_provas,
         'provas_com_nota': provas_com_nota,
-        'avaliacoes_recentes': avaliacoes[:5]
+        'avaliacoes_recentes': avaliacoes[:5],
+        'avaliacoes': avaliacoes  # 🔥 ESSA É A CHAVE QUE ALIMENTA O MODAL!
     }
     return render(request, 'core/dashboard_aplicador.html', context)
 

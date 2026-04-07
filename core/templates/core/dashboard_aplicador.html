@@ -62,7 +62,7 @@
         </div>
 
         <div class="col-md-4">
-            <a href="{% url 'gerenciar_avaliacoes' %}" class="text-decoration-none">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#modalSelecionarProva" class="text-decoration-none">
                 <div class="card card-tatico h-100 border-0 rounded-4 shadow-sm bg-white position-relative overflow-hidden p-3">
                     <div class="bg-icone-fundo bg-warning bg-opacity-10 position-absolute rounded-circle" style="width: 150px; height: 150px; top: -30px; right: -30px; z-index: 0;"></div>
                     <div class="card-body position-relative z-1 d-flex flex-column justify-content-center">
@@ -131,9 +131,52 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalSelecionarProva" tabindex="-1" aria-labelledby="modalSelecionarProvaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 bg-light pb-0 pt-4 px-4">
+                <h5 class="fw-bold text-dark mb-0" id="modalSelecionarProvaLabel">
+                    <i class="bi bi-list-columns-reverse text-warning me-2"></i> Raio-X da Turma
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small fw-medium mb-3">Selecione uma avaliação abaixo para visualizar as notas e o mapa de calor da turma:</p>
+                
+                {% if avaliacoes %}
+                    <select class="form-select form-select-lg border-secondary border-opacity-25 shadow-sm rounded-3 fw-bold text-dark" onchange="irParaResultados(this.value)">
+                        <option value="">--- Selecione uma Prova ---</option>
+                        {% for av in avaliacoes %}
+                            <option value="{% url 'resultados_turma' av.id %}">
+                                {{ av.titulo }} - {{ av.alocacao.turma.nome }} ({{ av.data_aplicacao|date:"d/m/Y" }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <div class="alert alert-warning border-0 shadow-sm fw-bold">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Nenhuma avaliação cadastrada ainda.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-center">
+                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Função simples e direta: escolheu no Select, o JS joga o usuário na tela certa!
+    function irParaResultados(url) {
+        if (url) {
+            window.location.href = url;
+        }
+    }
+</script>
+
 <style>
     .card-tatico { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .card-tatico:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
+    .card-tatico:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; cursor: pointer; }
     .transition-hover { transition: all 0.2s; }
     .transition-hover:hover { transform: scale(1.02); }
 </style>
