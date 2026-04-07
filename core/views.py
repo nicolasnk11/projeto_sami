@@ -1339,7 +1339,19 @@ def lancar_nota(request):
     # 🔥 CADEADO DE SEGURANÇA: Mostra apenas as provas do professor logado 🔥
     avaliacoes_dropdown = Avaliacao.objects.all().order_by('-data_aplicacao')
     if hasattr(request.user, 'professor_perfil'):
-        avaliacoes_dropdown = avaliacoes_dropdown.filter(alocacao__professor=request.user.professor_perfil)
+        perfil = request.user.professor_perfil
+        
+        # --- A MÁGICA DO PODER COMPARTILHADO ---
+        alocacoes_do_prof = perfil.alocacoes.all()
+        query_compartilhada = Q()
+        for aloc in alocacoes_do_prof:
+            query_compartilhada |= Q(alocacao__turma=aloc.turma, alocacao__disciplina=aloc.disciplina)
+            
+        if query_compartilhada:
+            avaliacoes_dropdown = avaliacoes_dropdown.filter(query_compartilhada)
+        else:
+            avaliacoes_dropdown = avaliacoes_dropdown.none()
+        # --- FIM DA MÁGICA ---
 
     return render(request, 'core/lancar_nota.html', {
         'avaliacao_selecionada': avaliacao_obj,
@@ -1974,7 +1986,7 @@ def perfil_aluno(request, aluno_id):
         'total_provas': resultados.count(),
         'labels_evo': json.dumps(labels_evo),
         'dados_evo': json.dumps(dados_evo),
-        'habilidades_fortes':abilidades_fortes,
+        'habilidades_fortes':habilidades_fortes,
         'habilidades_fracas': habilidades_fracas,
         'historico': resultados.order_by('-avaliacao__data_aplicacao')
     }
@@ -3106,7 +3118,7 @@ def gerar_acessos_em_massa(request):
             contador = 1
             from django.contrib.auth.models import User
             while User.objects.filter(username=username).exists():
-                username = f"{base_username}{contador}"
+                username = f"{username_base}{contador}"
                 contador += 1
 
             password = "Mudar123" 
