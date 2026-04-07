@@ -3638,3 +3638,230 @@ def cadastrar_professor(request):
         'form': form,
     }
     return render(request, 'core/cadastrar_professor.html', context)
+
+@login_required
+def resultados_turma(request, avaliacao_id):
+    from django.db.models import Avg
+    
+    avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
+    
+    # 1. Puxa o esqueleto da prova (As colunas do Mapa de Calor)
+    itens = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
+    
+    # 2. Puxa os Resultados
+    resultados_banco = Resultado.objects.filter(avaliacao=avaliacao).select_related('matricula__aluno', 'matricula__turma').order_by('matricula__aluno__nome_completo')
+    
+    total_alunos = resultados_banco.count()
+    media_turma = resultados_banco.aggregate(Avg('percentual'))['percentual__avg']
+    media_turma = round(media_turma / 10, 1) if media_turma else 0.0
+    
+    # 3. OTIMIZAÇÃO EXTREMA: Puxa todas as respostas da turma de uma vez só!
+    respostas_all = RespostaDetalhada.objects.filter(resultado__in=resultados_banco).values('resultado_id', 'item_gabarito_id', 'acertou')
+    mapa_geral = {}
+    for resp in respostas_all:
+        if resp['resultado_id'] not in mapa_geral:
+            mapa_geral[resp['resultado_id']] = {}
+        mapa_geral[resp['resultado_id']][resp['item_gabarito_id']] = resp['acertou']
+    
+    # 4. Monta a lista final juntando a Nota com o Mapa de Calor
+    lista_resultados = []
+    for r in resultados_banco:
+        nota = round((r.percentual or 0) / 10, 1)
+        if nota >= 6: status, cor = 'APROVADO', 'success'
+        elif nota >= 4: status, cor = 'RECUPERAÇÃO', 'warning'
+        else: status, cor = 'REPROVADO', 'danger'
+        
+        mapa_aluno = mapa_geral.get(r.id, {})
+        linha_questoes = []
+        
+        for item in itens:
+            linha_questoes.append({
+                'numero': item.numero,
+                'acertou': mapa_aluno.get(item.id) # Retorna True, False ou None
+            })
+            
+        lista_resultados.append({
+            'aluno': r.matricula.aluno.nome_completo,
+            'acertos': r.acertos,
+            'total_questoes': r.total_questoes,
+            'nota': nota,
+            'status': status,
+            'cor': cor,
+            'questoes': linha_questoes
+        })
+        
+    context = {
+        'avaliacao': avaliacao,
+        'resultados': lista_resultados,
+        'media_turma': media_turma,
+        'total_alunos': total_alunos,
+        'itens': itens # Mandando as colunas das questões pro HTML
+    }
+    
+    return render(request, 'core/resultados_turma.html', context)
+
+from django.http import FileResponse
+
+@login_required
+def baixar_relatorio_raiox_pdf(request, avaliacao_id):
+    import io
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from django.db.models import Avg
+
+    avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
+    itens = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
+    resultados_banco = Resultado.objects.filter(avaliacao=avaliacao).select_related('matricula__aluno').order_by('matricula__aluno__nome_completo')
+
+    # OTIMIZAÇÃO: Cria o Mapa de Calor direto do Banco
+    respostas_all = RespostaDetalhada.objects.filter(resultado__in=resultados_banco).values('resultado_id', 'item_gabarito_id', 'acertou')
+    mapa_geral = {}
+    for resp in respostas_all:
+        if resp['resultado_id'] not in mapa_geral:
+            mapa_geral[resp['resultado_id']] = {}
+        mapa_geral[resp['resultado_id']][resp['item_gabarito_id']] = resp['acertou']
+
+    buffer = io.BytesIO()
+    # Criando documento em formato PAISAGEM
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Estilos do Cabeçalho
+    titulo_style = ParagraphStyle('Titulo', parent=styles['Normal'], fontSize=16, textColor=colors.HexColor("#0A2619"), fontName='Helvetica-Bold', alignment=1, spaceAfter=5)
+    sub_style = ParagraphStyle('Sub', parent=styles['Normal'], fontSize=10, textColor=colors.grey, fontName='Helvetica-Bold', alignment=1, spaceAfter=20)
+
+    # 1. Montando o Cabeçalho
+    config = ConfiguracaoSistema.objects.first()
+    nome_escola = config.nome_escola.upper() if config and config.nome_escola else "SAMI EDUCACIONAL"
+    
+    elements.append(Paragraph(nome_escola, titulo_style))
+    elements.append(Paragraph("RAIO-X E MAPA DE CALOR DA TURMA", ParagraphStyle('T2', parent=titulo_style, fontSize=12)))
+    
+    media_turma = resultados_banco.aggregate(Avg('percentual'))['percentual__avg']
+    media_turma = round(media_turma / 10, 1) if media_turma else 0.0
+
+    info_texto = f"TURMA: {avaliacao.alocacao.turma.nome} &nbsp;|&nbsp; DISCIPLINA: {avaliacao.alocacao.disciplina.nome.upper()} &nbsp;|&nbsp; DATA: {avaliacao.data_aplicacao.strftime('%d/%m/%Y')} &nbsp;|&nbsp; MÉDIA GERAL: {media_turma}"
+    elements.append(Paragraph(info_texto, sub_style))
+
+    # 2. Estruturando o Esqueleto da Tabela
+    num_qs = itens.count()
+    if num_qs == 0:
+        num_qs = 1
+
+    # Linha dupla de cabeçalho
+    row1 = ['NOME DO ALUNO'] + ['MAPA DE CALOR DE QUESTÕES'] + [''] * (num_qs - 1) + ['RESULTADOS', '', '']
+    row2 = ['']
+    for item in itens:
+        # 🔥 FIX: Removemos a letra "Q" para economizar espaço horizontal!
+        row2.append(f"{item.numero}")
+    row2.extend(['ACERTOS', 'NOTA', 'STATUS'])
+
+    data = [row1, row2]
+    
+    # 🔥 FIX: Fontes Dinâmicas! Se tiver muita questão, a fonte diminui sozinha.
+    font_size_table = 8 if num_qs <= 20 else 7
+    font_size_headers = 8 if num_qs <= 20 else 6
+
+    estilos_tabela = [
+        ('SPAN', (0, 0), (0, 1)), 
+        ('SPAN', (1, 0), (num_qs, 0)), 
+        ('SPAN', (num_qs + 1, 0), (num_qs + 3, 0)), 
+        
+        ('BACKGROUND', (0, 0), (-1, 1), colors.HexColor("#0A2619")),
+        ('TEXTCOLOR', (0, 0), (-1, 1), colors.white),
+        ('FONTNAME', (0, 0), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 1), font_size_headers),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (0, 2), (0, -1), 'LEFT'), 
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+        ('ROWBACKGROUNDS', (0, 2), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+        
+        # 🔥 FIX: O GRANDE SEGREDO: Reduzimos o "espaçamento em branco" interno da célula para 2 pixels!
+        ('LEFTPADDING', (0, 0), (-1, -1), 2),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('FONTSIZE', (0, 2), (-1, -1), font_size_table),
+    ]
+
+    # 3. Preenchendo as notas dos Alunos
+    for i, r in enumerate(resultados_banco, start=2): 
+        nota = round((r.percentual or 0) / 10, 1)
+        status = 'APR' if nota >= 6 else 'REC' if nota >= 4 else 'REP'
+        
+        # Limita o nome para evitar estouros na primeira coluna
+        nome_aluno = r.matricula.aluno.nome_completo
+        if len(nome_aluno) > 28: nome_aluno = nome_aluno[:26] + "..."
+        row = [nome_aluno] 
+        
+        mapa_aluno = mapa_geral.get(r.id, {})
+        
+        col_idx = 1
+        for item in itens:
+            acertou = mapa_aluno.get(item.id)
+            if acertou is True:
+                row.append("V")
+                # Sem fundo colorido. Apenas a letra num verde médio elegante.
+                estilos_tabela.append(('TEXTCOLOR', (col_idx, i), (col_idx, i), colors.HexColor("#15803d")))
+            elif acertou is False:
+                row.append("X")
+                # O erro é o que importa! Fundo vermelho ultra-suave (pastel) com letra vermelha.
+                estilos_tabela.append(('BACKGROUND', (col_idx, i), (col_idx, i), colors.HexColor("#fff1f2")))
+                estilos_tabela.append(('TEXTCOLOR', (col_idx, i), (col_idx, i), colors.HexColor("#e11d48")))
+            else:
+                row.append("-")
+                # Em branco/nulo fica apagadinho para não poluir a tela
+                estilos_tabela.append(('TEXTCOLOR', (col_idx, i), (col_idx, i), colors.HexColor("#94a3b8")))
+            col_idx += 1
+        
+        row.extend([f"{r.acertos}/{r.total_questoes}", f"{nota:.1f}", status])
+        data.append(row)
+
+        if status == 'APR':
+            estilos_tabela.append(('TEXTCOLOR', (-1, i), (-1, i), colors.HexColor("#198754")))
+            estilos_tabela.append(('FONTNAME', (-1, i), (-1, i), 'Helvetica-Bold'))
+        elif status == 'REC':
+            estilos_tabela.append(('TEXTCOLOR', (-1, i), (-1, i), colors.HexColor("#d97706")))
+            estilos_tabela.append(('FONTNAME', (-1, i), (-1, i), 'Helvetica-Bold'))
+        else:
+            estilos_tabela.append(('TEXTCOLOR', (-1, i), (-1, i), colors.HexColor("#dc3545")))
+            estilos_tabela.append(('FONTNAME', (-1, i), (-1, i), 'Helvetica-Bold'))
+
+    # 4. CÁLCULO MATEMÁTICO DE MARGENS
+    page_width, page_height = landscape(A4)
+    usable_width = page_width - 40 # 20 de margem esq e dir
+    
+    fixed_end_cols = 40 + 30 + 35 # Acertos, Nota, Status = 105 pontos
+    remaining_for_qs_and_name = usable_width - fixed_end_cols
+
+    # Definindo a largura das questões e do nome
+    q_width = 16 if num_qs > 20 else 20
+    qs_total_width = q_width * num_qs
+    
+    nome_width = remaining_for_qs_and_name - qs_total_width
+    
+    if nome_width < 140:
+        nome_width = 140
+        q_width = (remaining_for_qs_and_name - 140) / num_qs
+
+    col_widths = [nome_width] + [q_width] * num_qs + [40, 30, 35]
+    
+    t = Table(data, colWidths=col_widths, repeatRows=2, hAlign='CENTER')
+    t.setStyle(TableStyle(estilos_tabela))
+    elements.append(t)
+    
+    # 5. Legenda Rodapé
+    elements.append(Spacer(1, 20))
+    legenda = Paragraph("<b>LEGENDA MAPA DE CALOR:</b> <font color='#198754'><b>V</b> (Acerto)</font> &nbsp;|&nbsp; <font color='#dc3545'><b>X</b> (Erro)</font> &nbsp;|&nbsp; <b>-</b> (Em Branco/Nula) <br/><br/> <b>STATUS FINAL:</b> APR (Aprovado &ge; 6.0) &nbsp;|&nbsp; REC (Recuperação &ge; 4.0) &nbsp;|&nbsp; REP (Reprovado < 4.0)", ParagraphStyle('Leg', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor("#64748b"), alignment=1))
+    elements.append(legenda)
+
+    doc.build(elements)
+    buffer.seek(0)
+    
+    from django.utils.text import slugify
+    safe_turma = slugify(avaliacao.alocacao.turma.nome)
+    return FileResponse(buffer, as_attachment=True, filename=f"RaioX_MapaCalor_{safe_turma}_{avaliacao.alocacao.disciplina.nome}.pdf")

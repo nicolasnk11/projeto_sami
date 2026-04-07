@@ -1,0 +1,148 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="javascript:history.back()" class="btn btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center transition-hover" style="width: 45px; height: 45px;">
+                <i class="bi bi-arrow-left fs-5 text-dark"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-1 text-dark">Raio-X com Mapa de Calor</h4>
+                <p class="text-secondary mb-0 small">{{ avaliacao.titulo }} - {{ avaliacao.alocacao.turma.nome }}</p>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'baixar_relatorio_raiox_pdf' avaliacao.id %}" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold transition-hover text-white text-decoration-none">
+                <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i> Baixar PDF Oficial
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-4 d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-people-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted fw-bold mb-1 text-uppercase small">Alunos Avaliados</h6>
+                        <h2 class="fw-bold text-dark mb-0">{{ total_alunos }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-4 d-flex align-items-center gap-3">
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-journal-text fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted fw-bold mb-1 text-uppercase small">Disciplina</h6>
+                        <h4 class="fw-bold text-dark mb-0">{{ avaliacao.alocacao.disciplina.nome }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 {% if media_turma >= 6 %}bg-success text-white border-success{% elif media_turma >= 4 %}bg-warning text-dark border-warning{% else %}bg-danger text-white border-danger{% endif %}">
+                <div class="card-body p-4 d-flex align-items-center gap-3">
+                    <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-graph-up-arrow fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-uppercase small opacity-75">Média da Turma</h6>
+                        <h2 class="fw-bold mb-0">{{ media_turma|floatformat:1 }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 custom-table">
+                <thead class="bg-light">
+                    <tr>
+                        <th rowspan="2" class="py-3 px-4 text-secondary small fw-bold align-middle border-end">NOME DO ALUNO</th>
+                        
+                        {% if itens %}
+                        <th colspan="{{ itens.count }}" class="py-2 text-center text-dark small fw-bold border-end" style="background-color: #e2e8f0; letter-spacing: 1px;">
+                            <i class="bi bi-grid-3x3-gap-fill me-1 text-danger"></i> MAPA DE CALOR DE QUESTÕES
+                        </th>
+                        {% endif %}
+                        
+                        <th colspan="3" class="py-2 text-center text-dark small fw-bold" style="background-color: #dcfce7; letter-spacing: 1px;">
+                            <i class="bi bi-trophy-fill me-1 text-success"></i> RESULTADO FINAL
+                        </th>
+                    </tr>
+                    <tr>
+                        {% for item in itens %}
+                        <th class="py-2 text-center text-secondary fw-bold border-end" style="width: 35px; font-size: 0.75rem;">Q{{ item.numero }}</th>
+                        {% endfor %}
+                        
+                        <th class="py-2 text-center text-secondary small fw-bold border-start">ACERTOS</th>
+                        <th class="py-2 text-center text-secondary small fw-bold">NOTA</th>
+                        <th class="py-2 text-center text-secondary small fw-bold">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for res in resultados %}
+                    <tr>
+                        <td class="px-4 fw-bold text-dark border-end" style="font-size: 0.9rem;">{{ res.aluno }}</td>
+                        
+                        {% for q in res.questoes %}
+                        <td class="text-center p-1 border-end" style="width: 35px;">
+                            {% if q.acertou == True %}
+                                <div class="heatmap-cell bg-success text-white shadow-sm" title="Acertou a Q{{ q.numero }}"><i class="bi bi-check2"></i></div>
+                            {% elif q.acertou == False %}
+                                <div class="heatmap-cell bg-danger text-white shadow-sm" title="Errou a Q{{ q.numero }}"><i class="bi bi-x-lg"></i></div>
+                            {% else %}
+                                <div class="heatmap-cell bg-light text-muted border" title="Em branco"><i class="bi bi-dash"></i></div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+
+                        <td class="text-center fw-bold text-secondary border-start">{{ res.acertos }} / {{ res.total_questoes }}</td>
+                        <td class="text-center">
+                            <span class="fs-5 fw-bold text-{{ res.cor }}">{{ res.nota|floatformat:1 }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge status-badge bg-{{ res.cor }} px-3 py-2 rounded-pill w-100">{{ res.status }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="100%" class="text-center py-5 text-muted fw-medium">
+                            <i class="bi bi-clipboard-x fs-1 d-block mb-2"></i>
+                            Nenhuma nota lançada para esta avaliação ainda.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .heatmap-cell {
+        width: 26px;
+        height: 26px;
+        margin: 0 auto;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .transition-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .transition-hover:hover { transform: translateY(-2px); }
+</style>
+{% endblock %}

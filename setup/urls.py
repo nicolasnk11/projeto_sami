@@ -25,6 +25,8 @@ urlpatterns = [
     path('avaliacoes/', views.gerenciar_avaliacoes, name='gerenciar_avaliacoes'),
     path('avaliacoes/nova/', views.criar_avaliacao, name='criar_avaliacao'),
     path('avaliacoes/editar/<int:avaliacao_id>/', views.editar_avaliacao, name='editar_avaliacao'),
+    path('avaliacao/<int:avaliacao_id>/resultados/', views.resultados_turma, name='resultados_turma'),
+    path('avaliacao/<int:avaliacao_id>/raiox-pdf/', views.baixar_relatorio_raiox_pdf, name='baixar_relatorio_raiox_pdf'),
     
     # GERAÇÃO DE PROVAS
     path('gerar_prova/', views.gerar_prova_pdf, name='gerar_prova_pdf'),

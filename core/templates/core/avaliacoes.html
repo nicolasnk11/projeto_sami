@@ -163,11 +163,19 @@
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Análise</h6></li>
+                                            
+                                            <li>
+                                                <a class="dropdown-item rounded-2 py-2 fw-bold bg-info bg-opacity-10 text-dark" href="{% url 'resultados_turma' av.id %}">
+                                                    <i class="bi bi-list-columns-reverse me-2 text-info"></i> Notas da Turma
+                                                </a>
+                                            </li>
+
                                             <li>
                                                 <a class="dropdown-item rounded-2 py-2" href="{% url 'mapa_calor' av.id %}">
                                                     <i class="bi bi-grid-3x3-gap-fill me-2 text-danger"></i> Mapa de Calor
                                                 </a>
                                             </li>
+                                            
                                             <li><hr class="dropdown-divider"></li>
                                             <li><h6 class="dropdown-header text-uppercase x-small text-muted fw-bold">Impressão</h6></li>
                                             <li>
