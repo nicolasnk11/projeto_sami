@@ -286,7 +286,7 @@
                             <select id="selectProvaRaioX" class="form-select border-light shadow-sm bg-light">
                                 <option value="" disabled selected>Escolha uma prova da sua lista...</option>
                                 {% for prova in avaliacoes_totais %}
-                                    <option value="{% url 'mapa_calor' prova.id %}">{{ prova.titulo }} | {{ prova.alocacao.turma.nome }} ({{ prova.data_aplicacao|date:"d/m" }})</option>
+                                    <option value="{% url 'resultados_turma' prova.id %}">{{ prova.titulo }} | {{ prova.alocacao.turma.nome }} ({{ prova.data_aplicacao|date:"d/m" }})</option>
                                 {% empty %}
                                     <option value="" disabled>Nenhuma prova aplicada ainda</option>
                                 {% endfor %}
