@@ -266,22 +266,30 @@ class RespostaDetalhada(models.Model):
 
 class NDI(models.Model):
     matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE, related_name='boletins')
-    disciplina = models.ForeignKey(Disciplina, on_delete=models.CASCADE, related_name='ndis', null=True) # A MÁGICA ENTRA AQUI
+    disciplina = models.ForeignKey(Disciplina, on_delete=models.CASCADE, related_name='ndis', null=True)
     bimestre = models.IntegerField(default=1)
-    nota_frequencia = models.FloatField(default=0)
-    nota_atividade = models.FloatField(default=0)
-    nota_comportamento = models.FloatField(default=0)
-    nota_prova_parcial = models.FloatField(default=0)
-    nota_prova_bimestral = models.FloatField(default=0)
+    
+    # 🔥 A LIBERAÇÃO DE ACESSO: Trocamos o 'default=0' por 'null=True, blank=True'
+    nota_frequencia = models.FloatField(null=True, blank=True)
+    nota_atividade = models.FloatField(null=True, blank=True)
+    nota_comportamento = models.FloatField(null=True, blank=True)
+    nota_prova_parcial = models.FloatField(null=True, blank=True)
+    nota_prova_bimestral = models.FloatField(null=True, blank=True)
     
     class Meta: 
-        # Agora o sistema entende que não pode repetir o mesmo Bimestre na mesma Matéria!
         unique_together = ('matricula', 'bimestre', 'disciplina')
     
     @property
     def ndi_final(self):
-        parcial = (self.nota_frequencia + self.nota_atividade + self.nota_comportamento) / 3
-        return (parcial + self.nota_prova_parcial + self.nota_prova_bimestral) / 3
+        # 🛡️ BLINDAGEM MATEMÁTICA: Se o valor for None (em branco), o Python considera 0 para a conta não "quebrar"
+        freq = self.nota_frequencia or 0.0
+        ativ = self.nota_atividade or 0.0
+        comp = self.nota_comportamento or 0.0
+        pp = self.nota_prova_parcial or 0.0
+        pb = self.nota_prova_bimestral or 0.0
+        
+        parcial = (freq + ativ + comp) / 3
+        return (parcial + pp + pb) / 3
 
     def __str__(self):
         disc_nome = self.disciplina.nome if self.disciplina else "Geral"
