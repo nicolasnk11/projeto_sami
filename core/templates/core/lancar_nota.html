@@ -91,7 +91,7 @@
                         <h5 class="mb-0 fw-bold text-primary" id="nomeAlunoDisplay">---</h5>
                     </div>
                     
-                    <div class="form-check form-switch bg-danger bg-opacity-10 p-2 ps-5 rounded-pill border border-danger border-opacity-25">
+                    <div class="form-check form-switch bg-danger bg-opacity-10 p-2 ps-5 rounded-pill border border-danger border-opacity-25" data-bs-toggle="tooltip" title="Marque se o aluno faltou no dia da prova">
                         <input class="form-check-input cursor-pointer" type="checkbox" id="checkAusente" onchange="toggleAusencia()">
                         <label class="form-check-label fw-bold text-danger cursor-pointer" for="checkAusente">Aluno Ausente</label>
                     </div>
@@ -102,6 +102,13 @@
                     <div id="loader" class="position-absolute top-50 start-50 translate-middle d-none text-center bg-white p-4 rounded-4 shadow" style="z-index: 20;">
                         <div class="spinner-border text-primary mb-2" role="status" style="width: 3rem; height: 3rem;"></div>
                         <h6 class="fw-bold text-dark mb-0" id="loaderTexto">Carregando...</h6>
+                    </div>
+
+                    <div id="overlayAusente" class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none justify-content-center align-items-center" style="z-index: 15; backdrop-filter: blur(3px); border-radius: 0 0 1rem 1rem;">
+                        <div class="text-center transform-rotate" style="transform: rotate(-10deg);">
+                            <h1 class="text-danger fw-bold border border-danger border-4 p-3 rounded-4 mb-0" style="letter-spacing: 5px; font-size: 3rem; background-color: rgba(255, 255, 255, 0.9);">AUSENTE</h1>
+                            <span class="badge bg-danger mt-3 fs-6 px-4 py-2 rounded-pill">Aguardando 2ª Chamada</span>
+                        </div>
                     </div>
 
                     <div class="alert alert-info border-0 shadow-sm d-flex align-items-center py-2 mb-4">
@@ -132,7 +139,7 @@
                         {% endfor %}
                     </div>
 
-                    <div class="d-grid mt-5">
+                    <div class="d-grid mt-5" style="z-index: 16; position: relative;">
                         <button type="button" class="btn btn-success btn-lg fw-bold shadow-lg py-3 rounded-pill transition-hover" onclick="salvarNotas()">
                             <i class="bi bi-check-circle-fill me-2"></i> SALVAR NOTA
                         </button>
@@ -168,15 +175,14 @@
 <script>
     const AVALIACAO_ID = "{{ avaliacao_selecionada.id|default:'' }}";
     let ALUNO_ATUAL_ID = null;
-    let isDirty = false; // Espião de alterações
-    let proximoAlunoPendente = null; // Guarda em quem o professor clicou
+    let isDirty = false; 
+    let proximoAlunoPendente = null; 
 
     // --- FUNÇÃO VISUAL: VALIDA COR (VERDE/VERMELHO/AMARELO) ---
     function validarCor(input) {
         const valor = input.value.trim().toUpperCase();
         const gabarito = input.dataset.gabarito.trim().toUpperCase();
 
-        // Reseta classes
         input.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-warning-subtle', 'text-warning', 'bg-light');
         input.style.backgroundColor = '';
 
@@ -185,14 +191,11 @@
             return;
         }
 
-        // 🔥 ATUALIZADO: Aceita 'N' ou '*' como Nulo/Rasura (Fica Amarelo)
         if (valor === '*' || valor === 'N') {
             input.classList.add('bg-warning-subtle', 'text-warning');
         } else if (valor === gabarito) {
-            // ACERTO (Verde)
             input.classList.add('bg-success-subtle', 'text-success'); 
         } else {
-            // ERRO (Vermelho)
             input.classList.add('bg-danger-subtle', 'text-danger'); 
         }
     }
@@ -200,7 +203,6 @@
     // --- 1. SELEÇÃO DE ALUNO ---
     function selecionarAluno(elemento, id, nome, dadosScaneados = null, ignorarAviso = false) {
         
-        // ALERTA DE PERDA DE DADOS (Com Modal Bonito)
         if (isDirty && ALUNO_ATUAL_ID !== id && ALUNO_ATUAL_ID !== null && !ignorarAviso) {
             proximoAlunoPendente = { elemento, id, nome, dadosScaneados };
             const modalAviso = new bootstrap.Modal(document.getElementById('modalAvisoSaida'));
@@ -208,7 +210,6 @@
             return false;
         }
 
-        // Visual Seleção
         document.querySelectorAll('.aluno-item').forEach(el => el.classList.remove('active', 'bg-primary-subtle'));
         if (!elemento) elemento = document.querySelector(`.aluno-item[data-id="${id}"]`);
         if (elemento) {
@@ -224,7 +225,6 @@
         
         limparCampos();
 
-        // SE VEIO DA CÂMERA
         if (dadosScaneados) {
             preencherCampos({ respostas: dadosScaneados, ausente: false });
             mostrarToast("Scanner", "Leitura aplicada! Verifique as respostas e clique em Salvar.", "success");
@@ -232,7 +232,6 @@
             return;
         }
 
-        // SE FOI CLIQUE MANUAL
         mostrarLoader(true, "Carregando aluno...");
         fetch(`/api/lancar-notas-ajax/?aluno_id=${id}&avaliacao_id=${AVALIACAO_ID}`)
             .then(res => res.json())
@@ -313,15 +312,16 @@
 
         const respostas = {};
         document.querySelectorAll('.input-resposta').forEach(inp => {
-            if(inp.value.trim()) {
-                // Se for asterisco manda 'NULA', se não, manda a letra (inclusive o 'N')
+            if(inp.value.trim() && !inp.disabled) {
                 respostas[inp.dataset.numero] = (inp.value === '*') ? 'NULA' : inp.value.trim().toUpperCase();
             }
         });
 
+        const isAusenteChecked = document.getElementById('checkAusente').checked;
+
         const payload = {
             aluno_id: ALUNO_ATUAL_ID, avaliacao_id: AVALIACAO_ID,
-            respostas: respostas, ausente: document.getElementById('checkAusente').checked
+            respostas: respostas, ausente: isAusenteChecked
         };
 
         const csrfToken = '{{ csrf_token }}';
@@ -338,10 +338,20 @@
         .then(data => {
             btn.innerHTML = txt; btn.disabled = false;
             if (data.sucesso) {
-                mostrarToast("Salvo!", data.msg, "success");
+                mostrarToast("Salvo!", data.msg, data.is_ausente ? "warning" : "success");
                 isDirty = false; 
+                
+                // 🔥 NOVO: Atualiza a lista lateral com a cor certa!
                 const icon = document.querySelector(`#aluno-row-${ALUNO_ATUAL_ID} .status-icon`);
-                if(icon) icon.className = 'bi bi-check-circle-fill text-success fs-5 status-icon';
+                if(icon) {
+                    if (isAusenteChecked) {
+                        icon.className = 'bi bi-person-dash-fill text-danger fs-5 status-icon';
+                        icon.title = 'Faltou';
+                    } else {
+                        icon.className = 'bi bi-check-circle-fill text-success fs-5 status-icon';
+                        icon.title = 'Nota Lançada';
+                    }
+                }
             } else {
                 mostrarToast("Erro", data.erro, "danger");
             }
@@ -365,6 +375,17 @@
     function toggleAusencia() {
         if (ALUNO_ATUAL_ID) isDirty = true; 
         const isAusente = document.getElementById('checkAusente').checked;
+        const overlay = document.getElementById('overlayAusente');
+        
+        // Ativa o carimbo gigante
+        if (isAusente) {
+            overlay.classList.remove('d-none');
+            overlay.classList.add('d-flex');
+        } else {
+            overlay.classList.remove('d-flex');
+            overlay.classList.add('d-none');
+        }
+
         document.querySelectorAll('.input-resposta').forEach(inp => {
             inp.disabled = isAusente;
             if(isAusente) { inp.value = ''; validarCor(inp); }
@@ -396,11 +417,8 @@
         const inputs = document.querySelectorAll('.input-resposta');
         
         inputs.forEach(input => {
-            // Evento: Digitar (Input)
             input.addEventListener('input', function() {
                 isDirty = true; 
-                
-                // 🔥 ATUALIZADO: O REGEX AGORA DEIXA PASSAR 'N' e 'n'
                 this.value = this.value.replace(/[^ABCDEabcdeNn\*]/g, '').toUpperCase();
                 validarCor(this);
 
@@ -408,14 +426,12 @@
                 if(this.value.length === 1 && idx < inputs.length - 1) inputs[idx+1].focus();
             });
 
-            // Evento: Colar (Paste)
             input.addEventListener('paste', function(e) {
                 if(this.disabled) return;
                 e.preventDefault();
                 isDirty = true; 
                 
                 let text = (e.clipboardData || window.clipboardData).getData('text');
-                // 🔥 ATUALIZADO NO COLA (PASTE) TAMBÉM
                 text = text.replace(/[^ABCDEabcdeNn\*]/g, '').toUpperCase(); 
                 if(!text) return;
 
@@ -433,7 +449,6 @@
             input.addEventListener('focus', function() { this.select(); });
         });
 
-        // FILTRO DE BUSCA
         document.getElementById('buscaAluno').addEventListener('input', function() {
             const termo = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
@@ -450,7 +465,6 @@
             });
         });
 
-        // AÇÃO DO MODAL DE AVISO (Sair sem salvar)
         document.getElementById('btnConfirmarSaida').addEventListener('click', function() {
             const modalEl = document.getElementById('modalAvisoSaida');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);

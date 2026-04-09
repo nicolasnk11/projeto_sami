@@ -1288,23 +1288,29 @@ def lancar_nota(request):
         matricula_obj = get_object_or_404(Matricula, id=matricula_id)
         resultado = Resultado.objects.filter(avaliacao=avaliacao_obj, matricula=matricula_obj).first()
 
+        is_ausente = request.POST.get('ausente') == 'true'
+
         if not resultado:
             resultado = Resultado(
                 avaliacao=avaliacao_obj,
                 matricula=matricula_obj,
                 total_questoes=itens.count(),
-                acertos=0,
-                percentual=0.0
+                acertos=None if is_ausente else 0,
+                percentual=None if is_ausente else 0.0
             )
-            resultado.save()
         else:
             resultado.total_questoes = itens.count()
-            if resultado.acertos is None: resultado.acertos = 0
-            if resultado.percentual is None: resultado.percentual = 0.0
-            resultado.save()
 
         RespostaDetalhada.objects.filter(resultado=resultado).delete()
-        
+
+        if is_ausente:
+            # 🔥 SALVAMENTO DE AUSÊNCIA (Limpa as notas)
+            resultado.acertos = None
+            resultado.percentual = None
+            resultado.save()
+            messages.warning(request, 'Aluno marcado como ausente (Pendente de 2ª Chamada).')
+            return redirect(f'/lancar_nota/?avaliacao_id={avaliacao_id}')
+
         acertos_contagem = 0
         objs_resposta = []
         
@@ -1331,14 +1337,9 @@ def lancar_nota(request):
         if objs_resposta:
             RespostaDetalhada.objects.bulk_create(objs_resposta)
 
-        if request.POST.get('ausente') == 'true':
-            resultado.acertos = 0
-            resultado.percentual = 0.0
-        else:
-            resultado.acertos = acertos_contagem
-            qtd = resultado.total_questoes if resultado.total_questoes > 0 else 1
-            resultado.percentual = (acertos_contagem / qtd) * 100
-        
+        resultado.acertos = acertos_contagem
+        qtd = resultado.total_questoes if resultado.total_questoes > 0 else 1
+        resultado.percentual = (acertos_contagem / qtd) * 100
         resultado.save()
         
         if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
@@ -1348,12 +1349,10 @@ def lancar_nota(request):
         messages.success(request, f'Nota salva: {acertos_contagem}')
         return redirect(f'/lancar_nota/?avaliacao_id={avaliacao_id}')
 
-    # 🔥 CADEADO DE SEGURANÇA: Mostra apenas as provas do professor logado 🔥
     avaliacoes_dropdown = Avaliacao.objects.all().order_by('-data_aplicacao')
     if hasattr(request.user, 'professor_perfil'):
         perfil = request.user.professor_perfil
         
-        # --- A MÁGICA DO PODER COMPARTILHADO ---
         alocacoes_do_prof = perfil.alocacoes.all()
         query_compartilhada = Q()
         for aloc in alocacoes_do_prof:
@@ -1363,7 +1362,6 @@ def lancar_nota(request):
             avaliacoes_dropdown = avaliacoes_dropdown.filter(query_compartilhada)
         else:
             avaliacoes_dropdown = avaliacoes_dropdown.none()
-        # --- FIM DA MÁGICA ---
 
     return render(request, 'core/lancar_nota.html', {
         'avaliacao_selecionada': avaliacao_obj,
@@ -1371,6 +1369,118 @@ def lancar_nota(request):
         'matriculas': matriculas_turma, 
         'avaliacoes_todas': avaliacoes_dropdown
     })
+
+
+@login_required
+def api_lancar_nota_ajax(request):
+    import json
+    
+    if request.method == 'GET':
+        aluno_id = request.GET.get('aluno_id')
+        avaliacao_id = request.GET.get('avaliacao_id')
+        
+        try:
+            resultado = Resultado.objects.filter(
+                matricula__aluno_id=aluno_id, 
+                avaliacao_id=avaliacao_id
+            ).first()
+            
+            dados = {'respostas': {}, 'nota': 0, 'ausente': False}
+            
+            if resultado:
+                # 🔥 LÓGICA PARA DETECTAR AUSÊNCIA NO CARREGAMENTO
+                if resultado.percentual is None:
+                    dados['ausente'] = True
+                    dados['nota'] = '-'
+                else:
+                    dados['nota'] = resultado.acertos
+
+                detalhes = RespostaDetalhada.objects.filter(resultado=resultado)
+                for r in detalhes:
+                    letra = r.resposta_aluno if r.resposta_aluno else ''
+                    if not letra and r.acertou:
+                        letra = r.item_gabarito.resposta_correta
+                    dados['respostas'][r.item_gabarito.numero] = letra
+
+            return JsonResponse({'sucesso': True, 'dados': dados})
+        except Exception as e:
+            return JsonResponse({'sucesso': False, 'erro': str(e)})
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            aluno_id = data.get('aluno_id')
+            avaliacao_id = data.get('avaliacao_id')
+            respostas_aluno = data.get('respostas')
+            is_ausente = data.get('ausente', False)
+
+            avaliacao = Avaliacao.objects.get(id=avaliacao_id)
+            matricula = Matricula.objects.filter(aluno_id=aluno_id, turma=avaliacao.alocacao.turma, status='CURSANDO').first()
+            
+            if not matricula:
+                return JsonResponse({'sucesso': False, 'erro': 'Matrícula ativa não encontrada.'})
+            
+            gabarito = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
+            qtd_questoes = gabarito.count()
+
+            if qtd_questoes == 0:
+                 return JsonResponse({'sucesso': False, 'erro': 'Defina o gabarito antes de lançar notas.'})
+            
+            resultado = Resultado.objects.filter(avaliacao=avaliacao, matricula=matricula).first()
+
+            if not resultado:
+                resultado = Resultado(
+                    avaliacao=avaliacao,
+                    matricula=matricula,
+                    total_questoes=qtd_questoes,
+                    acertos=None if is_ausente else 0,         
+                    percentual=None if is_ausente else 0.0     
+                )
+                resultado.save() 
+            else:
+                resultado.total_questoes = qtd_questoes
+                resultado.save()
+
+            RespostaDetalhada.objects.filter(resultado=resultado).delete()
+
+            if is_ausente:
+                # 🔥 SE ESTIVER AUSENTE, SALVA VAZIO E ENCERRA AQUI
+                resultado.acertos = None
+                resultado.percentual = None
+                resultado.save()
+                return JsonResponse({'sucesso': True, 'msg': 'Aluno marcado como ausente.', 'is_ausente': True})
+
+            acertos = 0
+            objs_resposta = []
+
+            for item in gabarito:
+                num_str = str(item.numero)
+                letra_aluno = respostas_aluno.get(num_str, '').upper()
+                
+                acertou = False
+                if letra_aluno:
+                    if letra_aluno == item.resposta_correta:
+                        acertou = True
+                        acertos += 1
+                    
+                    objs_resposta.append(RespostaDetalhada(
+                        resultado=resultado,
+                        item_gabarito=item,
+                        questao=item.questao_banco,
+                        acertou=acertou,
+                        resposta_aluno=letra_aluno 
+                    ))
+            
+            RespostaDetalhada.objects.bulk_create(objs_resposta)
+            
+            resultado.acertos = acertos
+            resultado.percentual = (acertos / qtd_questoes) * 100
+            resultado.save()
+
+            return JsonResponse({'sucesso': True, 'msg': f'Nota salva: {acertos} acertos.', 'is_ausente': False})
+
+        except Exception as e:
+            return JsonResponse({'sucesso': False, 'erro': f"Erro interno: {str(e)}"})
 # ==============================================================================
 # 📋 GERENCIAMENTO GERAL
 # ==============================================================================

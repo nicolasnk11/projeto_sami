@@ -236,18 +236,31 @@ class Resultado(models.Model):
     STATUS_CHOICES = [('ADQ', 'Adequado'), ('INT', 'Intermediário'), ('CRI', 'Crítico'), ('MCR', 'Muito Crítico')]
     avaliacao = models.ForeignKey(Avaliacao, on_delete=models.CASCADE)
     matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE, related_name='resultados')
-    acertos = models.IntegerField()
+    
+    # Campos que aceitam ficar em branco (Ausência)
+    acertos = models.IntegerField(null=True, blank=True)
+    percentual = models.FloatField(null=True, blank=True)
+    
     total_questoes = models.IntegerField()
-    percentual = models.FloatField(editable=False, null=True, blank=True)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, editable=False, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.total_questoes > 0: self.percentual = (self.acertos / self.total_questoes) * 100
-        else: self.percentual = 0
-        if self.percentual >= 75: self.status = 'ADQ'
-        elif self.percentual >= 50: self.status = 'INT'
-        elif self.percentual >= 25: self.status = 'CRI'
-        else: self.status = 'MCR'
+        # 🛡️ BLINDAGEM: Se acertos for None (Aluno Ausente), anula o resto e não faz conta!
+        if self.acertos is None:
+            self.percentual = None
+            self.status = None
+        else:
+            # Só faz a matemática se o aluno fez a prova (acertos é um número)
+            if self.total_questoes > 0: 
+                self.percentual = (self.acertos / self.total_questoes) * 100
+            else: 
+                self.percentual = 0.0
+                
+            if self.percentual >= 75: self.status = 'ADQ'
+            elif self.percentual >= 50: self.status = 'INT'
+            elif self.percentual >= 25: self.status = 'CRI'
+            else: self.status = 'MCR'
+            
         super().save(*args, **kwargs)
 
     def __str__(self):
