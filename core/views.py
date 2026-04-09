@@ -2561,14 +2561,13 @@ def gerenciar_ndi(request):
 
     def processar_nota(valor_str):
         if not valor_str or valor_str.strip() == '':
-            return None
+            return None # Retorna None se estiver em branco (Salvamento Parcial)
         try:
             val = float(valor_str.replace(',', '.'))
             return max(0.0, min(10.0, val))
         except ValueError:
             return None
 
-    # 🔥 CORREÇÃO: Memoriza as seleções de forma independente para a tela não "piscar e resetar"
     if turma_id:
         turma_selecionada = get_object_or_404(Turma, id=turma_id)
     if disciplina_id:
@@ -2580,43 +2579,34 @@ def gerenciar_ndi(request):
         
         if request.method == 'POST':
             salvos = 0
-            ignorados = 0
             
             for mat in matriculas:
-                raw_freq = request.POST.get(f'freq_{mat.id}')
-                raw_atv = request.POST.get(f'atv_{mat.id}')
-                raw_comp = request.POST.get(f'comp_{mat.id}')
-                raw_pp = request.POST.get(f'pp_{mat.id}')
-                raw_pb = request.POST.get(f'pb_{mat.id}')
+                freq = processar_nota(request.POST.get(f'freq_{mat.id}'))
+                atv = processar_nota(request.POST.get(f'atv_{mat.id}'))
+                comp = processar_nota(request.POST.get(f'comp_{mat.id}'))
+                pp = processar_nota(request.POST.get(f'pp_{mat.id}'))
+                pb = processar_nota(request.POST.get(f'pb_{mat.id}'))
                 
-                notas = [
-                    processar_nota(raw_freq), processar_nota(raw_atv), 
-                    processar_nota(raw_comp), processar_nota(raw_pp), 
-                    processar_nota(raw_pb)
-                ]
+                # Verifica se tem PELO MENOS uma nota preenchida para esse aluno
+                tem_alguma_nota = any(n is not None for n in [freq, atv, comp, pp, pb])
+                
+                # Verifica se o aluno já tinha um diário salvo antes (para permitir que o professor apague notas)
+                ndi_existente = NDI.objects.filter(matricula=mat, bimestre=bimestre, disciplina=disciplina_selecionada).first()
 
-                if all(n is not None for n in notas):
+                if tem_alguma_nota or ndi_existente:
                     NDI.objects.update_or_create(
                         matricula=mat, bimestre=bimestre, disciplina=disciplina_selecionada,
                         defaults={
-                            'nota_frequencia': notas[0],
-                            'nota_atividade': notas[1],
-                            'nota_comportamento': notas[2],
-                            'nota_prova_parcial': notas[3],
-                            'nota_prova_bimestral': notas[4]
+                            'nota_frequencia': freq,
+                            'nota_atividade': atv,
+                            'nota_comportamento': comp,
+                            'nota_prova_parcial': pp,
+                            'nota_prova_bimestral': pb
                         }
                     )
                     salvos += 1
-                else:
-                    if any(n is not None for n in notas):
-                        ignorados += 1
 
-            msg = f"Sucesso! Notas de {salvos} alunos atualizadas."
-            if ignorados > 0:
-                messages.warning(request, f"{msg} Atenção: {ignorados} alunos tinham dados incompletos e não foram salvos.")
-            else:
-                messages.success(request, msg)
-                
+            messages.success(request, f"Sucesso! Diário atualizado. {salvos} registros salvos com sucesso no sistema.")
             return redirect(f"{request.path}?turma={turma_id}&disciplina={disciplina_id}&bimestre={bimestre}")
 
         # Busca as notas para preencher a tela

@@ -11,9 +11,9 @@
                 <i class="bi bi-arrow-left fs-5 text-dark"></i>
             </a>
             <div>
-                <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-calculator-fill me-2" style="color: #0A2619;"></i>Lançamento de NDI</h4>
+                <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-calculator-fill me-2" style="color: #0A2619;"></i>Diário de Classe (NDI)</h4>
                 <p class="text-secondary fw-medium mb-0 small">
-                    Preencha todos os campos. Use as setas <i class="bi bi-arrows-move"></i> para navegar rápido.
+                    Use as setas <i class="bi bi-arrows-move"></i> para navegar rápido pelas células.
                 </p>
             </div>
         </div>
@@ -28,6 +28,21 @@
             <span class="badge bg-white text-dark border border-secondary border-opacity-25 px-3 py-2 rounded-pill shadow-sm d-flex align-items-center w-100 w-sm-auto justify-content-center" style="font-size: 0.9rem;">
                 <i class="bi bi-calendar-event me-2 text-secondary"></i> Ano Letivo: {{ ano_atual }}
             </span>
+        </div>
+    </div>
+
+    <div class="alert bg-white border border-secondary border-opacity-25 shadow-sm rounded-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="bg-sami-gold rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 shadow-sm" style="width: 45px; height: 45px;">
+                <i class="bi bi-lightbulb-fill fs-5" style="color: #0A2619;"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-dark mb-1">Como o lançamento funciona?</h6>
+                <p class="text-secondary small mb-0">
+                    <i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Salvamento Parcial:</strong> Você não precisa preencher tudo de uma vez. Salve o que tiver e complete depois.<br>
+                    <i class="bi bi-calculator me-1 text-primary"></i> <strong>A Média:</strong> O sistema soma a Contínua (Freq + Ativ + Comp) às Provas (Parcial + Bimestral) e divide por 3 para gerar a Média Final.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -74,7 +89,7 @@
                 <div class="col-md-2 text-start text-md-end pt-3 pt-md-0">
                     {% if turma_selecionada and disciplina_selecionada %}
                     <span class="text-secondary fw-medium small border rounded-pill px-3 py-2 bg-light shadow-sm">
-                        Alunos na pauta: <strong class="text-dark">{{ alunos_data|length }}</strong>
+                        Alunos: <strong class="text-dark">{{ alunos_data|length }}</strong>
                     </span>
                     {% endif %}
                 </div>
@@ -82,15 +97,8 @@
         </div>
     </div>
 
-    <div id="alertaValidacao" class="alert alert-danger d-none border-0 shadow-sm rounded-3 fw-bold d-flex align-items-center mb-4">
-        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-        <div>
-            Existem alunos com notas incompletas! Se você começou a lançar a nota de um aluno, preencha todos os campos. As pendências estão marcadas em vermelho.
-        </div>
-    </div>
-
     {% if turma_selecionada and disciplina_selecionada %}
-    <form method="post" id="formNotas" onsubmit="return validarFormulario()">
+    <form method="post" id="formNotas">
         {% csrf_token %}
         <div class="card border border-secondary border-opacity-25 shadow-lg rounded-4 overflow-hidden border-top border-4" style="border-color: #0A2619 !important;">
             <div class="table-responsive custom-scrollbar" style="max-height: 65vh;">
@@ -98,21 +106,21 @@
                     <thead class="sticky-top bg-white shadow-sm" style="z-index: 10;">
                         <tr>
                             <th class="text-start ps-4 py-3 bg-white sticky-col border-bottom" style="min-width: 280px; left: 0; z-index: 20;">ALUNO</th>
-                            <th colspan="3" class="text-dark bg-light py-2 small fw-bold border-bottom border-end border-secondary border-opacity-25">CONTÍNUA</th>
-                            <th colspan="2" class="text-dark bg-white py-2 small fw-bold border-bottom border-end border-secondary border-opacity-25" style="background-color: #fcfcfc !important;">PROVAS</th>
+                            <th colspan="3" class="text-dark bg-light py-2 small fw-bold border-bottom border-end border-secondary border-opacity-25">CONTÍNUA <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip" title="Soma dividida por 3"></i></th>
+                            <th colspan="2" class="text-dark bg-white py-2 small fw-bold border-bottom border-end border-secondary border-opacity-25" style="background-color: #fcfcfc !important;">PROVAS <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip" title="Parcial + Bimestral"></i></th>
                             <th class="text-white py-3 border-bottom" style="min-width: 100px; background-color: #0A2619;">MÉDIA FINAL</th>
                         </tr>
                         <tr>
                             <th class="bg-white sticky-col border-bottom border-secondary border-opacity-25" style="left:0; top: 40px; z-index: 20;"></th> 
                             
-                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold" style="width: 80px;" title="Frequência">FREQ.</th>
-                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold" style="width: 80px;" title="Atividade">ATIV.</th>
-                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold border-end" style="width: 80px;" title="Comportamento">COMP.</th>
+                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold" style="width: 80px;" data-bs-toggle="tooltip" title="Nota de Frequência">FREQ.</th>
+                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold" style="width: 80px;" data-bs-toggle="tooltip" title="Nota de Atividades">ATIV.</th>
+                            <th class="small text-secondary bg-light border-bottom border-secondary border-opacity-25 fw-bold border-end" style="width: 80px;" data-bs-toggle="tooltip" title="Nota de Comportamento">COMP.</th>
                             
-                            <th class="small text-dark border-bottom border-secondary border-opacity-25 fw-bold" style="width: 90px; background-color: #fcfcfc !important;" title="Prova Parcial">AV. PARC.</th>
-                            <th class="small text-dark border-bottom border-secondary border-opacity-25 fw-bold border-end" style="width: 90px; background-color: #fcfcfc !important;" title="Prova Bimestral">AV. BIMEST.</th>
+                            <th class="small text-dark border-bottom border-secondary border-opacity-25 fw-bold" style="width: 90px; background-color: #fcfcfc !important;" data-bs-toggle="tooltip" title="Avaliação Parcial">AV. PARC.</th>
+                            <th class="small text-dark border-bottom border-secondary border-opacity-25 fw-bold border-end" style="width: 90px; background-color: #fcfcfc !important;" data-bs-toggle="tooltip" title="Avaliação Bimestral">AV. BIMEST.</th>
                             
-                            <th class="text-white small border-bottom" style="background-color: #11422b;">NDI FINAL</th>
+                            <th class="text-white small border-bottom" style="background-color: #11422b;" data-bs-toggle="tooltip" title="Soma final dividida por 3">NDI FINAL</th>
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
@@ -136,21 +144,21 @@
                             <td class="bg-light">
                                 <input type="number" step="0.1" min="0" max="10" name="freq_{{ item.obj.id }}" 
                                        class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
-                                       value="{{ item.ndi.nota_frequencia|default:''|stringformat:'.1f' }}"
+                                       value="{{ item.ndi.nota_frequencia|default_if_none:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
                             <td class="bg-light">
                                 <input type="number" step="0.1" min="0" max="10" name="atv_{{ item.obj.id }}" 
                                        class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
-                                       value="{{ item.ndi.nota_atividade|default:''|stringformat:'.1f' }}"
+                                       value="{{ item.ndi.nota_atividade|default_if_none:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
                             <td class="bg-light border-end border-secondary border-opacity-25">
                                 <input type="number" step="0.1" min="0" max="10" name="comp_{{ item.obj.id }}" 
                                        class="form-control form-control-sm text-center fw-bold input-nota no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
-                                       value="{{ item.ndi.nota_comportamento|default:''|stringformat:'.1f' }}"
+                                       value="{{ item.ndi.nota_comportamento|default_if_none:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
@@ -158,20 +166,20 @@
                             <td class="bg-white">
                                 <input type="number" step="0.1" min="0" max="10" name="pp_{{ item.obj.id }}" 
                                        class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
-                                       value="{{ item.ndi.nota_prova_parcial|default:''|stringformat:'.1f' }}"
+                                       value="{{ item.ndi.nota_prova_parcial|default_if_none:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
                             <td class="bg-white border-end border-secondary border-opacity-25">
                                 <input type="number" step="0.1" min="0" max="10" name="pb_{{ item.obj.id }}" 
                                        class="form-control form-control-sm text-center fw-bold input-nota input-prova no-spinners nav-input text-dark border-secondary border-opacity-25" placeholder="-"
-                                       value="{{ item.ndi.nota_prova_bimestral|default:''|stringformat:'.1f' }}"
+                                       value="{{ item.ndi.nota_prova_bimestral|default_if_none:''|stringformat:'.1f' }}"
                                        data-row="{{ item.obj.id }}"
                                        oninput="validarInput(this); calcularNDI('{{ item.obj.id }}')">
                             </td>
 
                             <td class="bg-light align-middle">
-                                <span id="res-final-{{ item.obj.id }}" class="badge bg-secondary px-3 py-2 rounded-pill fs-6 shadow-sm border">0.0</span>
+                                <span id="res-final-{{ item.obj.id }}" class="badge bg-secondary px-3 py-2 rounded-pill fs-6 shadow-sm border" data-bs-toggle="tooltip" title="Preencha as notas para calcular">0.0</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -182,9 +190,9 @@
             <div class="card-footer bg-white p-4 border-top border-secondary border-opacity-25 sticky-bottom z-3">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                     <div class="small text-secondary fw-medium">
-                        <i class="bi bi-info-circle-fill me-1 text-dark"></i> Dica: Pressione <strong>Enter</strong> ou <strong>Setas do Teclado</strong> para pular entre as células rapidamente.
+                        <i class="bi bi-info-circle-fill me-1 text-primary"></i> Lembre-se: O sistema salva o que você digitar. Campos em branco não afetam outras notas.
                     </div>
-                    <button type="submit" class="btn btn-dark btn-lg px-5 fw-bold shadow-sm transition-hover w-100 w-md-auto">
+                    <button type="button" onclick="verificarESalvar()" class="btn btn-dark btn-lg px-5 fw-bold shadow-sm transition-hover w-100 w-md-auto">
                         <i class="bi bi-check-lg me-2" style="color: #D4AF37;"></i> SALVAR NOTAS NO DIÁRIO
                     </button>
                 </div>
@@ -202,8 +210,29 @@
     {% endif %}
 </div>
 
+<div class="modal fade" id="modalConfirmacaoSalvar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 text-center justify-content-center mt-3">
+                <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
+                </div>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <h5 class="fw-bold text-dark mb-3">Salvamento Parcial Detectado</h5>
+                <p class="text-secondary mb-0">Você está salvando o diário, mas existem <strong>campos em branco</strong>.</p>
+                <p class="text-secondary mt-2 small">Não se preocupe! O sistema vai salvar as notas preenchidas perfeitamente e você poderá voltar depois para completar os espaços vazios.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2">
+                <button type="button" class="btn btn-light border shadow-sm px-4 fw-bold text-secondary" data-bs-dismiss="modal">Cancelar e Continuar Editando</button>
+                <button type="button" class="btn btn-warning px-4 fw-bold text-dark shadow-sm" onclick="document.getElementById('formNotas').submit()">Sim, Salvar Parcialmente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-    /* CSS PERSONALIZADO - ALTO CONTRASTE */
+    /* CSS PERSONALIZADO */
     .no-spinners::-webkit-outer-spin-button, .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .no-spinners { -moz-appearance: textfield; }
 
@@ -224,13 +253,6 @@
         z-index: 5;
     }
     
-    .input-nota.is-invalid {
-        border-color: #dc3545 !important; 
-        background-color: #fff5f5;
-        color: #dc3545 !important;
-        box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
-    }
-    
     .sticky-col { position: sticky; left: 0; z-index: 5; background: #fff; }
     .shadow-sm-right { box-shadow: 4px 0 8px -4px rgba(0,0,0,0.1); }
     
@@ -242,29 +264,40 @@
 
     .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; border: 2px solid transparent; background-clip: padding-box; }
+
+    /* Estilo para notas não preenchidas no cálculo */
+    .badge-incompleto {
+        background-color: #f1f5f9 !important;
+        color: #64748b !important;
+        border: 1px dashed #cbd5e1 !important;
+    }
 </style>
 
 <script>
+    // Inicia os Tooltips do Bootstrap
+    document.addEventListener("DOMContentLoaded", function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+
     // --- 1. VALIDAÇÃO DE INPUT (0 a 10) ---
     function validarInput(input) {
         let val = parseFloat(input.value.replace(',', '.'));
-        
-        if (input.value !== "") {
-            input.classList.remove('is-invalid');
-        }
-
         if (val > 10) input.value = 10;
         if (val < 0) input.value = 0;
     }
 
-    // --- 2. CÁLCULO AUTOMÁTICO DO RESULTADO ---
+    // --- 2. CÁLCULO INTELIGENTE DO RESULTADO ---
     function calcularNDI(id) {
         const row = document.getElementById(`row-${id}`);
         if (!row) return;
 
+        // Pega valor, se vazio retorna null para sabermos que está incompleto
         const getVal = (name) => {
             const input = row.querySelector(`[name="${name}_${id}"]`);
-            if (!input || input.value === "") return 0;
+            if (!input || input.value === "") return null;
             return parseFloat(input.value.replace(',', '.'));
         };
 
@@ -274,59 +307,67 @@
         const pp = getVal('pp');
         const pb = getVal('pb');
 
-        const ndiParcial = (fre + atv + comp) / 3;
-        const ndiFinal = (ndiParcial + pp + pb) / 3;
-        
         const elFinal = document.getElementById(`res-final-${id}`);
+        if (!elFinal) return;
+
+        // Se TUDO estiver vazio, mostra o badge cinza de incompleto
+        if (fre === null && atv === null && comp === null && pp === null && pb === null) {
+            elFinal.innerText = "-";
+            elFinal.className = "badge badge-incompleto px-3 py-2 rounded-pill fs-6 shadow-sm";
+            return;
+        }
+
+        // Calcula tratando Nulos como Zero (apenas para a prévia visual)
+        const safeFre = fre || 0;
+        const safeAtv = atv || 0;
+        const safeComp = comp || 0;
+        const safePp = pp || 0;
+        const safePb = pb || 0;
+
+        const ndiParcial = (safeFre + safeAtv + safeComp) / 3;
+        const ndiFinal = (ndiParcial + safePp + safePb) / 3;
         
-        if (elFinal) {
-            elFinal.innerText = ndiFinal.toFixed(1);
-            elFinal.className = "badge px-3 py-2 rounded-pill fs-6 shadow-sm border";
-            
-            if(ndiFinal >= 6) { 
-                elFinal.classList.add("bg-success", "text-white", "border-success"); 
-            }
-            else if (ndiFinal >= 4) { 
-                elFinal.classList.add("bg-warning", "text-dark", "border-warning"); 
-            }
-            else { 
-                elFinal.classList.add("bg-danger", "text-white", "border-danger"); 
-            }
+        elFinal.innerText = ndiFinal.toFixed(1);
+        elFinal.className = "badge px-3 py-2 rounded-pill fs-6 shadow-sm border";
+        
+        // Verifica se tem algum buraco na nota para mostrar um aviso visual (asterisco)
+        const temBuraco = (fre === null || atv === null || comp === null || pp === null || pb === null);
+        if (temBuraco) {
+            elFinal.innerText += "*";
+            elFinal.title = "Cálculo provisório (há notas em branco)";
+        }
+        
+        if(ndiFinal >= 6) { 
+            elFinal.classList.add("bg-success", "text-white", "border-success"); 
+        }
+        else if (ndiFinal >= 4) { 
+            elFinal.classList.add("bg-warning", "text-dark", "border-warning"); 
+        }
+        else { 
+            elFinal.classList.add("bg-danger", "text-white", "border-danger"); 
         }
     }
 
-    // --- 3. VALIDAÇÃO AO SALVAR ---
-    function validarFormulario() {
-        let formValido = true;
-        const rows = document.querySelectorAll('.aluno-row');
-        let primeiroErro = null;
+    // --- 3. VERIFICAÇÃO ANTES DE SALVAR (NOVA LÓGICA) ---
+    function verificarESalvar() {
+        const inputs = document.querySelectorAll('.input-nota');
+        let temVazio = false;
 
-        rows.forEach(row => {
-            const inputs = row.querySelectorAll('input[type="number"]');
-            let preenchidos = 0;
-            let vazios = 0;
-
-            inputs.forEach(inp => {
-                if (inp.value.trim() !== "") preenchidos++;
-                else vazios++;
-            });
-
-            if (preenchidos > 0 && vazios > 0) {
-                formValido = false;
-                inputs.forEach(inp => {
-                    if (inp.value.trim() === "") inp.classList.add('is-invalid');
-                });
-                if (!primeiroErro) primeiroErro = row;
+        // Procura se tem algum input de nota que o professor deixou em branco
+        inputs.forEach(inp => {
+            if (inp.value.trim() === "") {
+                temVazio = true;
             }
         });
 
-        if (!formValido) {
-            const alerta = document.getElementById('alertaValidacao');
-            alerta.classList.remove('d-none');
-            if (primeiroErro) primeiroErro.scrollIntoView({behavior: "smooth", block: "center"});
-            return false;
+        // Se tem coisa vazia, mostra o modal bonitinho perguntando se quer salvar parcial
+        if (temVazio) {
+            var myModal = new bootstrap.Modal(document.getElementById('modalConfirmacaoSalvar'));
+            myModal.show();
+        } else {
+            // Se tá tudo preenchido direitinho, salva direto sem perguntar
+            document.getElementById('formNotas').submit();
         }
-        return true;
     }
 
     // --- 4. NAVEGAÇÃO VELOZ ESTILO EXCEL ---
