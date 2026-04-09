@@ -208,7 +208,7 @@ def dashboard(request):
         avaliacoes_dropdown = avaliacoes_dropdown.filter(alocacao__professor=perfil)
 
     # 🔥 AGORA SIM, DEPOIS DE FILTRAR TUDO, NÓS CORTAMOS OS 50 PRIMEIROS 🔥
-    avaliacoes_dropdown = avaliacoes_dropdown[:50]
+    # avaliacoes_dropdown = avaliacoes_dropdown[:50]
 
     # Aplica os filtros escolhidos pelo usuário
     if disciplina_id: resultados = resultados.filter(avaliacao__alocacao__disciplina_id=disciplina_id)
@@ -3339,6 +3339,9 @@ def area_professor(request):
         
         avaliacoes_base = Avaliacao.objects.filter(alocacao__professor=perfil)
         provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
+        
+        # Carrega todas as provas para o Modal do Mapa de Calor
+        avaliacoes_totais = avaliacoes_base.order_by('-data_aplicacao')
 
         matriculas_prof = Matricula.objects.filter(turma__in=turmas, status='CURSANDO').distinct()
         
@@ -3366,6 +3369,9 @@ def area_professor(request):
         avaliacoes_base = Avaliacao.objects.all()
         provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
         
+        # Carrega todas as provas para o Modal do Mapa de Calor (Visão Admin)
+        avaliacoes_totais = avaliacoes_base.order_by('-data_aplicacao')
+        
         alunos_alerta = Matricula.objects.filter(status='CURSANDO').annotate(
             media_geral=Avg('resultados__percentual')
         ).filter(media_geral__lt=60).select_related('aluno', 'turma').order_by('media_geral')[:5]
@@ -3381,6 +3387,7 @@ def area_professor(request):
     context = {
         'turmas': turmas,
         'provas_recentes': provas_recentes,
+        'avaliacoes_totais': avaliacoes_totais, # <- Variável do Modal
         'alunos_alerta': alunos_alerta,             
         'provas_pendentes': provas_pendentes_qs,    
         'kpi_alunos': total_alunos,
