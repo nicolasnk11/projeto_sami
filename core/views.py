@@ -190,25 +190,37 @@ def dashboard(request):
     # Base: Resultados
     resultados = Resultado.objects.all()
 
-    # Listas para os filtros na tela (Dropdowns) - SEM O [:50] AINDA!
+    # Listas para os filtros na tela (Dropdowns)
     turmas_dropdown = Turma.objects.all().order_by('nome')
     disciplinas_dropdown = Disciplina.objects.all().order_by('nome')
     avaliacoes_dropdown = Avaliacao.objects.all().order_by('-data_aplicacao')
 
-    # 🔥 A MÁGICA DA SEGURANÇA (O CADEADO) 🔥
+    # 🔥 A MÁGICA DA SEGURANÇA (O CADEADO COMPARTILHADO AQUI TAMBÉM) 🔥
     if hasattr(request.user, 'professor_perfil'):
         perfil = request.user.professor_perfil
         
-        # 1. Filtra os Resultados: O professor SÓ vê os resultados das provas DELE
-        resultados = resultados.filter(avaliacao__alocacao__professor=perfil)
+        alocacoes_do_prof = perfil.alocacoes.all()
         
-        # 2. Filtra os Filtros: Os menus suspensos só mostram o que é dele
+        # Filtro para os resultados (Notas)
+        query_compartilhada_res = Q()
+        for aloc in alocacoes_do_prof:
+            query_compartilhada_res |= Q(avaliacao__alocacao__turma=aloc.turma, avaliacao__alocacao__disciplina=aloc.disciplina)
+            
+        # Filtro para a lista suspensa de provas (Avaliações)
+        query_compartilhada_av = Q()
+        for aloc in alocacoes_do_prof:
+            query_compartilhada_av |= Q(alocacao__turma=aloc.turma, alocacao__disciplina=aloc.disciplina)
+
+        if alocacoes_do_prof.exists():
+            resultados = resultados.filter(query_compartilhada_res)
+            avaliacoes_dropdown = avaliacoes_dropdown.filter(query_compartilhada_av).distinct()
+        else:
+            resultados = resultados.none()
+            avaliacoes_dropdown = avaliacoes_dropdown.none()
+        
+        # O professor só vê as turmas e disciplinas dele
         turmas_dropdown = turmas_dropdown.filter(alocacoes__professor=perfil).distinct()
         disciplinas_dropdown = disciplinas_dropdown.filter(alocacoes__professor=perfil).distinct()
-        avaliacoes_dropdown = avaliacoes_dropdown.filter(alocacao__professor=perfil)
-
-    # 🔥 AGORA SIM, DEPOIS DE FILTRAR TUDO, NÓS CORTAMOS OS 50 PRIMEIROS 🔥
-    # avaliacoes_dropdown = avaliacoes_dropdown[:50]
 
     # Aplica os filtros escolhidos pelo usuário
     if disciplina_id: resultados = resultados.filter(avaliacao__alocacao__disciplina_id=disciplina_id)
@@ -3337,10 +3349,18 @@ def area_professor(request):
             qtd_alunos=Count('alunos_matriculados', filter=Q(alunos_matriculados__status='CURSANDO'), distinct=True)
         ).order_by('nome')
         
-        avaliacoes_base = Avaliacao.objects.filter(alocacao__professor=perfil)
-        provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
+        # 🔥 A MÁGICA DO PODER COMPARTILHADO (AQUI ESTAVA O BLOQUEIO)
+        alocacoes_do_prof = perfil.alocacoes.all()
+        query_compartilhada = Q()
+        for aloc in alocacoes_do_prof:
+            query_compartilhada |= Q(alocacao__turma=aloc.turma, alocacao__disciplina=aloc.disciplina)
+            
+        if query_compartilhada:
+            avaliacoes_base = Avaliacao.objects.filter(query_compartilhada).distinct()
+        else:
+            avaliacoes_base = Avaliacao.objects.none()
         
-        # Carrega todas as provas para o Modal do Mapa de Calor
+        provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
         avaliacoes_totais = avaliacoes_base.order_by('-data_aplicacao')
 
         matriculas_prof = Matricula.objects.filter(turma__in=turmas, status='CURSANDO').distinct()
@@ -3368,8 +3388,6 @@ def area_professor(request):
         
         avaliacoes_base = Avaliacao.objects.all()
         provas_recentes = avaliacoes_base.order_by('-data_aplicacao')[:5]
-        
-        # Carrega todas as provas para o Modal do Mapa de Calor (Visão Admin)
         avaliacoes_totais = avaliacoes_base.order_by('-data_aplicacao')
         
         alunos_alerta = Matricula.objects.filter(status='CURSANDO').annotate(
@@ -3387,7 +3405,7 @@ def area_professor(request):
     context = {
         'turmas': turmas,
         'provas_recentes': provas_recentes,
-        'avaliacoes_totais': avaliacoes_totais, # <- Variável do Modal
+        'avaliacoes_totais': avaliacoes_totais,
         'alunos_alerta': alunos_alerta,             
         'provas_pendentes': provas_pendentes_qs,    
         'kpi_alunos': total_alunos,
