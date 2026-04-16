@@ -2173,9 +2173,18 @@ def mapa_calor(request, avaliacao_id):
     
     return render(request, 'core/mapa_calor.html', context)
 
-
-# BOLETIM PDF
+# BOLETIM PDF (DELUXE EDITION)
+@login_required
 def gerar_boletim_pdf(request, aluno_id):
+    import io
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.platypus import Table, TableStyle, Paragraph
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from django.db.models import Avg
+    from datetime import datetime
+
     aluno = get_object_or_404(Aluno, id=aluno_id)
     resultados = Resultado.objects.filter(matricula__aluno=aluno).select_related('avaliacao', 'avaliacao__alocacao__disciplina').order_by('avaliacao__data_aplicacao')
     
@@ -2184,42 +2193,59 @@ def gerar_boletim_pdf(request, aluno_id):
 
     dados_grafico = [] 
     dados_tabela = []
-    soma_notas = 0
-    ultima_nota = 0
-    nota_anterior = 0
+    notas_validas_lista = []
+    ausencias = 0
     
     if resultados.exists():
         for i, res in enumerate(resultados):
-            nota_aluno = round(res.percentual / 10, 1)
             
-            media_turma_val = Resultado.objects.filter(avaliacao=res.avaliacao).aggregate(Avg('percentual'))['percentual__avg'] or 0
-            nota_turma = round(media_turma_val / 10, 1)
+            # 🔥 BLINDAGEM: Se for None, é Ausência!
+            if res.percentual is None:
+                nota_aluno = None
+                
+                media_turma_val = Resultado.objects.filter(avaliacao=res.avaliacao).aggregate(Avg('percentual'))['percentual__avg']
+                nota_turma = round(media_turma_val / 10, 1) if media_turma_val else 0.0
+                
+                status = "AUSENTE"
+                ausencias += 1
+            else:
+                nota_aluno = round(res.percentual / 10, 1)
+                
+                media_turma_val = Resultado.objects.filter(avaliacao=res.avaliacao).aggregate(Avg('percentual'))['percentual__avg']
+                nota_turma = round(media_turma_val / 10, 1) if media_turma_val else 0.0
+                
+                status = "ACIMA" if nota_aluno >= nota_turma else "ABAIXO"
+                if nota_aluno < 6: status = "CRÍTICO"
+                
+                notas_validas_lista.append(nota_aluno)
             
             dados_grafico.append({
                 'aluno': nota_aluno,
                 'turma': nota_turma,
                 'label': res.avaliacao.data_aplicacao.strftime("%d/%m")
             })
-            soma_notas += nota_aluno
-            
-            status = "ACIMA" if nota_aluno >= nota_turma else "ABAIXO"
-            if nota_aluno < 6: status = "CRÍTICO"
             
             dados_tabela.append([
                 res.avaliacao.data_aplicacao.strftime("%d/%m/%Y"),
                 res.avaliacao.titulo[:22],
                 res.avaliacao.alocacao.disciplina.nome[:15] if res.avaliacao.alocacao else "-",
-                str(nota_aluno),
-                str(nota_turma),
+                str(nota_aluno) if nota_aluno is not None else "-",
+                str(nota_turma) if nota_turma != "-" else "-",
                 status
             ])
-
-            if i == len(resultados) - 1: ultima_nota = nota_aluno
-            if i == len(resultados) - 2: nota_anterior = nota_aluno
             
-        media_geral = round(soma_notas / len(resultados), 1)
+        media_geral = round(sum(notas_validas_lista) / len(notas_validas_lista), 1) if notas_validas_lista else 0.0
+        
+        # Calcula Tendência com as duas últimas notas VÁLIDAS
+        if len(notas_validas_lista) >= 2:
+            ultima_nota = notas_validas_lista[-1]
+            nota_anterior = notas_validas_lista[-2]
+        else:
+            ultima_nota = nota_anterior = 0
+            
     else:
         media_geral = 0.0
+        ultima_nota = nota_anterior = 0
 
     respostas = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related('item_gabarito__descritor', 'questao__descritor')
     
@@ -2257,7 +2283,9 @@ def gerar_boletim_pdf(request, aluno_id):
     COR_TEXT = colors.HexColor("#334155") 
     COR_SUCCESS = colors.HexColor("#10b981")
     COR_DANGER = colors.HexColor("#ef4444")
+    COR_WARNING = colors.orange
 
+    # ===== DESENHO DA PÁGINA 1 =====
     p = c.beginPath()
     p.moveTo(0, height)
     p.lineTo(width, height)
@@ -2337,40 +2365,58 @@ def gerar_boletim_pdf(request, aluno_id):
         if len(dados_grafico) == 1:
             dado = dados_grafico[0]
             c.setFillColor(COR_ACCENT)
-            h_bar = (dado['aluno'] / 10) * graph_h
-            c.roundRect(center_x - 20, y_base, 40, h_bar, 4, fill=1, stroke=0)
+            if dado['aluno'] is not None:
+                h_bar = (dado['aluno'] / 10) * graph_h
+                c.roundRect(center_x - 20, y_base, 40, h_bar, 4, fill=1, stroke=0)
+                c.setFillColor(COR_DEEP)
+                c.drawCentredString(center_x, y_base + h_bar + 5, str(dado['aluno']))
+            else:
+                c.setFillColor(COR_DANGER)
+                c.drawCentredString(center_x, y_base + 5, "AUSENTE")
+            
             c.setFillColor(COR_DEEP)
-            c.drawCentredString(center_x, y_base + h_bar + 5, str(dado['aluno']))
             c.drawCentredString(center_x, y_base - 15, dado['label'])
         else:
             step_x = graph_width / (len(dados_grafico) - 1)
             coords_x = [x_start + (i * step_x) for i in range(len(dados_grafico))]
             
-            p = c.beginPath()
-            p.moveTo(coords_x[0], y_base)
-            for i in range(len(dados_grafico)):
-                y_pt = y_base + (dados_grafico[i]['aluno'] / 10 * graph_h)
-                p.lineTo(coords_x[i], y_pt)
-            p.lineTo(coords_x[-1], y_base)
-            p.close()
-            c.setFillColor(colors.Color(59/255, 130/255, 246/255, alpha=0.15))
-            c.drawPath(p, fill=1, stroke=0)
+            # 🔥 SÓ DESENHA A LINHA NOS PONTOS VÁLIDOS
+            valid_points = []
+            for i, d in enumerate(dados_grafico):
+                if d['aluno'] is not None:
+                    cy = y_base + (d['aluno'] / 10 * graph_h)
+                    valid_points.append((coords_x[i], cy, d['aluno']))
             
-            c.setStrokeColor(COR_ACCENT); c.setLineWidth(2)
-            for i in range(len(dados_grafico) - 1):
-                y1 = y_base + (dados_grafico[i]['aluno'] / 10 * graph_h)
-                y2 = y_base + (dados_grafico[i+1]['aluno'] / 10 * graph_h)
-                c.line(coords_x[i], y1, coords_x[i+1], y2)
+            if len(valid_points) > 1:
+                p = c.beginPath()
+                p.moveTo(valid_points[0][0], y_base)
+                for pt in valid_points: p.lineTo(pt[0], pt[1])
+                p.lineTo(valid_points[-1][0], y_base)
+                p.close()
+                c.setFillColor(colors.Color(59/255, 130/255, 246/255, alpha=0.15))
+                c.drawPath(p, fill=1, stroke=0)
                 
-            for i in range(len(dados_grafico)):
-                cy = y_base + (dados_grafico[i]['aluno'] / 10 * graph_h)
-                c.setFillColor(colors.white); c.setStrokeColor(COR_ACCENT)
-                c.circle(coords_x[i], cy, 3, fill=1, stroke=1)
+                c.setStrokeColor(COR_ACCENT); c.setLineWidth(2)
+                for i in range(len(valid_points) - 1):
+                    c.line(valid_points[i][0], valid_points[i][1], valid_points[i+1][0], valid_points[i+1][1])
+                
+            for i, d in enumerate(dados_grafico):
+                cx = coords_x[i]
                 c.setFillColor(COR_DEEP)
                 c.setFont("Helvetica", 8)
-                c.drawCentredString(coords_x[i], y_base - 12, dados_grafico[i]['label'])
-                c.setFont("Helvetica-Bold", 8)
-                c.drawCentredString(coords_x[i], cy + 8, str(dados_grafico[i]['aluno']))
+                c.drawCentredString(cx, y_base - 12, d['label'])
+                
+                if d['aluno'] is not None:
+                    cy = y_base + (d['aluno'] / 10 * graph_h)
+                    c.setFillColor(colors.white); c.setStrokeColor(COR_ACCENT)
+                    c.circle(cx, cy, 3, fill=1, stroke=1)
+                    c.setFillColor(COR_DEEP)
+                    c.setFont("Helvetica-Bold", 8)
+                    c.drawCentredString(cx, cy + 8, str(d['aluno']))
+                else:
+                    c.setFillColor(COR_DANGER)
+                    c.setFont("Helvetica-Bold", 6)
+                    c.drawCentredString(cx, y_base + 5, "FALTA")
 
     y_table_title = y_base - 50
     c.setFillColor(COR_DEEP)
@@ -2398,13 +2444,19 @@ def gerar_boletim_pdf(request, aluno_id):
     
     for idx, row in enumerate(dados_tabela):
         linha = idx + 1
-        nota = float(row[3])
-        cor = COR_SUCCESS if nota >= 6 else COR_DANGER
-        estilo.append(('TEXTCOLOR', (3, linha), (3, linha), cor))
-        estilo.append(('FONTNAME', (3, linha), (3, linha), 'Helvetica-Bold'))
+        nota_str = row[3]
         
-        status_cor = COR_SUCCESS if row[5] == "ACIMA" else COR_DANGER if row[5] == "CRÍTICO" else colors.orange
-        estilo.append(('TEXTCOLOR', (5, linha), (5, linha), status_cor))
+        if nota_str == "-":
+            estilo.append(('TEXTCOLOR', (3, linha), (5, linha), colors.grey))
+            estilo.append(('FONTNAME', (5, linha), (5, linha), 'Helvetica-Bold'))
+        else:
+            nota = float(nota_str)
+            cor = COR_SUCCESS if nota >= 6 else COR_DANGER
+            estilo.append(('TEXTCOLOR', (3, linha), (3, linha), cor))
+            estilo.append(('FONTNAME', (3, linha), (3, linha), 'Helvetica-Bold'))
+            
+            status_cor = COR_SUCCESS if row[5] == "ACIMA" else COR_DANGER if row[5] == "CRÍTICO" else COR_WARNING
+            estilo.append(('TEXTCOLOR', (5, linha), (5, linha), status_cor))
 
     t.setStyle(TableStyle(estilo))
     w_t, h_t = t.wrapOn(c, width, height)
@@ -2419,7 +2471,6 @@ def gerar_boletim_pdf(request, aluno_id):
         y_current -= 20
 
         data_hab = [['DOMINADAS (+70%)', 'EM DESENVOLVIMENTO (-50%)']]
-        
         max_len = max(len(pontos_fortes), len(pontos_atencao))
         if max_len == 0: max_len = 1 
         
@@ -2446,13 +2497,11 @@ def gerar_boletim_pdf(request, aluno_id):
         t_hab.drawOn(c, 40, y_current - h_hab)
     
     y_footer = 50
-    
     tendencia = ""
-    if len(resultados) >= 2:
+    if len(notas_validas_lista) >= 2:
         if ultima_nota > nota_anterior: tendencia = " Observa-se uma tendência de evolução positiva."
         elif ultima_nota < nota_anterior: tendencia = " Observa-se uma leve queda recente que requer atenção."
 
-    msg_texto = ""
     if media_geral >= 8: msg_texto = f"Desempenho excelente! O aluno demonstra domínio consistente dos conteúdos.{tendencia}"
     elif media_geral >= 6: msg_texto = f"Desempenho satisfatório. Atende às expectativas, mas pode avançar mais.{tendencia}"
     else: msg_texto = f"Situação de alerta. O aluno encontra-se abaixo da média, sendo fortemente recomendado reforço escolar.{tendencia}"
@@ -2465,18 +2514,10 @@ def gerar_boletim_pdf(request, aluno_id):
     c.drawString(50, y_footer + 32, "PARECER DO SISTEMA:")
     
     styles = getSampleStyleSheet()
-    estilo_parecer = ParagraphStyle(
-        'ParecerStyle',
-        parent=styles['Normal'],
-        fontSize=9,
-        textColor=COR_TEXT,
-        leading=11
-    )
-    
+    estilo_parecer = ParagraphStyle('ParecerStyle', parent=styles['Normal'], fontSize=9, textColor=COR_TEXT, leading=11)
     parecer_para = Paragraph(msg_texto, estilo_parecer)
-    largura_disponivel = width - 160 - 50 
     
-    w_p, h_p = parecer_para.wrap(largura_disponivel, 40)
+    w_p, h_p = parecer_para.wrap(width - 210, 40)
     parecer_para.drawOn(c, 160, y_footer + 38 - h_p)
 
     c.setStrokeColor(colors.grey)
@@ -2484,9 +2525,112 @@ def gerar_boletim_pdf(request, aluno_id):
     c.setFont("Helvetica", 6)
     c.drawCentredString(width - 120, y_footer + 8, "Assinatura do Responsável")
 
+    # ===== DESENHO DA PÁGINA 2 (MAPA DE CALOR) =====
+    c.showPage() 
+    
+    c.setFillColor(COR_DEEP)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(40, height - 60, "ANEXO: MAPA DE CALOR DETALHADO")
+    c.setFont("Helvetica", 10)
+    c.setFillColor(COR_TEXT)
+    c.drawString(40, height - 80, "Detalhamento de acertos e erros por questão em cada prova realizada.")
+
+    y_heat = height - 120
+
+    # Puxa as respostas ordenadas por prova e numero da questao
+    todas_respostas = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related('item_gabarito', 'resultado__avaliacao').order_by('resultado__avaliacao__data_aplicacao', 'item_gabarito__numero')
+    
+    mapa_por_prova = {}
+    for r in todas_respostas:
+        av_title = r.resultado.avaliacao.titulo
+        if av_title not in mapa_por_prova: mapa_por_prova[av_title] = []
+        mapa_por_prova[av_title].append(r)
+
+    for av_title, resps in mapa_por_prova.items():
+        if y_heat < 150: # Quebra de página se não couber
+            c.showPage()
+            y_heat = height - 60
+
+        c.setFont("Helvetica-Bold", 11)
+        c.setFillColor(COR_DEEP)
+        c.drawString(40, y_heat, av_title)
+        y_heat -= 15
+
+        row_q = []
+        row_a = []
+        colors_a = []
+
+        for r in resps:
+            row_q.append(str(r.item_gabarito.numero))
+            if r.acertou:
+                row_a.append("V")
+                colors_a.append(COR_SUCCESS)
+            elif not r.resposta_aluno or r.resposta_aluno in ['NULA', 'MULTIPLA', '*']:
+                row_a.append("-")
+                colors_a.append(COR_WARNING)
+            else:
+                row_a.append("X")
+                colors_a.append(COR_DANGER)
+
+        # Agrupa as questões em blocos de 25 para não estourar a largura da página
+        chunk_size = 25
+        for i in range(0, len(row_q), chunk_size):
+            q_chunk = row_q[i:i+chunk_size]
+            a_chunk = row_a[i:i+chunk_size]
+            c_chunk = colors_a[i:i+chunk_size]
+
+            t_data = [q_chunk, a_chunk]
+            t = Table(t_data, colWidths=[18]*len(q_chunk), rowHeights=[15, 15])
+
+            t_style = [
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0,0), (-1,-1), 8),
+                ('BACKGROUND', (0,0), (-1,0), COR_LIGHT),
+                ('TEXTCOLOR', (0,0), (-1,0), COR_DEEP),
+                ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
+            ]
+
+            for col_idx, c_color in enumerate(c_chunk):
+                t_style.append(('TEXTCOLOR', (col_idx, 1), (col_idx, 1), c_color))
+                t_style.append(('FONTNAME', (col_idx, 1), (col_idx, 1), 'Helvetica-Bold'))
+                
+                # Fundo colorido suave no Mapa de Calor
+                if a_chunk[col_idx] == "X":
+                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#fee2e2")))
+                elif a_chunk[col_idx] == "V":
+                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#dcfce7")))
+                else:
+                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#fef3c7")))
+
+            t.setStyle(TableStyle(t_style))
+            w, h = t.wrapOn(c, width, height)
+            t.drawOn(c, 40, y_heat - h)
+            y_heat -= (h + 10)
+
+        y_heat -= 15 # Espaço entre as provas
+
+    if not mapa_por_prova:
+        c.setFont("Helvetica", 10)
+        c.setFillColor(colors.grey)
+        c.drawString(40, y_heat, "Nenhuma prova com respostas registradas encontrada.")
+        y_heat -= 20
+
+    # Legenda Final do Mapa de Calor
+    y_heat -= 10
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColor(COR_TEXT)
+    c.drawString(40, y_heat, "LEGENDA:")
+    c.setFont("Helvetica", 8)
+    c.setFillColor(COR_SUCCESS); c.drawString(95, y_heat, "V (Acerto)")
+    c.setFillColor(COR_DANGER); c.drawString(145, y_heat, "X (Erro)")
+    c.setFillColor(COR_WARNING); c.drawString(185, y_heat, "- (Nula/Em Branco)")
+
     c.showPage()
     c.save()
     buffer.seek(0)
+    
     return FileResponse(buffer, as_attachment=True, filename=f'Boletim_{aluno.nome_completo}.pdf')
 
 # ==========================================
