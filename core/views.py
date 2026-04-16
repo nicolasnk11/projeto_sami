@@ -2173,7 +2173,7 @@ def mapa_calor(request, avaliacao_id):
     
     return render(request, 'core/mapa_calor.html', context)
 
-# BOLETIM PDF (DELUXE EDITION)
+# BOLETIM PDF (DELUXE EDITION - BRAND SAMI)
 @login_required
 def gerar_boletim_pdf(request, aluno_id):
     import io
@@ -2199,7 +2199,7 @@ def gerar_boletim_pdf(request, aluno_id):
     if resultados.exists():
         for i, res in enumerate(resultados):
             
-            # 🔥 BLINDAGEM: Se for None, é Ausência!
+            # 🔥 BLINDAGEM DE AUSÊNCIA
             if res.percentual is None:
                 nota_aluno = None
                 
@@ -2236,7 +2236,6 @@ def gerar_boletim_pdf(request, aluno_id):
             
         media_geral = round(sum(notas_validas_lista) / len(notas_validas_lista), 1) if notas_validas_lista else 0.0
         
-        # Calcula Tendência com as duas últimas notas VÁLIDAS
         if len(notas_validas_lista) >= 2:
             ultima_nota = notas_validas_lista[-1]
             nota_anterior = notas_validas_lista[-2]
@@ -2277,22 +2276,24 @@ def gerar_boletim_pdf(request, aluno_id):
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     
-    COR_DEEP = colors.HexColor("#1e293b") 
-    COR_ACCENT = colors.HexColor("#3b82f6") 
-    COR_LIGHT = colors.HexColor("#f1f5f9") 
-    COR_TEXT = colors.HexColor("#334155") 
-    COR_SUCCESS = colors.HexColor("#10b981")
-    COR_DANGER = colors.HexColor("#ef4444")
-    COR_WARNING = colors.orange
+    # 🎨 CORES OFICIAIS SAMI DELUXE
+    COR_DEEP = colors.HexColor("#0A2619")     # Verde Escuro
+    COR_ACCENT = colors.HexColor("#D4AF37")   # Dourado
+    COR_LIGHT = colors.HexColor("#f8f9fa")    # Fundo Claro
+    COR_TEXT = colors.HexColor("#212529")     # Texto Padrão
+    COR_SUCCESS = colors.HexColor("#198754")  # Verde Sucesso
+    COR_DANGER = colors.HexColor("#dc3545")   # Vermelho Crítico
+    COR_WARNING = colors.HexColor("#ffc107")  # Amarelo Alerta
 
     # ===== DESENHO DA PÁGINA 1 =====
+    # Fundo Decorativo Superior
     p = c.beginPath()
     p.moveTo(0, height)
     p.lineTo(width, height)
     p.lineTo(width, height - 120)
     p.curveTo(width, height - 120, width/2, height - 200, 0, height - 120)
     p.close()
-    c.setFillColor(colors.Color(59/255, 130/255, 246/255, alpha=0.2))
+    c.setFillColor(colors.Color(10/255, 38/255, 25/255, alpha=0.1)) # Verde claro transparente
     c.drawPath(p, fill=1, stroke=0)
 
     p2 = c.beginPath()
@@ -2304,23 +2305,27 @@ def gerar_boletim_pdf(request, aluno_id):
     c.setFillColor(COR_DEEP)
     c.drawPath(p2, fill=1, stroke=0)
 
-    c.setFillColor(colors.white)
+    c.setFillColor(COR_ACCENT)
     c.setFont("Helvetica-Bold", 24)
     c.drawString(40, height - 60, "RELATÓRIO DE DESEMPENHO")
+    c.setFillColor(colors.white)
     c.setFont("Helvetica", 10)
     c.drawString(40, height - 80, "SAMI EDUCACIONAL • Acompanhamento Integrado")
     
+    c.setStrokeColor(COR_ACCENT)
     c.roundRect(width - 100, height - 70, 60, 25, 6, fill=0, stroke=1)
     c.setFont("Helvetica-Bold", 10)
+    c.setFillColor(COR_ACCENT)
     c.drawCentredString(width - 70, height - 64, str(datetime.now().year))
 
     y_info = height - 190
     
+    # Foto/Avatar do Aluno
     c.setStrokeColor(COR_ACCENT)
-    c.setFillColor(colors.white)
+    c.setFillColor(COR_LIGHT)
     c.circle(70, y_info, 35, fill=1, stroke=1)
     c.setFillColor(COR_DEEP)
-    c.setFont("Helvetica-Bold", 20)
+    c.setFont("Helvetica-Bold", 24)
     c.drawCentredString(70, y_info - 8, aluno.nome_completo[0])
     
     c.setFillColor(COR_DEEP)
@@ -2330,6 +2335,7 @@ def gerar_boletim_pdf(request, aluno_id):
     c.setFont("Helvetica", 11)
     c.drawString(120, y_info - 10, f"Matrícula: #{aluno.id}  •  Turma: {nome_turma}")
     
+    # Bloco da Média Geral
     c.setFillColor(COR_LIGHT)
     c.roundRect(width - 160, y_info - 25, 120, 60, 10, fill=1, stroke=0)
     
@@ -2349,7 +2355,7 @@ def gerar_boletim_pdf(request, aluno_id):
     graph_h = 100 
     c.setFillColor(COR_DEEP)
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(40, y_graph_top, "Evolução do Bimestre")
+    c.drawString(40, y_graph_top, "Evolução das Avaliações")
     
     y_base = y_graph_top - graph_h - 20
     center_x = width / 2
@@ -2364,7 +2370,7 @@ def gerar_boletim_pdf(request, aluno_id):
         
         if len(dados_grafico) == 1:
             dado = dados_grafico[0]
-            c.setFillColor(COR_ACCENT)
+            c.setFillColor(COR_DEEP)
             if dado['aluno'] is not None:
                 h_bar = (dado['aluno'] / 10) * graph_h
                 c.roundRect(center_x - 20, y_base, 40, h_bar, 4, fill=1, stroke=0)
@@ -2380,7 +2386,6 @@ def gerar_boletim_pdf(request, aluno_id):
             step_x = graph_width / (len(dados_grafico) - 1)
             coords_x = [x_start + (i * step_x) for i in range(len(dados_grafico))]
             
-            # 🔥 SÓ DESENHA A LINHA NOS PONTOS VÁLIDOS
             valid_points = []
             for i, d in enumerate(dados_grafico):
                 if d['aluno'] is not None:
@@ -2393,23 +2398,23 @@ def gerar_boletim_pdf(request, aluno_id):
                 for pt in valid_points: p.lineTo(pt[0], pt[1])
                 p.lineTo(valid_points[-1][0], y_base)
                 p.close()
-                c.setFillColor(colors.Color(59/255, 130/255, 246/255, alpha=0.15))
+                c.setFillColor(colors.Color(10/255, 38/255, 25/255, alpha=0.1)) # Sombra verde
                 c.drawPath(p, fill=1, stroke=0)
                 
-                c.setStrokeColor(COR_ACCENT); c.setLineWidth(2)
+                c.setStrokeColor(COR_DEEP); c.setLineWidth(2)
                 for i in range(len(valid_points) - 1):
                     c.line(valid_points[i][0], valid_points[i][1], valid_points[i+1][0], valid_points[i+1][1])
                 
             for i, d in enumerate(dados_grafico):
                 cx = coords_x[i]
-                c.setFillColor(COR_DEEP)
+                c.setFillColor(COR_TEXT)
                 c.setFont("Helvetica", 8)
                 c.drawCentredString(cx, y_base - 12, d['label'])
                 
                 if d['aluno'] is not None:
                     cy = y_base + (d['aluno'] / 10 * graph_h)
-                    c.setFillColor(colors.white); c.setStrokeColor(COR_ACCENT)
-                    c.circle(cx, cy, 3, fill=1, stroke=1)
+                    c.setFillColor(colors.white); c.setStrokeColor(COR_DEEP)
+                    c.circle(cx, cy, 3.5, fill=1, stroke=1)
                     c.setFillColor(COR_DEEP)
                     c.setFont("Helvetica-Bold", 8)
                     c.drawCentredString(cx, cy + 8, str(d['aluno']))
@@ -2455,7 +2460,7 @@ def gerar_boletim_pdf(request, aluno_id):
             estilo.append(('TEXTCOLOR', (3, linha), (3, linha), cor))
             estilo.append(('FONTNAME', (3, linha), (3, linha), 'Helvetica-Bold'))
             
-            status_cor = COR_SUCCESS if row[5] == "ACIMA" else COR_DANGER if row[5] == "CRÍTICO" else COR_WARNING
+            status_cor = COR_SUCCESS if row[5] == "ACIMA" else COR_DANGER if row[5] == "CRÍTICO" else colors.grey
             estilo.append(('TEXTCOLOR', (5, linha), (5, linha), status_cor))
 
     t.setStyle(TableStyle(estilo))
@@ -2483,8 +2488,8 @@ def gerar_boletim_pdf(request, aluno_id):
         t_hab.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (0,0), colors.HexColor("#dcfce7")), 
             ('BACKGROUND', (1,0), (1,0), colors.HexColor("#fee2e2")), 
-            ('TEXTCOLOR', (0,0), (0,0), colors.darkgreen),
-            ('TEXTCOLOR', (1,0), (1,0), colors.darkred),
+            ('TEXTCOLOR', (0,0), (0,0), COR_DEEP),
+            ('TEXTCOLOR', (1,0), (1,0), COR_DANGER),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
             ('FONTSIZE', (0,0), (-1,-1), 8),
             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
@@ -2506,7 +2511,7 @@ def gerar_boletim_pdf(request, aluno_id):
     elif media_geral >= 6: msg_texto = f"Desempenho satisfatório. Atende às expectativas, mas pode avançar mais.{tendencia}"
     else: msg_texto = f"Situação de alerta. O aluno encontra-se abaixo da média, sendo fortemente recomendado reforço escolar.{tendencia}"
 
-    c.setFillColor(colors.HexColor("#f8fafc"))
+    c.setFillColor(COR_LIGHT)
     c.roundRect(40, y_footer, width - 80, 50, 6, fill=1, stroke=0)
     
     c.setFillColor(COR_DEEP)
@@ -2537,7 +2542,6 @@ def gerar_boletim_pdf(request, aluno_id):
 
     y_heat = height - 120
 
-    # Puxa as respostas ordenadas por prova e numero da questao
     todas_respostas = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related('item_gabarito', 'resultado__avaliacao').order_by('resultado__avaliacao__data_aplicacao', 'item_gabarito__numero')
     
     mapa_por_prova = {}
@@ -2547,7 +2551,7 @@ def gerar_boletim_pdf(request, aluno_id):
         mapa_por_prova[av_title].append(r)
 
     for av_title, resps in mapa_por_prova.items():
-        if y_heat < 150: # Quebra de página se não couber
+        if y_heat < 150: 
             c.showPage()
             y_heat = height - 60
 
@@ -2560,8 +2564,11 @@ def gerar_boletim_pdf(request, aluno_id):
         row_a = []
         colors_a = []
 
-        for r in resps:
-            row_q.append(str(r.item_gabarito.numero))
+        for idx, r in enumerate(resps, 1):
+            # 🔥 CORREÇÃO DO ERRO 'NoneType has no attribute numero' AQUI! 🔥
+            num_questao = str(r.item_gabarito.numero) if r.item_gabarito else str(idx)
+            row_q.append(num_questao)
+            
             if r.acertou:
                 row_a.append("V")
                 colors_a.append(COR_SUCCESS)
@@ -2572,7 +2579,6 @@ def gerar_boletim_pdf(request, aluno_id):
                 row_a.append("X")
                 colors_a.append(COR_DANGER)
 
-        # Agrupa as questões em blocos de 25 para não estourar a largura da página
         chunk_size = 25
         for i in range(0, len(row_q), chunk_size):
             q_chunk = row_q[i:i+chunk_size]
@@ -2596,20 +2602,19 @@ def gerar_boletim_pdf(request, aluno_id):
                 t_style.append(('TEXTCOLOR', (col_idx, 1), (col_idx, 1), c_color))
                 t_style.append(('FONTNAME', (col_idx, 1), (col_idx, 1), 'Helvetica-Bold'))
                 
-                # Fundo colorido suave no Mapa de Calor
                 if a_chunk[col_idx] == "X":
-                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#fee2e2")))
+                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#f8d7da")))
                 elif a_chunk[col_idx] == "V":
-                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#dcfce7")))
+                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#d1e7dd")))
                 else:
-                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#fef3c7")))
+                    t_style.append(('BACKGROUND', (col_idx, 1), (col_idx, 1), colors.HexColor("#fff3cd")))
 
             t.setStyle(TableStyle(t_style))
             w, h = t.wrapOn(c, width, height)
             t.drawOn(c, 40, y_heat - h)
             y_heat -= (h + 10)
 
-        y_heat -= 15 # Espaço entre as provas
+        y_heat -= 15 
 
     if not mapa_por_prova:
         c.setFont("Helvetica", 10)
@@ -2617,7 +2622,6 @@ def gerar_boletim_pdf(request, aluno_id):
         c.drawString(40, y_heat, "Nenhuma prova com respostas registradas encontrada.")
         y_heat -= 20
 
-    # Legenda Final do Mapa de Calor
     y_heat -= 10
     c.setFont("Helvetica-Bold", 8)
     c.setFillColor(COR_TEXT)
