@@ -2173,6 +2173,7 @@ def mapa_calor(request, avaliacao_id):
     
     return render(request, 'core/mapa_calor.html', context)
 
+# BOLETIM PDF (DELUXE EDITION - PARECER NO FINAL)
 @login_required
 def gerar_boletim_pdf(request, aluno_id):
     import io
@@ -2197,7 +2198,6 @@ def gerar_boletim_pdf(request, aluno_id):
     
     if resultados.exists():
         for i, res in enumerate(resultados):
-            
             if res.percentual is None:
                 nota_aluno = None
                 media_turma_val = Resultado.objects.filter(avaliacao=res.avaliacao).aggregate(Avg('percentual'))['percentual__avg']
@@ -2370,7 +2370,6 @@ def gerar_boletim_pdf(request, aluno_id):
             else:
                 c.setFillColor(COR_DANGER)
                 c.drawCentredString(center_x, y_base + 5, "AUSENTE")
-            
             c.setFillColor(COR_DEEP)
             c.drawCentredString(center_x, y_base - 15, dado['label'])
         else:
@@ -2455,32 +2454,42 @@ def gerar_boletim_pdf(request, aluno_id):
     w_t, h_t = t.wrapOn(c, width, height)
     t.drawOn(c, 40, y_table_title - h_t - 10)
     
-    # Rodapé da Página 1
-    y_footer = 50
-    tendencia = ""
-    if len(notas_validas_lista) >= 2:
-        if ultima_nota > nota_anterior: tendencia = " Observa-se uma tendência de evolução positiva."
-        elif ultima_nota < nota_anterior: tendencia = " Observa-se uma leve queda recente que requer atenção."
+    y_current = y_table_title - h_t - 40
 
-    if media_geral >= 8: msg_texto = f"Desempenho excelente! O aluno demonstra domínio consistente dos conteúdos.{tendencia}"
-    elif media_geral >= 6: msg_texto = f"Desempenho satisfatório. Atende às expectativas, mas pode avançar mais.{tendencia}"
-    else: msg_texto = f"Situação de alerta. O aluno encontra-se abaixo da média, sendo fortemente recomendado reforço escolar.{tendencia}"
+    # Retiramos o Parecer daqui e movemos para a última página!
 
-    c.setFillColor(COR_LIGHT)
-    c.roundRect(40, y_footer, width - 80, 50, 6, fill=1, stroke=0)
-    c.setFillColor(COR_DEEP)
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(50, y_footer + 32, "PARECER DO SISTEMA:")
-    
-    estilo_parecer = ParagraphStyle('ParecerStyle', parent=styles['Normal'], fontSize=9, textColor=COR_TEXT, leading=11)
-    parecer_para = Paragraph(msg_texto, estilo_parecer)
-    w_p, h_p = parecer_para.wrap(width - 210, 40)
-    parecer_para.drawOn(c, 160, y_footer + 38 - h_p)
+    if pontos_fortes or pontos_atencao:
+        c.setFillColor(COR_DEEP)
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(40, y_current, "Raio-X de Habilidades (Pedagógico)")
+        y_current -= 20
 
-    c.setStrokeColor(colors.grey)
-    c.line(width - 200, y_footer + 15, width - 40, y_footer + 15)
-    c.setFont("Helvetica", 6)
-    c.drawCentredString(width - 120, y_footer + 8, "Assinatura do Responsável")
+        data_hab = [['DOMINADAS (+70%)', 'EM DESENVOLVIMENTO (-50%)']]
+        max_len = max(len(pontos_fortes), len(pontos_atencao))
+        if max_len == 0: max_len = 1 
+        
+        for i in range(max_len):
+            forte = pontos_fortes[i] if i < len(pontos_fortes) else ""
+            fraco = pontos_atencao[i] if i < len(pontos_atencao) else ""
+            data_hab.append([forte, fraco])
+
+        t_hab = Table(data_hab, colWidths=[255, 255])
+        t_hab.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (0,0), colors.HexColor("#dcfce7")), 
+            ('BACKGROUND', (1,0), (1,0), colors.HexColor("#fee2e2")), 
+            ('TEXTCOLOR', (0,0), (0,0), COR_DEEP),
+            ('TEXTCOLOR', (1,0), (1,0), COR_DANGER),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,-1), 8),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
+        ]))
+        
+        w_hab, h_hab = t_hab.wrapOn(c, width, height)
+        t_hab.drawOn(c, 40, y_current - h_hab)
+
 
     # ==========================================
     # PÁGINA 2: TABELA DE PROFICIÊNCIA
@@ -2496,10 +2505,8 @@ def gerar_boletim_pdf(request, aluno_id):
     y_prof = height - 110
     
     estilo_desc = ParagraphStyle('DescStyle', parent=styles['Normal'], fontSize=8, textColor=COR_TEXT, leading=10)
-    
     dados_prof = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'ACERTOS', 'DESEMPENHO']]
     
-    # Ordena as habilidades do melhor para o pior
     habilidades_ordenadas = sorted(lista_habilidades, key=lambda x: x['perc'], reverse=True)
     
     for hab in habilidades_ordenadas:
@@ -2520,7 +2527,7 @@ def gerar_boletim_pdf(request, aluno_id):
         ('BACKGROUND', (0,0), (-1,0), COR_DEEP),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('ALIGN', (1,1), (1,-1), 'LEFT'), # Alinha a descrição à esquerda
+        ('ALIGN', (1,1), (1,-1), 'LEFT'),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
         ('FONTSIZE', (0,0), (-1,0), 9),
@@ -2531,7 +2538,6 @@ def gerar_boletim_pdf(request, aluno_id):
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, COR_LIGHT]),
     ]
     
-    # Colore a coluna de percentual
     for idx, hab in enumerate(habilidades_ordenadas, 1):
         if hab['perc'] >= 70:
             estilo_tabela_prof.append(('TEXTCOLOR', (3, idx), (3, idx), COR_SUCCESS))
@@ -2543,19 +2549,14 @@ def gerar_boletim_pdf(request, aluno_id):
     t_prof.setStyle(TableStyle(estilo_tabela_prof))
     w_p, h_p = t_prof.wrapOn(c, width, height)
     
-    # Se a tabela de proficiência for gigante, a gente previne o erro de corte
-    if y_prof - h_p < 40:
-        # Tabela muito grande, divide no reportlab automático se possível, 
-        # ou apenas desenha o que couber.
-        t_prof.drawOn(c, 40, y_prof - h_p)
-    else:
-        t_prof.drawOn(c, 40, y_prof - h_p)
+    # Desenha a tabela
+    t_prof.drawOn(c, 40, y_prof - h_p)
+
 
     # ==========================================
-    # PÁGINA 3: MAPA DE CALOR DETALHADO
+    # PÁGINA 3 E SEGUINTES: MAPA DE CALOR
     # ==========================================
     c.showPage() 
-    
     c.setFillColor(COR_DEEP)
     c.setFont("Helvetica-Bold", 18)
     c.drawString(40, height - 60, "ANEXO: MAPA DE CALOR DETALHADO")
@@ -2601,7 +2602,6 @@ def gerar_boletim_pdf(request, aluno_id):
                 row_a.append("X")
                 colors_a.append(COR_DANGER)
 
-        # 🔥 A MÁGICA DO ALINHAMENTO: Blocos de 20 para não esmagar a tabela!
         chunk_size = 20
         for i in range(0, len(row_q), chunk_size):
             q_chunk = row_q[i:i+chunk_size]
@@ -2609,7 +2609,6 @@ def gerar_boletim_pdf(request, aluno_id):
             c_chunk = colors_a[i:i+chunk_size]
 
             t_data = [q_chunk, a_chunk]
-            # 🔥 Largura de 24 pontos fixos para não deformar!
             t = Table(t_data, colWidths=[24]*len(q_chunk), rowHeights=[18, 18])
 
             t_style = [
@@ -2620,7 +2619,6 @@ def gerar_boletim_pdf(request, aluno_id):
                 ('BACKGROUND', (0,0), (-1,0), COR_LIGHT),
                 ('TEXTCOLOR', (0,0), (-1,0), COR_DEEP),
                 ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
-                # Remove o preenchimento inútil para caber a fonte
                 ('LEFTPADDING', (0,0), (-1,-1), 1),
                 ('RIGHTPADDING', (0,0), (-1,-1), 1),
             ]
@@ -2649,6 +2647,7 @@ def gerar_boletim_pdf(request, aluno_id):
         c.drawString(40, y_heat, "Nenhuma prova com respostas registradas encontrada.")
         y_heat -= 20
 
+    # Legenda Final do Mapa de Calor
     y_heat -= 10
     c.setFont("Helvetica-Bold", 8)
     c.setFillColor(COR_TEXT)
@@ -2657,6 +2656,44 @@ def gerar_boletim_pdf(request, aluno_id):
     c.setFillColor(COR_SUCCESS); c.drawString(95, y_heat, "V (Acerto)")
     c.setFillColor(COR_DANGER); c.drawString(145, y_heat, "X (Erro)")
     c.setFillColor(COR_WARNING); c.drawString(185, y_heat, "- (Nula/Em Branco)")
+
+
+    # ==========================================
+    # RODAPÉ FINAL (O PARECER)
+    # ==========================================
+    y_heat -= 30
+    
+    # Se a página atual já estiver cheia, criamos uma nova só para a assinatura
+    if y_heat < 100:
+        c.showPage()
+        y_heat = height - 80
+        
+    y_footer = y_heat - 60
+    
+    tendencia = ""
+    if len(notas_validas_lista) >= 2:
+        if ultima_nota > nota_anterior: tendencia = " Observa-se uma tendência de evolução positiva."
+        elif ultima_nota < nota_anterior: tendencia = " Observa-se uma leve queda recente que requer atenção."
+
+    if media_geral >= 8: msg_texto = f"Desempenho excelente! O aluno demonstra domínio consistente dos conteúdos.{tendencia}"
+    elif media_geral >= 6: msg_texto = f"Desempenho satisfatório. Atende às expectativas, mas pode avançar mais.{tendencia}"
+    else: msg_texto = f"Situação de alerta. O aluno encontra-se abaixo da média, sendo fortemente recomendado reforço escolar.{tendencia}"
+
+    c.setFillColor(COR_LIGHT)
+    c.roundRect(40, y_footer, width - 80, 50, 6, fill=1, stroke=0)
+    c.setFillColor(COR_DEEP)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(50, y_footer + 32, "PARECER DO SISTEMA:")
+    
+    estilo_parecer = ParagraphStyle('ParecerStyle', parent=styles['Normal'], fontSize=9, textColor=COR_TEXT, leading=11)
+    parecer_para = Paragraph(msg_texto, estilo_parecer)
+    w_p, h_p = parecer_para.wrap(width - 210, 40)
+    parecer_para.drawOn(c, 160, y_footer + 38 - h_p)
+
+    c.setStrokeColor(colors.grey)
+    c.line(width - 200, y_footer + 15, width - 40, y_footer + 15)
+    c.setFont("Helvetica", 6)
+    c.drawCentredString(width - 120, y_footer + 8, "Assinatura do Responsável")
 
     c.showPage()
     c.save()
