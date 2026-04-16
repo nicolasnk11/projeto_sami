@@ -10,12 +10,12 @@
             </a>
             <div>
                 <h4 class="fw-bold text-dark mb-0">Perfil do Aluno</h4>
-                <p class="text-muted small mb-0">Visão detalhada de desempenho e histórico.</p>
+                <p class="text-muted small mb-0">Visão detalhada de desempenho e engajamento.</p>
             </div>
         </div>
         <div class="w-100 w-md-auto">
             <a href="{% url 'gerar_boletim_pdf' aluno.id %}" class="btn btn-dark shadow-sm rounded-pill px-4 py-2 fw-bold transition-hover w-100 w-md-auto d-flex justify-content-center align-items-center" data-bs-toggle="tooltip" title="Gerar relatório em PDF (Boletim)">
-                <i class="bi bi-printer-fill me-2"></i> Imprimir Boletim
+                <i class="bi bi-printer-fill me-2 text-sami-gold"></i> Imprimir Boletim
             </a>
         </div>
     </div>
@@ -24,7 +24,7 @@
         <div class="card-body p-0">
             <div class="row g-0">
                 
-                <div class="col-md-4 bg-white p-4 p-md-5 border-end d-flex flex-column align-items-center justify-content-center text-center position-relative">
+                <div class="col-lg-4 bg-white p-4 p-md-5 border-end d-flex flex-column align-items-center justify-content-center text-center position-relative">
                     
                     <div class="bg-light text-dark rounded-circle d-flex align-items-center justify-content-center border shadow-sm mb-3 position-relative" 
                          style="width: 100px; height: 100px; font-size: 3rem; font-weight: bold;">
@@ -38,27 +38,35 @@
                     </span>
                     
                     <div class="row w-100 g-2">
-                        <div class="col-6">
+                        <div class="col-4">
                             <div class="bg-light p-3 rounded-4 shadow-sm border h-100 transition-hover">
-                                <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Média Geral</small>
-                                <span class="fs-4 fw-bold {% if media_geral >= 6 %}text-success{% else %}text-danger{% endif %}">
+                                <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.60rem; letter-spacing: 1px;">Aproveitamento</small>
+                                <span class="fs-5 fw-bold {% if media_geral >= 60 %}text-success{% else %}text-danger{% endif %}">
                                     {{ media_geral }}%
                                 </span>
                             </div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
                             <div class="bg-light p-3 rounded-4 shadow-sm border h-100 transition-hover">
-                                <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Avaliações</small>
-                                <span class="fs-4 fw-bold text-dark">{{ total_provas }}</span>
+                                <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.60rem; letter-spacing: 1px;">Provas Feitas</small>
+                                <span class="fs-5 fw-bold text-dark">{{ provas_feitas }}</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light p-3 rounded-4 shadow-sm border h-100 transition-hover {% if ausencias > 0 %}border-warning{% endif %}">
+                                <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.60rem; letter-spacing: 1px;">Faltas</small>
+                                <span class="fs-5 fw-bold {% if ausencias > 0 %}text-danger{% else %}text-dark{% endif %}">{{ ausencias }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-8 p-4 bg-white">
+                <div class="col-lg-8 p-4 bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow me-2 text-secondary"></i>Curva de Aprendizado</h6>
-                        <small class="text-muted fw-bold">Histórico de Notas (%)</small>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow me-2 text-secondary"></i>Curva de Aprendizado</h6>
+                            <small class="text-muted">Histórico de evolução nas avaliações</small>
+                        </div>
                     </div>
                     <div style="height: 280px; width: 100%;">
                         <canvas id="chartEvolucao"></canvas>
@@ -74,30 +82,32 @@
         <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100 rounded-4">
                 <div class="card-header bg-white border-0 py-3 d-flex align-items-center border-bottom border-light">
-                    <i class="bi bi-trophy-fill fs-4 text-success me-3"></i>
+                    <div class="bg-success bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                        <i class="bi bi-trophy-fill text-success fs-5"></i>
+                    </div>
                     <div>
                         <h6 class="fw-bold text-dark mb-0">Pontos Fortes</h6>
-                        <small class="text-muted">Descritores com melhor desempenho</small>
+                        <small class="text-muted">Descritores com maior domínio</small>
                     </div>
                 </div>
                 <div class="card-body">
                     {% for hab in habilidades_fortes %}
-                        <div class="mb-3 transition-hover p-2 rounded-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="badge bg-light text-dark border">{{ hab.codigo }}</span>
+                        <div class="mb-3 transition-hover p-2 rounded-3 bg-light border border-light">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-white text-dark border shadow-sm">{{ hab.codigo }}</span>
                                 <span class="fw-bold text-success small">{{ hab.perc }}%</span>
                             </div>
-                            <div class="progress rounded-pill bg-light border" style="height: 8px;">
+                            <div class="progress rounded-pill bg-white border shadow-sm" style="height: 10px;">
                                 <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {{ hab.perc }}%"></div>
                             </div>
-                            <small class="text-dark d-block mt-1 text-truncate fw-medium" title="{{ hab.descricao }}" data-bs-toggle="tooltip">
+                            <small class="text-secondary d-block mt-2 text-truncate fw-medium" title="{{ hab.descricao }}" data-bs-toggle="tooltip">
                                 {{ hab.descricao }}
                             </small>
                         </div>
                     {% empty %}
                         <div class="text-center py-5 text-muted opacity-50">
-                            <i class="bi bi-bar-chart-steps display-4"></i>
-                            <p class="small mt-2 fw-bold text-dark">Ainda sem dados suficientes.</p>
+                            <i class="bi bi-bar-chart-steps display-4 mb-2 d-block"></i>
+                            <p class="small mb-0 fw-bold text-dark">Ainda sem dados suficientes.</p>
                         </div>
                     {% endfor %}
                 </div>
@@ -107,7 +117,9 @@
         <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100 rounded-4">
                 <div class="card-header bg-white border-0 py-3 d-flex align-items-center border-bottom border-light">
-                    <i class="bi bi-exclamation-triangle-fill fs-4 text-danger me-3"></i>
+                    <div class="bg-danger bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                    </div>
                     <div>
                         <h6 class="fw-bold text-dark mb-0">Pontos de Atenção</h6>
                         <small class="text-muted">Habilidades que requerem reforço</small>
@@ -115,23 +127,25 @@
                 </div>
                 <div class="card-body">
                     {% for hab in habilidades_fracas %}
-                        <div class="mb-3 transition-hover p-2 rounded-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="badge bg-light text-dark border">{{ hab.codigo }}</span>
+                        <div class="mb-3 transition-hover p-2 rounded-3 bg-light border border-light">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-white text-dark border shadow-sm">{{ hab.codigo }}</span>
                                 <span class="fw-bold text-danger small">{{ hab.perc }}%</span>
                             </div>
-                            <div class="progress rounded-pill bg-light border" style="height: 8px;">
+                            <div class="progress rounded-pill bg-white border shadow-sm" style="height: 10px;">
                                 <div class="progress-bar bg-danger rounded-pill" role="progressbar" style="width: {{ hab.perc }}%"></div>
                             </div>
-                            <small class="text-dark d-block mt-1 text-truncate fw-medium" title="{{ hab.descricao }}" data-bs-toggle="tooltip">
+                            <small class="text-secondary d-block mt-2 text-truncate fw-medium" title="{{ hab.descricao }}" data-bs-toggle="tooltip">
                                 {{ hab.descricao }}
                             </small>
                         </div>
                     {% empty %}
                         <div class="text-center py-5">
-                            <i class="bi bi-check-circle-fill text-success fs-1 mb-2 d-block"></i>
-                            <p class="small mb-0 fw-bold text-dark">Tudo certo!</p>
-                            <p class="small text-muted">Nenhuma habilidade crítica identificada.</p>
+                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-check-lg text-success fs-1"></i>
+                            </div>
+                            <p class="mb-0 fw-bold text-dark">Tudo certo!</p>
+                            <p class="small text-muted">Nenhuma deficiência crítica identificada.</p>
                         </div>
                     {% endfor %}
                 </div>
@@ -141,8 +155,8 @@
 
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center border-bottom border-light">
-            <h6 class="fw-bold text-dark mb-0 ms-2"><i class="bi bi-clock-history me-2 text-secondary"></i>Histórico de Provas</h6>
-            <span class="badge bg-light text-dark border shadow-sm">{{ total_provas }} Avaliações</span>
+            <h6 class="fw-bold text-dark mb-0 ms-2"><i class="bi bi-clock-history me-2 text-secondary"></i>Histórico Detalhado</h6>
+            <span class="badge bg-light text-dark border shadow-sm">{{ total_provas }} Registros</span>
         </div>
         <div class="table-responsive custom-scrollbar" style="max-height: 400px;">
             <table class="table table-hover align-middle mb-0 text-nowrap">
@@ -151,7 +165,7 @@
                         <th class="ps-4 bg-light border-0 py-3">Data</th>
                         <th class="bg-light border-0">Avaliação</th>
                         <th class="bg-light border-0">Disciplina</th>
-                        <th class="text-center bg-light border-0">Nota</th>
+                        <th class="text-center bg-light border-0">Aproveitamento</th>
                         <th class="text-end pe-4 bg-light border-0">Situação</th>
                     </tr>
                 </thead>
@@ -162,17 +176,25 @@
                         <td>
                             <span class="d-block fw-bold text-dark text-truncate" style="max-width: 250px;" title="{{ res.avaliacao.titulo }}">{{ res.avaliacao.titulo }}</span>
                         </td>
-                        <td><span class="badge bg-light text-dark border shadow-sm">{{ res.avaliacao.disciplina.nome }}</span></td>
+                        <td><span class="badge bg-light text-dark border shadow-sm px-2 py-1">{{ res.avaliacao.disciplina.nome }}</span></td>
+                        
                         <td class="text-center">
-                            <span class="fw-bold fs-6 {% if res.percentual >= 60 %}text-success{% else %}text-danger{% endif %}">
-                                {{ res.percentual|floatformat:1 }}%
-                            </span>
-                        </td>
-                        <td class="text-end pe-4">
-                            {% if res.percentual >= 60 %}
-                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 shadow-sm">APROVADO</span>
+                            {% if res.percentual is None %}
+                                <span class="fw-bold fs-6 text-muted">-</span>
                             {% else %}
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 shadow-sm">REFORÇO</span>
+                                <span class="fw-bold fs-6 {% if res.percentual >= 60 %}text-success{% else %}text-danger{% endif %}">
+                                    {{ res.percentual|floatformat:1 }}%
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="text-end pe-4">
+                            {% if res.percentual is None %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-2 shadow-sm"><i class="bi bi-person-dash-fill me-1"></i> AUSENTE</span>
+                            {% elif res.percentual >= 60 %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 shadow-sm"><i class="bi bi-check-circle-fill me-1"></i> APROVADO</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-2 shadow-sm"><i class="bi bi-arrow-up-right-circle-fill me-1"></i> REFORÇO</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -194,7 +216,7 @@
         const labels = {{ labels_evo|safe }};
         const data = {{ dados_evo|safe }};
 
-        // Gradiente Verde Escuro Profissional (Não intrusivo)
+        // Gradiente Verde Escuro Profissional
         let gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, 'rgba(17, 66, 43, 0.2)'); 
         gradient.addColorStop(1, 'rgba(17, 66, 43, 0.0)'); 
@@ -214,7 +236,8 @@
                     pointRadius: 5,
                     pointHoverRadius: 7,
                     fill: true,
-                    tension: 0.3
+                    tension: 0.3,
+                    spanGaps: true // 🔥 MAGIA: Se a nota for nula (Ausente), a linha não quebra! Ela conecta as provas que ele fez.
                 }]
             },
             options: {
@@ -229,6 +252,10 @@
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
+                                // Se for nulo, avisa no gráfico que ele faltou.
+                                if (context.parsed.y === null || isNaN(context.parsed.y)) {
+                                    return 'ALUNO AUSENTE (2ª Chamada)';
+                                }
                                 return context.parsed.y + '% de Aproveitamento';
                             }
                         }

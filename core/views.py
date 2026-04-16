@@ -2060,14 +2060,21 @@ def api_filtrar_alunos(request):
 
 @login_required
 def perfil_aluno(request, aluno_id):
+    import json
     aluno = get_object_or_404(Aluno, id=aluno_id)
     
     resultados = Resultado.objects.filter(matricula__aluno=aluno).select_related('avaliacao', 'avaliacao__alocacao__disciplina').order_by('avaliacao__data_aplicacao')
     
     labels_evo = [res.avaliacao.titulo[:15] + '...' for res in resultados] 
-    dados_evo = [float(res.percentual) for res in resultados]
     
-    media_geral = sum(dados_evo) / len(dados_evo) if dados_evo else 0
+    # 🔥 BLINDAGEM: Converte para float se houver nota, ou None se for Ausência.
+    # O json.dumps vai converter o Python 'None' para o Javascript 'null', que o Chart.js entende perfeitamente!
+    dados_evo = [float(res.percentual) if res.percentual is not None else None for res in resultados]
+    
+    # Cálculos táticos
+    notas_validas = [n for n in dados_evo if n is not None]
+    media_geral = sum(notas_validas) / len(notas_validas) if notas_validas else 0.0
+    ausencias = len(dados_evo) - len(notas_validas)
     
     respostas = RespostaDetalhada.objects.filter(resultado__in=resultados).select_related('item_gabarito__descritor', 'questao__descritor')
     stats_descritores = {}
@@ -2089,7 +2096,7 @@ def perfil_aluno(request, aluno_id):
             
     lista_habilidades = []
     for cod, dados in stats_descritores.items():
-        perc = (dados['acertos'] / dados['total']) * 100
+        perc = (dados['acertos'] / dados['total']) * 100 if dados['total'] > 0 else 0.0
         lista_habilidades.append({
             'codigo': cod,
             'descricao': dados['obj'].descricao,
@@ -2105,9 +2112,11 @@ def perfil_aluno(request, aluno_id):
         'aluno': aluno,
         'media_geral': round(media_geral, 1),
         'total_provas': resultados.count(),
+        'provas_feitas': len(notas_validas),
+        'ausencias': ausencias,
         'labels_evo': json.dumps(labels_evo),
         'dados_evo': json.dumps(dados_evo),
-        'habilidades_fortes':habilidades_fortes,
+        'habilidades_fortes': habilidades_fortes,
         'habilidades_fracas': habilidades_fracas,
         'historico': resultados.order_by('-avaliacao__data_aplicacao')
     }
