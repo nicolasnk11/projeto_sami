@@ -2173,7 +2173,7 @@ def mapa_calor(request, avaliacao_id):
     
     return render(request, 'core/mapa_calor.html', context)
 
-# BOLETIM PDF (DELUXE EDITION - PARECER NO FINAL)
+# BOLETIM PDF (DELUXE EDITION - BRAND SAMI)
 @login_required
 def gerar_boletim_pdf(request, aluno_id):
     import io
@@ -2262,6 +2262,19 @@ def gerar_boletim_pdf(request, aluno_id):
             'total_questoes': dados['total'],
             'perc': round(perc, 1)
         })
+
+    # 🔥 CORREÇÃO: Recuperando os Pontos Fortes e de Atenção para a Página 1
+    pontos_fortes = []
+    pontos_atencao = []
+    for hab in lista_habilidades:
+        texto_fmt = f"{hab['codigo']} - {hab['descricao'][:35]}..."
+        if hab['perc'] >= 70:
+            pontos_fortes.append(texto_fmt)
+        elif hab['perc'] <= 50:
+            pontos_atencao.append(texto_fmt)
+            
+    pontos_fortes = pontos_fortes[:3]
+    pontos_atencao = pontos_atencao[:3]
 
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
@@ -2370,6 +2383,7 @@ def gerar_boletim_pdf(request, aluno_id):
             else:
                 c.setFillColor(COR_DANGER)
                 c.drawCentredString(center_x, y_base + 5, "AUSENTE")
+            
             c.setFillColor(COR_DEEP)
             c.drawCentredString(center_x, y_base - 15, dado['label'])
         else:
@@ -2455,8 +2469,6 @@ def gerar_boletim_pdf(request, aluno_id):
     t.drawOn(c, 40, y_table_title - h_t - 10)
     
     y_current = y_table_title - h_t - 40
-
-    # Retiramos o Parecer daqui e movemos para a última página!
 
     if pontos_fortes or pontos_atencao:
         c.setFillColor(COR_DEEP)
@@ -2549,12 +2561,14 @@ def gerar_boletim_pdf(request, aluno_id):
     t_prof.setStyle(TableStyle(estilo_tabela_prof))
     w_p, h_p = t_prof.wrapOn(c, width, height)
     
-    # Desenha a tabela
-    t_prof.drawOn(c, 40, y_prof - h_p)
+    if y_prof - h_p < 40:
+        t_prof.drawOn(c, 40, y_prof - h_p)
+    else:
+        t_prof.drawOn(c, 40, y_prof - h_p)
 
 
     # ==========================================
-    # PÁGINA 3 E SEGUINTES: MAPA DE CALOR
+    # PÁGINA 3 E SEGUINTES: MAPA DE CALOR E PARECER
     # ==========================================
     c.showPage() 
     c.setFillColor(COR_DEEP)
@@ -2647,7 +2661,6 @@ def gerar_boletim_pdf(request, aluno_id):
         c.drawString(40, y_heat, "Nenhuma prova com respostas registradas encontrada.")
         y_heat -= 20
 
-    # Legenda Final do Mapa de Calor
     y_heat -= 10
     c.setFont("Helvetica-Bold", 8)
     c.setFillColor(COR_TEXT)
@@ -2657,13 +2670,11 @@ def gerar_boletim_pdf(request, aluno_id):
     c.setFillColor(COR_DANGER); c.drawString(145, y_heat, "X (Erro)")
     c.setFillColor(COR_WARNING); c.drawString(185, y_heat, "- (Nula/Em Branco)")
 
-
     # ==========================================
     # RODAPÉ FINAL (O PARECER)
     # ==========================================
     y_heat -= 30
     
-    # Se a página atual já estiver cheia, criamos uma nova só para a assinatura
     if y_heat < 100:
         c.showPage()
         y_heat = height - 80
