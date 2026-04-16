@@ -2173,7 +2173,6 @@ def mapa_calor(request, avaliacao_id):
     
     return render(request, 'core/mapa_calor.html', context)
 
-# BOLETIM PDF (DELUXE EDITION - BRAND SAMI)
 @login_required
 def gerar_boletim_pdf(request, aluno_id):
     import io
@@ -2199,24 +2198,18 @@ def gerar_boletim_pdf(request, aluno_id):
     if resultados.exists():
         for i, res in enumerate(resultados):
             
-            # 🔥 BLINDAGEM DE AUSÊNCIA
             if res.percentual is None:
                 nota_aluno = None
-                
                 media_turma_val = Resultado.objects.filter(avaliacao=res.avaliacao).aggregate(Avg('percentual'))['percentual__avg']
                 nota_turma = round(media_turma_val / 10, 1) if media_turma_val else 0.0
-                
                 status = "AUSENTE"
                 ausencias += 1
             else:
                 nota_aluno = round(res.percentual / 10, 1)
-                
                 media_turma_val = Resultado.objects.filter(avaliacao=res.avaliacao).aggregate(Avg('percentual'))['percentual__avg']
                 nota_turma = round(media_turma_val / 10, 1) if media_turma_val else 0.0
-                
                 status = "ACIMA" if nota_aluno >= nota_turma else "ABAIXO"
                 if nota_aluno < 6: status = "CRÍTICO"
-                
                 notas_validas_lista.append(nota_aluno)
             
             dados_grafico.append({
@@ -2241,7 +2234,6 @@ def gerar_boletim_pdf(request, aluno_id):
             nota_anterior = notas_validas_lista[-2]
         else:
             ultima_nota = nota_anterior = 0
-            
     else:
         media_geral = 0.0
         ultima_nota = nota_anterior = 0
@@ -2256,44 +2248,45 @@ def gerar_boletim_pdf(request, aluno_id):
         
         if desc:
             if desc.codigo not in stats_habilidades:
-                stats_habilidades[desc.codigo] = {'texto': desc.descricao, 'total': 0, 'acertos': 0}
+                stats_habilidades[desc.codigo] = {'obj': desc, 'total': 0, 'acertos': 0}
             stats_habilidades[desc.codigo]['total'] += 1
             if resp.acertou: stats_habilidades[desc.codigo]['acertos'] += 1
             
-    pontos_fortes = []
-    pontos_atencao = []
-    
+    lista_habilidades = []
     for cod, dados in stats_habilidades.items():
         perc = (dados['acertos'] / dados['total']) * 100
-        texto_fmt = f"{cod} - {dados['texto'][:35]}..."
-        if perc >= 70: pontos_fortes.append(texto_fmt)
-        elif perc <= 50: pontos_atencao.append(texto_fmt)
-    
-    pontos_fortes = pontos_fortes[:3]
-    pontos_atencao = pontos_atencao[:3]
+        lista_habilidades.append({
+            'codigo': cod,
+            'descricao': dados['obj'].descricao,
+            'acertos': dados['acertos'],
+            'total_questoes': dados['total'],
+            'perc': round(perc, 1)
+        })
 
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     
-    # 🎨 CORES OFICIAIS SAMI DELUXE
-    COR_DEEP = colors.HexColor("#0A2619")     # Verde Escuro
-    COR_ACCENT = colors.HexColor("#D4AF37")   # Dourado
-    COR_LIGHT = colors.HexColor("#f8f9fa")    # Fundo Claro
-    COR_TEXT = colors.HexColor("#212529")     # Texto Padrão
-    COR_SUCCESS = colors.HexColor("#198754")  # Verde Sucesso
-    COR_DANGER = colors.HexColor("#dc3545")   # Vermelho Crítico
-    COR_WARNING = colors.HexColor("#ffc107")  # Amarelo Alerta
+    COR_DEEP = colors.HexColor("#0A2619")     
+    COR_ACCENT = colors.HexColor("#D4AF37")   
+    COR_LIGHT = colors.HexColor("#f8f9fa")    
+    COR_TEXT = colors.HexColor("#212529")     
+    COR_SUCCESS = colors.HexColor("#198754")  
+    COR_DANGER = colors.HexColor("#dc3545")   
+    COR_WARNING = colors.HexColor("#ffc107")  
 
-    # ===== DESENHO DA PÁGINA 1 =====
-    # Fundo Decorativo Superior
+    styles = getSampleStyleSheet()
+
+    # ==========================================
+    # PÁGINA 1: RESUMO E HISTÓRICO
+    # ==========================================
     p = c.beginPath()
     p.moveTo(0, height)
     p.lineTo(width, height)
     p.lineTo(width, height - 120)
     p.curveTo(width, height - 120, width/2, height - 200, 0, height - 120)
     p.close()
-    c.setFillColor(colors.Color(10/255, 38/255, 25/255, alpha=0.1)) # Verde claro transparente
+    c.setFillColor(colors.Color(10/255, 38/255, 25/255, alpha=0.1))
     c.drawPath(p, fill=1, stroke=0)
 
     p2 = c.beginPath()
@@ -2320,7 +2313,6 @@ def gerar_boletim_pdf(request, aluno_id):
 
     y_info = height - 190
     
-    # Foto/Avatar do Aluno
     c.setStrokeColor(COR_ACCENT)
     c.setFillColor(COR_LIGHT)
     c.circle(70, y_info, 35, fill=1, stroke=1)
@@ -2335,7 +2327,6 @@ def gerar_boletim_pdf(request, aluno_id):
     c.setFont("Helvetica", 11)
     c.drawString(120, y_info - 10, f"Matrícula: #{aluno.id}  •  Turma: {nome_turma}")
     
-    # Bloco da Média Geral
     c.setFillColor(COR_LIGHT)
     c.roundRect(width - 160, y_info - 25, 120, 60, 10, fill=1, stroke=0)
     
@@ -2398,7 +2389,7 @@ def gerar_boletim_pdf(request, aluno_id):
                 for pt in valid_points: p.lineTo(pt[0], pt[1])
                 p.lineTo(valid_points[-1][0], y_base)
                 p.close()
-                c.setFillColor(colors.Color(10/255, 38/255, 25/255, alpha=0.1)) # Sombra verde
+                c.setFillColor(colors.Color(10/255, 38/255, 25/255, alpha=0.1))
                 c.drawPath(p, fill=1, stroke=0)
                 
                 c.setStrokeColor(COR_DEEP); c.setLineWidth(2)
@@ -2433,7 +2424,6 @@ def gerar_boletim_pdf(request, aluno_id):
     if not dados_tabela: table_data_full.append(['-']*6)
 
     t = Table(table_data_full, colWidths=[50, 180, 110, 50, 50, 80])
-    
     estilo = [
         ('BACKGROUND', (0,0), (-1,0), COR_DEEP),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
@@ -2450,7 +2440,6 @@ def gerar_boletim_pdf(request, aluno_id):
     for idx, row in enumerate(dados_tabela):
         linha = idx + 1
         nota_str = row[3]
-        
         if nota_str == "-":
             estilo.append(('TEXTCOLOR', (3, linha), (5, linha), colors.grey))
             estilo.append(('FONTNAME', (5, linha), (5, linha), 'Helvetica-Bold'))
@@ -2459,7 +2448,6 @@ def gerar_boletim_pdf(request, aluno_id):
             cor = COR_SUCCESS if nota >= 6 else COR_DANGER
             estilo.append(('TEXTCOLOR', (3, linha), (3, linha), cor))
             estilo.append(('FONTNAME', (3, linha), (3, linha), 'Helvetica-Bold'))
-            
             status_cor = COR_SUCCESS if row[5] == "ACIMA" else COR_DANGER if row[5] == "CRÍTICO" else colors.grey
             estilo.append(('TEXTCOLOR', (5, linha), (5, linha), status_cor))
 
@@ -2467,40 +2455,7 @@ def gerar_boletim_pdf(request, aluno_id):
     w_t, h_t = t.wrapOn(c, width, height)
     t.drawOn(c, 40, y_table_title - h_t - 10)
     
-    y_current = y_table_title - h_t - 40
-
-    if pontos_fortes or pontos_atencao:
-        c.setFillColor(COR_DEEP)
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(40, y_current, "Raio-X de Habilidades (Pedagógico)")
-        y_current -= 20
-
-        data_hab = [['DOMINADAS (+70%)', 'EM DESENVOLVIMENTO (-50%)']]
-        max_len = max(len(pontos_fortes), len(pontos_atencao))
-        if max_len == 0: max_len = 1 
-        
-        for i in range(max_len):
-            forte = pontos_fortes[i] if i < len(pontos_fortes) else ""
-            fraco = pontos_atencao[i] if i < len(pontos_atencao) else ""
-            data_hab.append([forte, fraco])
-
-        t_hab = Table(data_hab, colWidths=[255, 255])
-        t_hab.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (0,0), colors.HexColor("#dcfce7")), 
-            ('BACKGROUND', (1,0), (1,0), colors.HexColor("#fee2e2")), 
-            ('TEXTCOLOR', (0,0), (0,0), COR_DEEP),
-            ('TEXTCOLOR', (1,0), (1,0), COR_DANGER),
-            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0,0), (-1,-1), 8),
-            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
-        ]))
-        
-        w_hab, h_hab = t_hab.wrapOn(c, width, height)
-        t_hab.drawOn(c, 40, y_current - h_hab)
-    
+    # Rodapé da Página 1
     y_footer = 50
     tendencia = ""
     if len(notas_validas_lista) >= 2:
@@ -2513,15 +2468,12 @@ def gerar_boletim_pdf(request, aluno_id):
 
     c.setFillColor(COR_LIGHT)
     c.roundRect(40, y_footer, width - 80, 50, 6, fill=1, stroke=0)
-    
     c.setFillColor(COR_DEEP)
     c.setFont("Helvetica-Bold", 9)
     c.drawString(50, y_footer + 32, "PARECER DO SISTEMA:")
     
-    styles = getSampleStyleSheet()
     estilo_parecer = ParagraphStyle('ParecerStyle', parent=styles['Normal'], fontSize=9, textColor=COR_TEXT, leading=11)
     parecer_para = Paragraph(msg_texto, estilo_parecer)
-    
     w_p, h_p = parecer_para.wrap(width - 210, 40)
     parecer_para.drawOn(c, 160, y_footer + 38 - h_p)
 
@@ -2530,7 +2482,78 @@ def gerar_boletim_pdf(request, aluno_id):
     c.setFont("Helvetica", 6)
     c.drawCentredString(width - 120, y_footer + 8, "Assinatura do Responsável")
 
-    # ===== DESENHO DA PÁGINA 2 (MAPA DE CALOR) =====
+    # ==========================================
+    # PÁGINA 2: TABELA DE PROFICIÊNCIA
+    # ==========================================
+    c.showPage() 
+    c.setFillColor(COR_DEEP)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(40, height - 60, "ANÁLISE DE PROFICIÊNCIA")
+    c.setFont("Helvetica", 10)
+    c.setFillColor(COR_TEXT)
+    c.drawString(40, height - 80, "Detalhamento de domínio por Habilidade/Descritor cobrado.")
+
+    y_prof = height - 110
+    
+    estilo_desc = ParagraphStyle('DescStyle', parent=styles['Normal'], fontSize=8, textColor=COR_TEXT, leading=10)
+    
+    dados_prof = [['CÓDIGO', 'DESCRIÇÃO DA HABILIDADE', 'ACERTOS', 'DESEMPENHO']]
+    
+    # Ordena as habilidades do melhor para o pior
+    habilidades_ordenadas = sorted(lista_habilidades, key=lambda x: x['perc'], reverse=True)
+    
+    for hab in habilidades_ordenadas:
+        desc_p = Paragraph(hab['descricao'], estilo_desc)
+        dados_prof.append([
+            hab['codigo'],
+            desc_p,
+            f"{hab['acertos']}/{hab['total_questoes']}",
+            f"{hab['perc']}%"
+        ])
+
+    if not habilidades_ordenadas:
+        dados_prof.append(['-', 'Nenhuma habilidade registrada', '-', '-'])
+
+    t_prof = Table(dados_prof, colWidths=[60, 315, 60, 80])
+    
+    estilo_tabela_prof = [
+        ('BACKGROUND', (0,0), (-1,0), COR_DEEP),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('ALIGN', (1,1), (1,-1), 'LEFT'), # Alinha a descrição à esquerda
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,0), 9),
+        ('FONTSIZE', (0,1), (-1,-1), 8),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, COR_LIGHT]),
+    ]
+    
+    # Colore a coluna de percentual
+    for idx, hab in enumerate(habilidades_ordenadas, 1):
+        if hab['perc'] >= 70:
+            estilo_tabela_prof.append(('TEXTCOLOR', (3, idx), (3, idx), COR_SUCCESS))
+            estilo_tabela_prof.append(('FONTNAME', (3, idx), (3, idx), 'Helvetica-Bold'))
+        elif hab['perc'] < 50:
+            estilo_tabela_prof.append(('TEXTCOLOR', (3, idx), (3, idx), COR_DANGER))
+            estilo_tabela_prof.append(('FONTNAME', (3, idx), (3, idx), 'Helvetica-Bold'))
+
+    t_prof.setStyle(TableStyle(estilo_tabela_prof))
+    w_p, h_p = t_prof.wrapOn(c, width, height)
+    
+    # Se a tabela de proficiência for gigante, a gente previne o erro de corte
+    if y_prof - h_p < 40:
+        # Tabela muito grande, divide no reportlab automático se possível, 
+        # ou apenas desenha o que couber.
+        t_prof.drawOn(c, 40, y_prof - h_p)
+    else:
+        t_prof.drawOn(c, 40, y_prof - h_p)
+
+    # ==========================================
+    # PÁGINA 3: MAPA DE CALOR DETALHADO
+    # ==========================================
     c.showPage() 
     
     c.setFillColor(COR_DEEP)
@@ -2565,7 +2588,6 @@ def gerar_boletim_pdf(request, aluno_id):
         colors_a = []
 
         for idx, r in enumerate(resps, 1):
-            # 🔥 CORREÇÃO DO ERRO 'NoneType has no attribute numero' AQUI! 🔥
             num_questao = str(r.item_gabarito.numero) if r.item_gabarito else str(idx)
             row_q.append(num_questao)
             
@@ -2579,14 +2601,16 @@ def gerar_boletim_pdf(request, aluno_id):
                 row_a.append("X")
                 colors_a.append(COR_DANGER)
 
-        chunk_size = 25
+        # 🔥 A MÁGICA DO ALINHAMENTO: Blocos de 20 para não esmagar a tabela!
+        chunk_size = 20
         for i in range(0, len(row_q), chunk_size):
             q_chunk = row_q[i:i+chunk_size]
             a_chunk = row_a[i:i+chunk_size]
             c_chunk = colors_a[i:i+chunk_size]
 
             t_data = [q_chunk, a_chunk]
-            t = Table(t_data, colWidths=[18]*len(q_chunk), rowHeights=[15, 15])
+            # 🔥 Largura de 24 pontos fixos para não deformar!
+            t = Table(t_data, colWidths=[24]*len(q_chunk), rowHeights=[18, 18])
 
             t_style = [
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
@@ -2596,6 +2620,9 @@ def gerar_boletim_pdf(request, aluno_id):
                 ('BACKGROUND', (0,0), (-1,0), COR_LIGHT),
                 ('TEXTCOLOR', (0,0), (-1,0), COR_DEEP),
                 ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
+                # Remove o preenchimento inútil para caber a fonte
+                ('LEFTPADDING', (0,0), (-1,-1), 1),
+                ('RIGHTPADDING', (0,0), (-1,-1), 1),
             ]
 
             for col_idx, c_color in enumerate(c_chunk):
