@@ -36,6 +36,11 @@
                     <div class="fw-bold text-primary">{{ avaliacao_selecionada.disciplina.nome }}</div>
                 </div>
                 
+                <div class="text-center bg-warning bg-opacity-10 p-2 rounded-3 px-3 ms-2 border border-warning border-opacity-25" data-bs-toggle="tooltip" title="Provas Lançadas vs. Total de Alunos na Turma">
+                    <div class="h4 fw-bold text-warning mb-0" id="contadorProgresso">{{ provas_lancadas }}/{{ total_matriculados }}</div>
+                    <div class="small fw-bold text-warning opacity-75" style="font-size: 0.65rem;">LANÇADAS</div>
+                </div>
+
                 <div class="text-center bg-primary bg-opacity-10 p-2 rounded-3 px-4 ms-2">
                     <div class="h4 fw-bold text-primary mb-0">{{ itens.count }}</div>
                     <div class="small fw-bold text-primary opacity-75" style="font-size: 0.65rem;">QUESTÕES</div>
@@ -139,9 +144,12 @@
                         {% endfor %}
                     </div>
 
-                    <div class="d-grid mt-5" style="z-index: 16; position: relative;">
-                        <button type="button" class="btn btn-success btn-lg fw-bold shadow-lg py-3 rounded-pill transition-hover" onclick="salvarNotas()">
-                            <i class="bi bi-check-circle-fill me-2"></i> SALVAR NOTA
+                    <div class="d-flex gap-3 mt-5" style="z-index: 16; position: relative;">
+                        <button type="button" class="btn btn-warning bg-opacity-25 border border-warning text-dark btn-lg fw-bold shadow-sm py-3 rounded-pill transition-hover w-50" onclick="salvarNotas(true)" data-bs-toggle="tooltip" title="Salva o progresso para terminar depois, aceita espaços em branco.">
+                            <i class="bi bi-save me-2"></i> SALVAR RASCUNHO
+                        </button>
+                        <button type="button" class="btn btn-success btn-lg fw-bold shadow-lg py-3 rounded-pill transition-hover w-50" onclick="salvarNotas(false)" data-bs-toggle="tooltip" title="Salva e crava a prova! Bloqueado se houver questões em branco.">
+                            <i class="bi bi-check-circle-fill me-2"></i> ENVIAR GABARITO
                         </button>
                     </div>
                     
@@ -174,17 +182,17 @@
 
 <script>
     const AVALIACAO_ID = "{{ avaliacao_selecionada.id|default:'' }}";
+    const TOTAL_MATRICULADOS = parseInt("{{ total_matriculados|default:'0' }}");
     let ALUNO_ATUAL_ID = null;
     let isDirty = false; 
     let proximoAlunoPendente = null; 
 
-    // --- FUNÇÃO VISUAL: VALIDA COR (VERDE/VERMELHO/AMARELO) ---
     function validarCor(input) {
         const valor = input.value.trim().toUpperCase();
         const gabarito = input.dataset.gabarito.trim().toUpperCase();
-
-        input.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-warning-subtle', 'text-warning', 'bg-light');
+        input.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-warning-subtle', 'text-warning', 'bg-light', 'erro-lacuna');
         input.style.backgroundColor = '';
+        input.style.animation = ""; // Reseta a animação de erro se houver
 
         if (valor === "") {
             input.classList.add('bg-light');
@@ -200,9 +208,7 @@
         }
     }
 
-    // --- 1. SELEÇÃO DE ALUNO ---
     function selecionarAluno(elemento, id, nome, dadosScaneados = null, ignorarAviso = false) {
-        
         if (isDirty && ALUNO_ATUAL_ID !== id && ALUNO_ATUAL_ID !== null && !ignorarAviso) {
             proximoAlunoPendente = { elemento, id, nome, dadosScaneados };
             const modalAviso = new bootstrap.Modal(document.getElementById('modalAvisoSaida'));
@@ -247,7 +253,6 @@
             });
     }
 
-    // --- 2. SCANNER ---
     function lerCartao(input) {
         if (input.files && input.files[0]) {
             const formData = new FormData();
@@ -277,12 +282,10 @@
                 mostrarLoader(false); 
                 mostrarToast("Erro Crítico", "Falha no scanner.", "danger"); 
             });
-            
             input.value = '';
         }
     }
 
-    // --- 3. PREENCHIMENTO ---
     function preencherCampos(dados) {
         document.getElementById('checkAusente').checked = dados.ausente;
         toggleAusencia();
@@ -302,56 +305,83 @@
         }
     }
 
-    // --- 4. SALVAR ---
-    function salvarNotas() {
+    // 🔥 MISSÃO 2: TRAVA DE GABARITO E RASCUNHO 🔥
+    function salvarNotas(isRascunho) {
         if (!ALUNO_ATUAL_ID) return;
-        const btn = document.querySelector('.btn-success');
+        
+        const isAusenteChecked = document.getElementById('checkAusente').checked;
+        const inputs = document.querySelectorAll('.input-resposta');
+        let temLacuna = false;
+        
+        // Bloqueia e Pisca de Vermelho se tentar enviar definitivo com buracos
+        if (!isRascunho && !isAusenteChecked) {
+            inputs.forEach(inp => {
+                if (!inp.value.trim()) {
+                    temLacuna = true;
+                    inp.classList.add('erro-lacuna');
+                    // Ativa a animação CSS
+                    inp.style.animation = "piscarErro 0.6s ease 3";
+                }
+            });
+            
+            if (temLacuna) {
+                mostrarToast("Atenção, Capitão!", "O envio definitivo exige o gabarito completo. Preencha as questões em vermelho ou Salve como Rascunho.", "danger");
+                return; // 🛑 TRAVA AQUI E NÃO ENVIA
+            }
+        }
+
+        const btn = isRascunho ? document.querySelector('.btn-warning') : document.querySelector('.btn-success');
         const txt = btn.innerHTML;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
         btn.disabled = true;
 
         const respostas = {};
-        document.querySelectorAll('.input-resposta').forEach(inp => {
+        inputs.forEach(inp => {
             if(inp.value.trim() && !inp.disabled) {
                 respostas[inp.dataset.numero] = (inp.value === '*') ? 'NULA' : inp.value.trim().toUpperCase();
             }
         });
-
-        const isAusenteChecked = document.getElementById('checkAusente').checked;
 
         const payload = {
             aluno_id: ALUNO_ATUAL_ID, avaliacao_id: AVALIACAO_ID,
             respostas: respostas, ausente: isAusenteChecked
         };
 
-        const csrfToken = '{{ csrf_token }}';
-
         fetch('/api/lancar-notas-ajax/', {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'X-CSRFToken': csrfToken
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
             body: JSON.stringify(payload)
         })
         .then(res => res.json())
         .then(data => {
             btn.innerHTML = txt; btn.disabled = false;
             if (data.sucesso) {
-                mostrarToast("Salvo!", data.msg, data.is_ausente ? "warning" : "success");
+                const tipoToast = isRascunho ? "warning" : "success";
+                const textoToast = isRascunho ? "Rascunho salvo com sucesso." : data.msg;
+                mostrarToast(isRascunho ? "Rascunho" : "Salvo!", textoToast, tipoToast);
+                
                 isDirty = false; 
                 
-                // 🔥 NOVO: Atualiza a lista lateral com a cor certa!
+                // Atualiza Ícone Lateral
                 const icon = document.querySelector(`#aluno-row-${ALUNO_ATUAL_ID} .status-icon`);
                 if(icon) {
                     if (isAusenteChecked) {
                         icon.className = 'bi bi-person-dash-fill text-danger fs-5 status-icon';
                         icon.title = 'Faltou';
+                    } else if (isRascunho) {
+                        icon.className = 'bi bi-pencil-square text-warning fs-5 status-icon';
+                        icon.title = 'Rascunho';
                     } else {
                         icon.className = 'bi bi-check-circle-fill text-success fs-5 status-icon';
                         icon.title = 'Nota Lançada';
                     }
                 }
+
+                // 🔥 MISSÃO 1: Atualiza o Contador Tático na Tela
+                if (data.provas_lancadas !== undefined) {
+                    document.getElementById('contadorProgresso').innerText = `${data.provas_lancadas}/${TOTAL_MATRICULADOS}`;
+                }
+
             } else {
                 mostrarToast("Erro", data.erro, "danger");
             }
@@ -362,7 +392,6 @@
         });
     }
 
-    // --- INTERFACE GERAL ---
     function limparCampos() {
         document.querySelectorAll('.input-resposta').forEach(i => {
             i.value = '';
@@ -377,7 +406,6 @@
         const isAusente = document.getElementById('checkAusente').checked;
         const overlay = document.getElementById('overlayAusente');
         
-        // Ativa o carimbo gigante
         if (isAusente) {
             overlay.classList.remove('d-none');
             overlay.classList.add('d-flex');
@@ -414,6 +442,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
         const inputs = document.querySelectorAll('.input-resposta');
         
         inputs.forEach(input => {
@@ -443,7 +476,6 @@
                         validarCor(inputs[targetIdx]);
                     }
                 }
-                document.querySelector('.btn-success').focus();
             });
 
             input.addEventListener('focus', function() { this.select(); });
@@ -496,6 +528,18 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
         z-index: 10; 
     }
+    
+    /* 🔥 MISSÃO 2: ANIMAÇÃO DE ERRO PARA LACUNAS */
+    @keyframes piscarErro {
+        0% { background-color: #f8d7da; transform: scale(1); }
+        50% { background-color: #fff; transform: scale(1.1); }
+        100% { background-color: #f8d7da; transform: scale(1); }
+    }
+    .erro-lacuna {
+        border: 2px solid #dc3545 !important;
+        background-color: #f8d7da !important;
+    }
+
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #dee2e6; border-radius: 4px; }
     .transition-hover:hover { transform: translateY(-3px); }
