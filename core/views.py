@@ -68,6 +68,7 @@ def prof_ou_admin_check(user):
     if not user.is_authenticated: return False
     if user.is_superuser or user.is_staff: return True
     if hasattr(user, 'professor_perfil'): return True
+    if hasattr(user, 'pca_perfil'): return True 
     return False
 
 
@@ -3650,6 +3651,8 @@ def redirecionar_apos_login(request):
     if user.is_superuser or user.is_staff:
         return redirect('dashboard')
     
+    if hasattr(user, 'pca_perfil'): return redirect('dashboard_pca') 
+    
     if hasattr(user, 'professor_perfil'):
         perfil = user.professor_perfil
         # 🔥 O GUARDA DA PORTA: Se tiver "Aplicador" no nome, vai pro QG!
@@ -3718,6 +3721,84 @@ def dashboard_aplicador(request):
         'avaliacoes': avaliacoes # Alimenta a lista suspensa do Modal
     }
     return render(request, 'core/dashboard_aplicador.html', context)
+
+@login_required
+def dashboard_pca(request):
+    from django.db.models import Avg, Count, Q
+    
+    try:
+        # Pega o coordenador logado
+        pca = request.user.pca_perfil
+    except AttributeError:
+        # Se não for PCA, joga fora
+        return redirect('dashboard')
+
+    # Descobre quais áreas esse PCA comanda (ex: Linguagens e Códigos)
+    areas = pca.areas_conhecimento.all()
+    disciplinas_da_area = Disciplina.objects.filter(area_conhecimento__in=areas)
+
+    # ==========================================
+    # ABA 1: VISÃO DOCENTE (Monitorar Professores)
+    # ==========================================
+    alocacoes = Alocacao.objects.filter(disciplina__in=disciplinas_da_area).select_related('professor', 'turma', 'disciplina')
+    
+    professores_stats = {}
+    for aloc in alocacoes:
+        prof_id = aloc.professor.id
+        if prof_id not in professores_stats:
+            professores_stats[prof_id] = {
+                'id': prof_id, 
+                'nome': aloc.professor.nome_completo,
+                'turmas': set(),
+                'disciplinas': set(),
+                'provas_aplicadas': 0,
+            }
+        professores_stats[prof_id]['turmas'].add(aloc.turma.nome)
+        professores_stats[prof_id]['disciplinas'].add(aloc.disciplina.nome)
+        
+        # Quantas provas esse professor deu nessa turma/disciplina?
+        qtd_provas = Avaliacao.objects.filter(alocacao=aloc).count()
+        professores_stats[prof_id]['provas_aplicadas'] += qtd_provas
+
+    # Formatando para mandar pro HTML
+    lista_professores = []
+    for pid, dados in professores_stats.items():
+        dados['turmas'] = ", ".join(dados['turmas'])
+        dados['disciplinas'] = ", ".join(dados['disciplinas'])
+        lista_professores.append(dados)
+
+
+    # ==========================================
+    # ABA 2: VISÃO DISCENTE (Monitorar Alunos/Turmas)
+    # ==========================================
+    resultados_area = Resultado.objects.filter(avaliacao__alocacao__disciplina__in=disciplinas_da_area)
+    
+    # Desempenho médio de cada Disciplina da Área dele
+    proficiencia_disciplinas = []
+    for disc in disciplinas_da_area:
+        media = resultados_area.filter(avaliacao__alocacao__disciplina=disc).aggregate(Avg('percentual'))['percentual__avg']
+        proficiencia_disciplinas.append({
+            'nome': disc.nome,
+            'media': round(media / 10, 1) if media else 0.0
+        })
+
+    # Turmas Críticas (Abaixo da média na área)
+    turmas_criticas = resultados_area.values('matricula__turma__nome').annotate(
+        media=Avg('percentual')
+    ).filter(media__lt=60).order_by('media')[:5]
+
+    for t in turmas_criticas:
+        t['media'] = round(t['media'] / 10, 1)
+
+    context = {
+        'pca': pca,
+        'areas': areas,
+        'professores': lista_professores,
+        'proficiencia_disciplinas': proficiencia_disciplinas,
+        'turmas_criticas': turmas_criticas,
+    }
+    
+    return render(request, 'core/dashboard_pca.html', context)
 
 @user_passes_test(admin_check, login_url='/redirecionar/')
 def gerenciar_virada_ano(request):

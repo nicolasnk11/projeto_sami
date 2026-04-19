@@ -21,6 +21,13 @@ class ConfiguracaoSistema(models.Model):
 
 class Disciplina(models.Model):
     nome = models.CharField(max_length=50, unique=True, verbose_name="Nome da Disciplina")
+    # 🔥 Novo vínculo com o banco
+    area_conhecimento = models.ForeignKey(
+        'AreaConhecimento', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True, 
+        related_name='disciplinas'
+    )
     area_enem = models.CharField('Área do ENEM', max_length=50, null=True, blank=True)
     def __str__(self): return self.nome
 
@@ -366,3 +373,26 @@ class Tutorial(models.Model):
     link_video = models.URLField(blank=True, null=True)
     
     def __str__(self): return self.titulo
+    
+class AreaConhecimento(models.Model):
+    nome = models.CharField(max_length=100, unique=True)
+    # Ex: 'Linguagens', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas'
+
+    class Meta:
+        verbose_name = "Área de Conhecimento"
+        verbose_name_plural = "Áreas de Conhecimento"
+
+    def __str__(self): return self.nome
+    
+class CoordenadorArea(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='pca_perfil')
+    nome_completo = models.CharField(max_length=150)
+    # Um PCA pode coordenar uma ou mais áreas (ex: Linguagens e Códigos)
+    areas_conhecimento = models.ManyToManyField(AreaConhecimento, related_name='coordenadores')
+
+    class Meta:
+        verbose_name = "Coordenador de Área (PCA)"
+        verbose_name_plural = "Coordenadores de Área (PCAs)"
+
+    def __str__(self):
+        return f"PCA: {self.nome_completo}"

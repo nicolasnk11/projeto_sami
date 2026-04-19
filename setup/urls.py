@@ -20,6 +20,7 @@ urlpatterns = [
     path('painel-gestao/', views.painel_gestao, name='painel_gestao'),
     path('ajuda/', views.central_ajuda, name='central_ajuda'),
     path('professor/', views.area_professor, name='area_professor'),
+    path('coordenador/', views.dashboard_pca, name='dashboard_pca'),
 
     # --- AVALIAÇÕES ---
     path('avaliacoes/', views.gerenciar_avaliacoes, name='gerenciar_avaliacoes'),

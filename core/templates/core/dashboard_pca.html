@@ -1,0 +1,186 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4" style="border-left: 5px solid #D4AF37; padding-left: 15px; background: linear-gradient(90deg, rgba(10,38,25,0.05) 0%, rgba(255,255,255,0) 100%); border-radius: 0 8px 8px 0; padding-top: 10px; padding-bottom: 10px;">
+        <div>
+            <h2 class="h4 mb-1" style="color: #0A2619; font-weight: 800; letter-spacing: -0.5px;">PAINEL DE COMANDO DA COORDENAÇÃO</h2>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;"><i class="bi bi-shield-check text-warning me-1"></i> PCA: <strong>{{ pca.nome_completo }}</strong> | Áreas de Domínio: {% for a in areas %}{{ a.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs border-bottom-0 mb-4" id="pcaTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active px-4 py-3 rounded-top border-0" id="docente-tab" data-bs-toggle="tab" data-bs-target="#docente" type="button" role="tab" style="color: #0A2619; font-weight: 600; background-color: #f8f9fa;">
+                <i class="bi bi-person-workspace me-2 text-warning"></i> Visão Docente
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4 py-3 rounded-top border-0" id="discente-tab" data-bs-toggle="tab" data-bs-target="#discente" type="button" role="tab" style="color: #0A2619; font-weight: 600;">
+                <i class="bi bi-bar-chart-steps me-2 text-warning"></i> Visão Discente
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pcaTabsContent">
+        
+        <div class="tab-pane fade show active" id="docente" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                    <h5 style="color: #0A2619; font-weight: 700; margin: 0;"><i class="bi bi-journal-check me-2"></i> Auditoria Pedagógica</h5>
+                    
+                    <div class="input-group" style="width: 300px;">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="searchProf" class="form-control bg-light border-start-0" placeholder="Buscar professor...">
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle border-top" id="tabelaProfessores">
+                            <thead style="background-color: #f1f5f9; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <tr>
+                                    <th class="ps-3 border-0">Corpo Docente</th>
+                                    <th class="border-0">Disciplinas</th>
+                                    <th class="border-0">Turmas Atendidas</th>
+                                    <th class="text-center border-0">Avaliações App.</th>
+                                    <th class="text-end pe-3 border-0">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prof in professores %}
+                                <tr class="prof-row">
+                                    <td class="ps-3 fw-bold" style="color: #0f172a;">{{ prof.nome }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ prof.disciplinas }}</span></td>
+                                    <td><small class="text-muted">{{ prof.turmas }}</small></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-{% if prof.provas_aplicadas > 0 %}success{% else %}danger{% endif %} rounded-pill px-3">
+                                            {{ prof.provas_aplicadas }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <button class="btn btn-sm btn-light border shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalProf{{ prof.id }}" style="color: #0A2619;">
+                                            <i class="bi bi-eye me-1"></i> Acessar
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <div class="modal fade" id="modalProf{{ prof.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header text-white" style="background-color: #0A2619;">
+                                                <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i> Relatório Docente</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <h6 class="fw-bold mb-3">{{ prof.nome }}</h6>
+                                                <ul class="list-group list-group-flush mb-3">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                        Componentes Curriculares
+                                                        <span class="text-muted text-end">{{ prof.disciplinas }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                        Lotação (Turmas)
+                                                        <span class="text-muted text-end">{{ prof.turmas }}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                        Avaliações Lançadas no SAMI
+                                                        <span class="badge bg-primary rounded-pill">{{ prof.provas_aplicadas }}</span>
+                                                    </li>
+                                                </ul>
+                                                <div class="alert alert-warning border-warning" role="alert">
+                                                    <i class="bi bi-info-circle-fill me-2"></i> Para auditar as notas lançadas por este professor nos Diários (NDI), acesse a aba "Gestão de Turmas".
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i> Nenhum professor vinculado a esta área de coordenação.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="discente" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100 rounded-3">
+                        <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                            <h5 style="color: #0A2619; font-weight: 700; margin: 0;"><i class="bi bi-pie-chart-fill me-2 text-warning"></i> Proficiência da Área</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for disc in proficiencia_disciplinas %}
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-bold" style="color: #334155;">{{ disc.nome }}</span>
+                                    <span class="badge bg-{% if disc.media >= 6 %}success{% else %}danger{% endif %} shadow-sm">{{ disc.media }}</span>
+                                </div>
+                                <div class="progress" style="height: 6px; border-radius: 10px;">
+                                    <div class="progress-bar bg-{% if disc.media >= 6 %}success{% else %}danger{% endif %}" role="progressbar" style="width: {{ disc.media }}0%;"></div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-bar-chart text-muted fs-1 mb-2"></i>
+                                <p class="text-muted">Aguardando lançamento de resultados.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100 rounded-3" style="border-top: 4px solid #e11d48 !important;">
+                        <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                            <h5 style="color: #e11d48; font-weight: 700; margin: 0;"><i class="bi bi-exclamation-triangle-fill me-2"></i> Radar de Alerta (Turmas)</h5>
+                            <small class="text-muted">Abaixo da média na área gerida</small>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush mt-2">
+                                {% for turma in turmas_criticas %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-light">
+                                    <span class="fw-bold text-dark">{{ turma.matricula__turma__nome }}</span>
+                                    <span class="badge bg-danger rounded-pill px-3 shadow-sm">{{ turma.media }}</span>
+                                </li>
+                                {% empty %}
+                                <div class="text-center py-5">
+                                    <i class="bi bi-shield-check text-success fs-1 mb-2"></i>
+                                    <p class="text-success fw-bold mb-0">Nenhuma turma em estado crítico!</p>
+                                    <small class="text-muted">Todas as turmas estão com média acima de 6.0 na sua área.</small>
+                                </div>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("searchProf");
+        if(searchInput) {
+            searchInput.addEventListener("keyup", function() {
+                let filter = searchInput.value.toLowerCase();
+                let rows = document.querySelectorAll(".prof-row");
+                
+                rows.forEach(row => {
+                    let text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(filter) ? "" : "none";
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
