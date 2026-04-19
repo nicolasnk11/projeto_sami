@@ -51,6 +51,25 @@ from .forms import (
 
 from .services.ai_generator import gerar_questao_ia
 from .services.omr_scanner import OMRScanner
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import user_passes_test, login_required
+
+# ==============================================================================
+# 🛡️ CADEADOS DE SEGURANÇA (RBAC - ROLE-BASED ACCESS CONTROL)
+# ==============================================================================
+
+def admin_check(user):
+    """Permite acesso APENAS a Administradores (Gestão/Secretaria)."""
+    if not user.is_authenticated: return False
+    return user.is_superuser or user.is_staff
+
+def prof_ou_admin_check(user):
+    """Permite acesso a Professores, Aplicadores e Administradores."""
+    if not user.is_authenticated: return False
+    if user.is_superuser or user.is_staff: return True
+    if hasattr(user, 'professor_perfil'): return True
+    return False
+
 
 def is_staff_check(user):
     return user.is_authenticated and user.is_staff
@@ -172,7 +191,7 @@ def scanner_dificuldade(valor):
 # 📊 DASHBOARD OTIMIZADO 2.0 
 # ==============================================================================
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def dashboard(request):
     import json
     from django.db.models import Avg, Count, Q
@@ -379,7 +398,7 @@ def dashboard(request):
 
     return render(request, 'core/dashboard.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def api_raio_x(request):
     descritor_cod = request.GET.get('descritor')
     
@@ -405,7 +424,7 @@ def api_raio_x(request):
     
     return JsonResponse({'alunos': lista_alunos})
 
-@login_required
+@user_passes_test(admin_check, login_url='/redirecionar/')
 def painel_gestao(request):
     total_turmas = Turma.objects.count()
     total_questoes = Questao.objects.count()
@@ -418,7 +437,7 @@ def painel_gestao(request):
 # 📥 IMPORTAÇÕES
 # ==============================================================================
 
-@login_required
+@user_passes_test(admin_check, login_url='/redirecionar/')
 def importar_questoes(request):
     from django.db.models import Q
     
@@ -503,7 +522,7 @@ def importar_questoes(request):
         form = ImportarQuestoesForm()
     return render(request, 'core/importar_questoes.html', {'form': form})
 
-@login_required
+@user_passes_test(admin_check, login_url='/redirecionar/')
 def importar_alunos(request):
     if request.GET.get('baixar_modelo'):
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -588,7 +607,7 @@ def importar_alunos(request):
 
     return render(request, 'core/importar_alunos.html', {'form': form})
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def baixar_modelo(request, formato):
     dados = {
         'Disciplina': ['Matemática', 'Português'], 'Série': ['1', '3'], 'Descritor': ['D12', 'S01'],
@@ -613,8 +632,7 @@ def baixar_modelo(request, formato):
 # ==============================================================================
 # 📝 GESTÃO DE AVALIAÇÕES E PROVAS 
 # ==============================================================================
-
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def gerenciar_avaliacoes(request):
     if request.method == 'POST' and 'delete_id' in request.POST:
         av = get_object_or_404(Avaliacao, id=request.POST.get('delete_id'))
@@ -679,7 +697,7 @@ def gerenciar_avaliacoes(request):
     return render(request, 'core/avaliacoes.html', context)
 
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def criar_avaliacao(request):
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
@@ -770,7 +788,7 @@ def criar_avaliacao(request):
     }
     return render(request, 'core/criar_avaliacao.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def gerar_prova_pdf(request):
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
@@ -998,7 +1016,7 @@ def gerar_prova_pdf(request):
     return redirect('gerenciar_avaliacoes')
 
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def baixar_prova_existente(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     itens = ItemGabarito.objects.filter(avaliacao=avaliacao, questao_banco__isnull=False).select_related('questao_banco', 'descritor').order_by('numero')
@@ -1114,7 +1132,7 @@ def baixar_prova_existente(request, avaliacao_id):
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f'Prova_{avaliacao.titulo}.pdf')
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def montar_prova(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     
@@ -1173,7 +1191,7 @@ def montar_prova(request, avaliacao_id):
     
     return render(request, 'core/montar_prova.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def definir_gabarito(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     itens_salvos = ItemGabarito.objects.filter(avaliacao=avaliacao).order_by('numero')
@@ -1259,7 +1277,7 @@ def definir_gabarito(request, avaliacao_id):
     }
     return render(request, 'core/definir_gabarito.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def lancar_nota(request):
     avaliacao_id = request.GET.get('avaliacao_id')
     avaliacao_obj = None
@@ -1367,7 +1385,7 @@ def lancar_nota(request):
     })
 
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def api_lancar_nota_ajax(request):
     import json
     if request.method == 'GET':
@@ -1462,7 +1480,7 @@ def api_lancar_nota_ajax(request):
 # 📋 GERENCIAMENTO GERAL
 # ==============================================================================
 
-@login_required
+@user_passes_test(admin_check, login_url='/redirecionar/')
 def gerenciar_alunos(request):
     if request.method == 'POST':
         acao = request.POST.get('acao')
@@ -1584,7 +1602,7 @@ def gerenciar_alunos(request):
         'ano_atual': filtro_ano 
     })
 
-@login_required
+@user_passes_test(admin_check, login_url='/redirecionar/')
 def gerenciar_turmas(request):
     if request.method == 'POST':
         acao = request.POST.get('acao')
@@ -1620,7 +1638,7 @@ def gerenciar_turmas(request):
     return render(request, 'core/turmas.html', {'turmas': turmas})
 
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def listar_questoes(request):
     from django.db.models import Q
     
@@ -1720,7 +1738,7 @@ def listar_questoes(request):
     }
     return render(request, 'core/listar_questoes.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 @require_POST
 def editar_avaliacao(request, avaliacao_id):
     av = get_object_or_404(Avaliacao, id=avaliacao_id)
@@ -1766,7 +1784,7 @@ def editar_avaliacao(request, avaliacao_id):
 # 📊 RELATÓRIO DE PROFICIÊNCIA
 # ==============================================================================
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def gerar_relatorio_proficiencia(request):
     import io
     import os
@@ -2016,7 +2034,7 @@ def gerar_relatorio_proficiencia(request):
         
     return FileResponse(buffer, as_attachment=True, filename=filename)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def api_filtrar_alunos(request):
     turma_id = request.GET.get('turma_id')
     if turma_id:
@@ -2035,7 +2053,7 @@ def api_filtrar_alunos(request):
 
 # PERFIL DO ALUNO E DESEMPENHO.
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def perfil_aluno(request, aluno_id):
     import json
     aluno = get_object_or_404(Aluno, id=aluno_id)
@@ -2100,7 +2118,7 @@ def perfil_aluno(request, aluno_id):
     
     return render(request, 'core/perfil_aluno.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def mapa_calor(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     
@@ -2151,7 +2169,7 @@ def mapa_calor(request, avaliacao_id):
     return render(request, 'core/mapa_calor.html', context)
 
 # BOLETIM PDF (DELUXE EDITION - BRAND SAMI)
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def gerar_boletim_pdf(request, aluno_id):
     import io
     from reportlab.pdfgen import canvas
@@ -2692,7 +2710,7 @@ def gerar_boletim_pdf(request, aluno_id):
 # ==========================================
 # 2. GERADOR DE CARTÕES (COM QR CODE)      #
 # ==========================================
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def gerar_cartoes_pdf(request, avaliacao_id):
     from django.utils.text import slugify
     import io
@@ -2858,7 +2876,7 @@ def gerar_cartoes_pdf(request, avaliacao_id):
         return redirect('gerenciar_avaliacoes')
 
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def gerenciar_ndi(request):
     turma_id = request.GET.get('turma')
     disciplina_id = request.GET.get('disciplina')
@@ -2943,7 +2961,7 @@ def gerenciar_ndi(request):
         'bimestres_opts': [1, 2, 3, 4]
     })
     
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def plano_anual(request):
     turma_id = request.GET.get('turma')
     disciplina_selecionada = request.GET.get('disciplina')
@@ -3064,7 +3082,7 @@ def plano_anual(request):
         'planos_para_importar': planos_para_importar 
     })
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def imprimir_plano_pdf(request, plano_id):
     plano = get_object_or_404(PlanoEnsino, id=plano_id)
     
@@ -3089,7 +3107,7 @@ def imprimir_plano_pdf(request, plano_id):
     
     return HttpResponse("Erro ao gerar PDF", status=500)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def mover_topico(request, id, novo_status):
     topico = get_object_or_404(TopicoPlano, id=id)
     if novo_status in ['TODO', 'DOING', 'DONE']:
@@ -3097,12 +3115,12 @@ def mover_topico(request, id, novo_status):
         topico.save()
     return JsonResponse({'status': 'ok'})
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 @require_POST
 def toggle_topico(request, id):
     return JsonResponse({'status': 'ok'})
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def api_gerar_questao(request):
     disciplina_id = request.GET.get('disciplina_id')
     topico = request.GET.get('topico')
@@ -3122,7 +3140,7 @@ def api_gerar_questao(request):
     dados_ia = gerar_questao_ia(disciplina, topico, habilidade_texto, dificuldade)
     return JsonResponse(dados_ia)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def gerenciar_descritores(request):
     filtro_disc = request.GET.get('disciplina')
     filtro_matriz = request.GET.get('matriz')
@@ -3224,7 +3242,7 @@ def gerenciar_descritores(request):
     }
     return render(request, 'core/gerenciar_descritores.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def upload_correcao_cartao(request, avaliacao_id):
     avaliacao = get_object_or_404(Avaliacao, id=avaliacao_id)
     
@@ -3387,7 +3405,7 @@ def dashboard_redirect(request):
     else:
         return HttpResponse("Acesso não autorizado.")
     
-
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def consultar_acesso(request):
     matriculas = None
     termo = request.GET.get('nome_busca') or request.POST.get('nome_busca')
@@ -3429,7 +3447,7 @@ def trocar_senha_aluno(request):
         
     return redirect('dashboard_aluno')
 
-@login_required
+@user_passes_test(admin_check, login_url='/redirecionar/')
 def gerar_acessos_em_massa(request):
     if not request.user.is_superuser:
         messages.error(request, "Apenas administradores podem realizar esta ação.")
@@ -3480,7 +3498,7 @@ def gerar_acessos_em_massa(request):
     return redirect('dashboard')
 
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def relatorio_ndi_print(request, turma_id, disciplina_id, bimestre):
     turma = get_object_or_404(Turma, id=turma_id)
     disciplina = get_object_or_404(Disciplina, id=disciplina_id)
@@ -3526,7 +3544,7 @@ def relatorio_ndi_print(request, turma_id, disciplina_id, bimestre):
 # ==============================================================================
 # 🔥 O CORAÇÃO DA SEGURANÇA: ÁREA DO PROFESSOR (SANDBOX)
 # ==============================================================================
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def area_professor(request):
     from django.db.models import Avg, Q, Count
     from datetime import datetime
@@ -3645,7 +3663,7 @@ def redirecionar_apos_login(request):
     messages.error(request, "Perfil não identificado. Contate a secretaria.")
     return redirect('dashboard')
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def dashboard_aplicador(request):
     from django.db.models import Count, Q
     from datetime import datetime
@@ -3701,7 +3719,7 @@ def dashboard_aplicador(request):
     }
     return render(request, 'core/dashboard_aplicador.html', context)
 
-@login_required
+@user_passes_test(admin_check, login_url='/redirecionar/')
 def gerenciar_virada_ano(request):
     mes_atual = timezone.now().month
     ano_atual = timezone.now().year
@@ -3871,7 +3889,7 @@ def cadastrar_professor(request):
     }
     return render(request, 'core/cadastrar_professor.html', context)
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def resultados_turma(request, avaliacao_id):
     from django.db.models import Avg
     
@@ -3934,7 +3952,7 @@ def resultados_turma(request, avaliacao_id):
 
 from django.http import FileResponse
 
-@login_required
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def baixar_relatorio_raiox_pdf(request, avaliacao_id):
     import io
     from reportlab.lib import colors
