@@ -1239,21 +1239,35 @@ def definir_gabarito(request, avaliacao_id):
                         count_replicas = 0
                         
                         for irma in provas_irmas:
-                            ItemGabarito.objects.filter(avaliacao=irma).delete()
+                            # 🛡️ BLINDAGEM: Pegamos os itens existentes em vez de deletar
+                            itens_irma = {item.numero: item for item in ItemGabarito.objects.filter(avaliacao=irma)}
                             
-                            novos_itens = []
                             for gabarito_oficial in itens_salvos:
-                                novos_itens.append(ItemGabarito(
-                                    avaliacao=irma,
-                                    numero=gabarito_oficial.numero,
-                                    resposta_correta=gabarito_oficial.resposta_correta,
-                                    descritor=gabarito_oficial.descritor,
-                                    questao_banco=gabarito_oficial.questao_banco
-                                ))
-                            ItemGabarito.objects.bulk_create(novos_itens)
+                                if gabarito_oficial.numero in itens_irma:
+                                    # Atualiza o item existente (MANTÉM O ALUNO CONECTADO!)
+                                    item_existente = itens_irma[gabarito_oficial.numero]
+                                    item_existente.resposta_correta = gabarito_oficial.resposta_correta
+                                    item_existente.descritor = gabarito_oficial.descritor
+                                    item_existente.questao_banco = gabarito_oficial.questao_banco
+                                    item_existente.save()
+                                    del itens_irma[gabarito_oficial.numero] # Tira da lista os que já salvamos
+                                else:
+                                    # Se a prova nova for maior, cria as questões extras
+                                    ItemGabarito.objects.create(
+                                        avaliacao=irma,
+                                        numero=gabarito_oficial.numero,
+                                        resposta_correta=gabarito_oficial.resposta_correta,
+                                        descritor=gabarito_oficial.descritor,
+                                        questao_banco=gabarito_oficial.questao_banco
+                                    )
+                            
+                            # Se a prova antiga tinha questões a mais, deleta só as sobras
+                            for item_sobrando in itens_irma.values():
+                                item_sobrando.delete()
+
                             count_replicas += 1
                         
-                        messages.success(request, f"Gabarito salvo e replicado para outras {count_replicas} turmas com sucesso!")
+                        messages.success(request, f"Gabarito salvo e replicado para {count_replicas} turmas de forma segura!")
                     else:
                         messages.success(request, "Gabarito salvo apenas para esta turma.")
 
@@ -1269,7 +1283,7 @@ def definir_gabarito(request, avaliacao_id):
         filtros = filtros | Q(area_enem=disciplina_obj.area_enem, matriz='ENEM')
         
     descritores = Descritor.objects.filter(filtros).order_by('matriz', 'codigo')
-
+ 
     context = {
         'avaliacao': avaliacao, 
         'itens': itens_salvos,
