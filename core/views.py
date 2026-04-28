@@ -425,7 +425,7 @@ def api_raio_x(request):
     
     return JsonResponse({'alunos': lista_alunos})
 
-@user_passes_test(admin_check, login_url='/redirecionar/')
+@user_passes_test(prof_ou_admin_check, login_url='/redirecionar/')
 def painel_gestao(request):
     total_turmas = Turma.objects.count()
     total_questoes = Questao.objects.count()
